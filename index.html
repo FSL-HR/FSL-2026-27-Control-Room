@@ -299,17 +299,6 @@ const isPlaced = g => WK.includes(g.weekend);
 /* team scheduled game count */
 function teamGameCount(nm,div){return games.filter(g=>(g.home===nm||g.away===nm)&&g.division===div&&isPlaced(g)).length;}
 function teamWeekends(nm,div){return [...new Set(games.filter(g=>(g.home===nm||g.away===nm)&&g.division===div).map(g=>g.weekend))];}
-/* Item 2: 16U/19U games need 2.25h of ice. Flag any that ended up on a slot shorter than
-   required (e.g. a 2-hour slot). Returns true only for divisions needing more than 2h. */
-function slotTooShort(g){
-  if(!g||!g.time||!g.endTime) return false;
-  const need=Math.round(slotHours(g.division)*60);
-  if(need<=120) return false;
-  const pm=t=>{const m=/^(\d{1,2}):(\d{2})/.exec(String(t));return m?(+m[1])*60+(+m[2]):null;};
-  const a=pm(g.time), b=pm(g.endTime); if(a==null||b==null) return false;
-  let d=b-a; if(d<0)d+=1440;
-  return d>0 && d<need;
-}
 
 /* ============ CONFLICT ENGINE ============ */
 function detectConflicts(scope){
@@ -475,10 +464,6 @@ function detectConflicts(scope){
         msg:`${tm} (${div}) visits Cowichan ${wks.size}× — teams may make at most two Cowichan trips per season.`,wk:[...wks][0]});
     }
   });
-
-  // Item 2: 16U/19U games need 2.25h; flag any sitting on a slot shorter than required (e.g. 2h).
-  pool.forEach(g=>{ if(slotTooShort(g)) out.push({sev:'soft',rule:'Slot too short',
-    msg:`${g.division}: ${g.home} vs ${g.away} at ${g.venue.replace(/\s*\(NEW\)/i,'')} ${g.day||''} ${g.time||''} (${g.weekend}) is on a 2-hour slot but needs ${slotHours(g.division)}h.`,wk:g.weekend}); });
 
   out.forEach(c=>{ c.id=confId(c); c.ack=!!(CONFLICT_ACK&&CONFLICT_ACK[c.id]); });
   return out;
@@ -774,22 +759,6 @@ var VENUE_ADDS=(function(){try{return JSON.parse(localStorage.getItem('fsl_venue
 function saveVenueAdds(){try{localStorage.setItem('fsl_venue_adds_v1',JSON.stringify(VENUE_ADDS));}catch(e){}}
 function applyVenueAdds(){ VENUE_ADDS.forEach(a=>{ if(!DATA.venues.some(v=>v.weekend===a.weekend&&v.venue===a.venue)) DATA.venues.push(Object.assign({},a,{added:true})); }); }
 applyVenueAdds();
-/* ===== LOCKED weekends (item 4): mark a weekend/showcase COMPLETE so no auto-solve /
-   auto-timing / moves are applied to it. Saved in this browser. ===== */
-var LOCKED=(function(){try{return JSON.parse(localStorage.getItem('fsl_locked_v1')||'{}')||{};}catch(e){return {};}})();
-function saveLocked(){try{localStorage.setItem('fsl_locked_v1',JSON.stringify(LOCKED));}catch(e){}}
-function isLocked(wk){return !!(LOCKED&&LOCKED[wk]);}
-function venueLockKey(wk,venue){return wk+'|||'+venue;}
-function isVenueLocked(wk,venue){return !!(LOCKED&&LOCKED[venueLockKey(wk,venue)]);}
-/* A venue is "effectively locked" if its own venue lock is on, OR the whole weekend is locked. */
-function isEffLocked(wk,venue){return isLocked(wk)||isVenueLocked(wk,venue);}
-/* ===== Permanently removed games (item 5): a game the user removes stays gone across
-   schedule reloads / new published versions (not just this session). Saved by id. ===== */
-var REMOVED_GAMES=(function(){try{return JSON.parse(localStorage.getItem('fsl_removed_games_v1')||'[]')||[];}catch(e){return [];}})();
-function saveRemovedGames(){try{localStorage.setItem('fsl_removed_games_v1',JSON.stringify(REMOVED_GAMES));}catch(e){}}
-function markGameRemoved(id){id=String(id);if(REMOVED_GAMES.indexOf(id)<0){REMOVED_GAMES.push(id);saveRemovedGames();}}
-function unmarkGameRemoved(id){id=String(id);const i=REMOVED_GAMES.indexOf(id);if(i>=0){REMOVED_GAMES.splice(i,1);saveRemovedGames();}}
-function applyRemovedGames(){ if(!REMOVED_GAMES.length||typeof games==='undefined'||!Array.isArray(games)) return; const rm=new Set(REMOVED_GAMES.map(String)); for(let i=games.length-1;i>=0;i--){ if(rm.has(String(games[i].id))) games.splice(i,1); } }
 // Acknowledged conflicts: user has reviewed/accepted these, so they drop out of the alert counts.
 var CONFLICT_ACK=(function(){try{return JSON.parse(localStorage.getItem('fsl_conflict_ack_v1')||'{}')||{};}catch(e){return {};}})();
 function saveConflictAck(){try{localStorage.setItem('fsl_conflict_ack_v1',JSON.stringify(CONFLICT_ACK));}catch(e){}}
@@ -1012,12 +981,10 @@ function iceView(){
       return `<div class="slot ${cls}"><div class="d">${d}</div><div class="v">${n}/${c||'—'}</div></div>`;};
     const ua=r.unassigned?`<div class="slot" title="games with no day assigned"><div class="d">n/a</div><div class="v">${r.unassigned}</div></div>`:'';
     let tcls='';if(r.capTot&&r.usedTot>r.capTot)tcls='over';else if(r.capTot&&r.usedTot===r.capTot)tcls='full';
-    const overDays=DAYS.filter(d=>r.caps[d]!=null && r.u[d]>r.caps[d]);
-    const overBadge=(r.capTot&&r.usedTot>r.capTot)?`<span class="pill" title="More games than ice slots${overDays.length?' on '+overDays.join(', '):''}" style="background:var(--red);color:#fff;font-weight:800;margin-left:6px">\u26A0 OVERBOOKED${overDays.length?' \u00b7 '+overDays.join('/'):''}</span>`:'';
     const freeTxt = r.isNew ? `${r.usedTot} to source` : `${r.free} free`;
     const freeColor = r.free<0?'var(--red)':(r.free===0?'var(--warn)':'var(--ok)');
     return `<tr><td><b>${r.wk}</b></td>
-      <td class="tm">${r.v.venue.replace(/\s*\(NEW\)/i,'')} ${r.isNew?'<span class="pill" style="background:var(--warnbg);color:var(--warn)">NEW</span>':''}${r.v.added?'<span class="pill" style="background:#e8f6ee;color:var(--ok)">added</span>':''}${overBadge}</td>
+      <td class="tm">${r.v.venue.replace(/\s*\(NEW\)/i,'')} ${r.isNew?'<span class="pill" style="background:var(--warnbg);color:var(--warn)">NEW</span>':''}${r.v.added?'<span class="pill" style="background:#e8f6ee;color:var(--ok)">added</span>':''}</td>
       <td><span class="pill ${regClass(r.v.region)}">${r.v.region}</span></td>
       <td><div class="slots">${cell('Fri')}${cell('Sat')}${cell('Sun')}${ua}</div></td>
       <td><div class="slot ${tcls}"><div class="v">${r.usedTot}/${r.capTot||'—'}</div></div></td>
@@ -1241,11 +1208,6 @@ function solveWeekend(wk){
   const report={wk:wk, ts:Date.now(), venues:[]}; let changed=0, issues=0;
   Object.keys(byVenue).forEach(venue=>{
     const list=byVenue[venue];
-    if(isVenueLocked(wk,venue)){ // held venue: leave games exactly as they are
-      report.venues.push({venue:venue, n:list.length, unplaced:0, errs:[], warns:[], flags:['\uD83D\uDD12 Locked venue \u2014 left unchanged by auto-solve.'], repairs:[],
-        days:{Fri:list.filter(g=>g.day==='Fri').length,Sat:list.filter(g=>g.day==='Sat').length,Sun:list.filter(g=>g.day==='Sun').length}, real:true, locked:true});
-      return;
-    }
     const slots=realSlotListFor(wk, venue);
     let out, unplaced, flags, repairs, v, usedReal=false;
     if(slots && slots.length){
@@ -1253,12 +1215,10 @@ function solveWeekend(wk){
       const R=placeIntoSlots(list, slots);
       out=R.out; unplaced=R.unplaced||[]; flags=R.flags||[]; repairs=R.repairs||[]; v={errs:[], warns:R.warns||[]};
     } else {
-      // Item 1: never invent times. With no real ice loaded for this venue, leave every game
-      // un-timed and flag it — this tool only schedules from real inputted ice.
-      out={Fri:[],Sat:[],Sun:[]}; unplaced=list.map(g=>String(g.id));
-      flags=['No real ice slots loaded for '+venue.replace(/\s*\(NEW\)/i,'')+' \u2014 '+list.length+' game(s) left un-timed (times are only assigned from real inputted ice).'];
-      repairs=[]; v={errs:[], warns:[]};
+      const raw=list.map(g=>({id:String(g.id),division:g.division,home:g.home,away:g.away}));
+      const res=_SLV.solveVenue(raw); out=res.out; unplaced=res.unplaced||[]; flags=res.flags||[]; repairs=res.repairs||[]; v=_SLV.validate(out);
     }
+    issues += v.errs.length + flags.length;
     ['Fri','Sat','Sun'].forEach(dd=>{ out[dd].forEach(o=>{
       const gg=list.find(x=>String(x.id)===String(o.id)); if(!gg) return;
       const nd=dd, nt=hhmm(o.start), ne=hhmm(o.end), nsheet=o.sheet||'';
@@ -1339,9 +1299,6 @@ function placeIntoSlots(list, slots){
     const g=cand[0], en=slot.end!=null?slot.end:slot.start+block(g.division);
     g._placed=true;
     out[slot.day].push({id:g.id,start:slot.start,end:en,sheet:slot.sheet||'',date:slot.date||''});
-    if(slot.end!=null && (slot.end-slot.start) < block(g.division)){
-      warns.push(g.division+' game ('+g.home+' vs '+g.away+') is on a '+((slot.end-slot.start)/60)+'h slot but needs '+(block(g.division)/60)+'h \u2014 slot too short.');
-    }
     [g.home,g.away].forEach(t=>{ const k=g.division+'|'+t+'|'+slot.day; dayCnt[k]=(dayCnt[k]||0)+1;
       (teamTimes[k]=teamTimes[k]||[]).push({start:slot.start,end:en}); placed[t]=(placed[t]||0)+1; });
     mday[mk(g)+'|'+slot.day]=(mday[mk(g)+'|'+slot.day]||0)+1;
@@ -1365,10 +1322,8 @@ function solveOneVenue(wk, venue){
     const R=placeIntoSlots(list, slots);
     out=R.out; unplaced=R.unplaced||[]; flags=R.flags||[]; repairs=R.repairs||[]; v={errs:[], warns:R.warns||[]};
   } else {
-    // Item 1: no real ice here -> do not fabricate times; leave games un-timed + flag.
-    out={Fri:[],Sat:[],Sun:[]}; unplaced=list.map(g=>String(g.id));
-    flags=['No real ice slots loaded for this venue \u2014 '+list.length+' game(s) left un-timed (times are only assigned from real inputted ice).'];
-    repairs=[]; v={errs:[], warns:[]};
+    const raw=list.map(g=>({id:String(g.id),division:g.division,home:g.home,away:g.away}));
+    const res=_SLV.solveVenue(raw); out=res.out; unplaced=res.unplaced||[]; flags=res.flags||[]; repairs=res.repairs||[]; v=_SLV.validate(out);
   }
   ['Fri','Sat','Sun'].forEach(dd=>{ out[dd].forEach(o=>{
     const gg=list.find(x=>String(x.id)===String(o.id)); if(!gg) return;
@@ -1396,7 +1351,6 @@ function doSwapOpp(valA,valB){
   if(ia===ib){ showToast('Pick team-slots from two different games.','warn'); return; }
   const ga=games.find(g=>String(g.id)===ia), gb=games.find(g=>String(g.id)===ib);
   if(!ga||!gb){ showToast('Could not find those games.','warn'); return; }
-  if(isEffLocked(ga.weekend,ga.venue)||isEffLocked(gb.weekend,gb.venue)){ showToast('\uD83D\uDD12 A locked venue/weekend is involved \u2014 unlock it to swap opponents.','warn'); return; }
   if(ga.division!==gb.division){ showToast('You can only swap within the same division.','warn'); return; }
   const teamA=ga[sa], teamB=gb[sb];
   if(teamA===teamB){ showToast('Those two slots already hold the same team.','warn'); return; }
@@ -1537,14 +1491,11 @@ function weekendView(wk){
       ? `<div class="empty"><div class="ic">🚫</div><h3>No available ice this weekend</h3><div>Every venue for ${wk} is marked removed or not-secured on the Ice Allocation page. Re-mark one as Secured or Held to bring it back here.</div></div>`
       : `<div class="empty"><div class="ic">📅</div><h3>No venues this weekend</h3><div>This weekend has no ice allocated yet.</div></div>`);
   const hiddenNote=(allVs.length-vs.length)>0?` <span style="color:var(--mut)">· ${allVs.length-vs.length} hidden (removed/unsourced)</span>`:'';
-  const locked=isLocked(wk);
-  const lockBtn=`<button class="tb-btn" data-act="toggleLock" data-wk="${wk}" title="${locked?'Unlock this weekend to allow changes again':'Lock this weekend/showcase as complete \u2014 no auto-solve, auto-timing, or moves will be applied to it'}" style="white-space:nowrap;${locked?'background:#e8f6ee;color:var(--ok);border-color:var(--ok)':''}">${locked?'\uD83D\uDD12 Locked \u00b7 unlock':'\uD83D\uDD13 Lock weekend'}</button>`;
-  const lockBanner=locked?`<div class="conf-banner good" style="background:#eef6ff;border-color:#b9d4f5;color:#25507f"><span class="ic">\uD83D\uDD12</span><div><b>This weekend is locked (marked complete).</b> Auto weekend solve, \u201CTime this pod\u201D, slot edits, moves, parking, and opponent swaps are disabled here so nothing changes it. Click \u201C\uD83D\uDD12 Locked \u00b7 unlock\u201D above to make changes again.</div></div>`:'';
   return `<div class="wk-head" style="display:flex;align-items:center;justify-content:space-between">
-      <div><h2>${wk} <span style="color:var(--mut);font-weight:600;font-size:15px">· ${WKDATE[wk]||''} (Fri–Sun)</span>${locked?' <span class="pill" style="background:#e8f6ee;color:var(--ok);vertical-align:middle">\uD83D\uDD12 locked</span>':''}</h2><div class="dt">${gamesFor(wk).length} games · ${vTotal} venues${hiddenNote}</div></div>
-      <div style="display:flex;gap:8px">${lockBtn}${(gamesFor(wk).length&&!locked)?`<button class="tb-btn red" data-act="autosolve" data-wk="${wk}" style="white-space:nowrap">⚙ Auto weekend solve</button>`:''}</div>
+      <div><h2>${wk} <span style="color:var(--mut);font-weight:600;font-size:15px">· ${WKDATE[wk]||''} (Fri–Sun)</span></h2><div class="dt">${gamesFor(wk).length} games · ${vTotal} venues${hiddenNote}</div></div>
+      ${gamesFor(wk).length?`<button class="tb-btn red" data-act="autosolve" data-wk="${wk}" style="white-space:nowrap">⚙ Auto weekend solve</button>`:''}
     </div>
-    ${lockBanner}${banner}${strandedBanner}${solveReport(wk)}${confList}${blocks}${extraBlocks}${PG.sectionForWeekend(wk)}`;
+    ${banner}${strandedBanner}${solveReport(wk)}${confList}${blocks}${extraBlocks}${PG.sectionForWeekend(wk)}`;
 }
 function solveReport(wk){
   const r=SOLVE_REPORT[wk]; if(!r||!r.venues||!r.venues.length) return '';
@@ -1638,22 +1589,18 @@ function venueBlock(wk,v){
   const totCap=v.capFri+v.capSat+v.capSun;
   const totUsed=vgames.length;
   let tcls='';if(totCap&&totUsed>totCap)tcls='over';else if(totCap&&totUsed===totCap)tcls='full';
-  const overBooked = totCap && totUsed>totCap;
-  const overDays = DAYS.filter(d=>caps[d]!=null && vgames.filter(g=>g.day===d).length>caps[d]);
   const divs=[...new Set(vgames.map(g=>g.division))].sort();
   const bWhole=`<button data-act="pgParkVenue" data-wk="${iceEscA(wk)}" data-venue="${iceEscA(v.venue)}" title="Park every game at this venue this weekend" style="font-size:11px;padding:4px 10px;border:1px solid #E0A743;border-radius:6px;background:var(--warnbg);color:var(--warn);cursor:pointer;font-weight:700;white-space:nowrap">🅿 Whole pod (${vgames.length})</button>`;
   const bDivs=divs.map(dv=>{const n=vgames.filter(g=>g.division===dv).length;return `<button data-act="pgParkDiv" data-wk="${iceEscA(wk)}" data-venue="${iceEscA(v.venue)}" data-div="${iceEscA(dv)}" title="Pull just the ${dv} games here to the garage (leaves the rest)" style="font-size:11px;padding:4px 10px;border:1px solid #E0A743;border-radius:6px;background:#fff;color:var(--warn);cursor:pointer;font-weight:600;white-space:nowrap">🅿 ${dv} (${n})</button>`;}).join('');
   // Always expose a per-division pull; "Whole pod" only adds value when >1 division is present.
-  const vLocked=isEffLocked(wk,v.venue);
-  const parkBar = (vgames.length && !vLocked) ? `<div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:8px 17px;border-bottom:1px solid var(--line-l);background:#FFFDF7">
+  const parkBar = vgames.length ? `<div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:8px 17px;border-bottom:1px solid var(--line-l);background:#FFFDF7">
       <span style="font-size:11px;color:var(--mut-d);font-weight:600;margin-right:2px">Pull to garage →</span>
       ${divs.length>1?bWhole:''}${bDivs}
       <button data-act="slotEditToggle" data-wk="${iceEscA(wk)}" data-venue="${iceEscA(v.venue)}" title="Manually assign games to this venue's real ice slots" style="margin-left:auto;font-size:11px;padding:4px 10px;border:1px solid #3C3489;border-radius:6px;background:${SLOT_EDIT===(wk+'|||'+v.venue)?'#EEEDFE':'#fff'};color:#3C3489;cursor:pointer;font-weight:700;white-space:nowrap">${SLOT_EDIT===(wk+'|||'+v.venue)?'\u2715 Close slots':'\u270E Assign slots'}</button>
       <button data-act="podTime" data-wk="${iceEscA(wk)}" data-venue="${iceEscA(v.venue)}" title="Assign day + start times to just this pod (same rules as Auto weekend solve)" style="font-size:11px;padding:4px 10px;border:1px solid var(--red);border-radius:6px;background:#fff;color:var(--red);cursor:pointer;font-weight:700;white-space:nowrap">⚙ Time this pod</button>
     </div>` : '';
-  const lockedNote = (vgames.length && isVenueLocked(wk,v.venue) && !isLocked(wk)) ? `<div style="padding:7px 17px;border-bottom:1px solid var(--line-l);background:#eef6ff;font-size:11.5px;color:#25507f"><b>\uD83D\uDD12 This venue is locked.</b> Its games are held as-is \u2014 auto-solve skips it, and timing / slot edits / parking / swaps are disabled here. Use the \uD83D\uDD12 button above to unlock.</div>` : '';
   // Swap opponents between two games in a division (counts are preserved by construction).
-  const swapDivs=vLocked?[]:divs.filter(dv=>vgames.filter(g=>g.division===dv).length>=2);
+  const swapDivs=divs.filter(dv=>vgames.filter(g=>g.division===dv).length>=2);
   const swapBar = swapDivs.length ? `<div style="padding:8px 17px;border-bottom:1px solid var(--line-l);background:#FCFBFF">
       <span style="font-size:11px;color:var(--mut-d);font-weight:600">Swap opponents — trades a team between two games; game counts never change →</span>
       ${swapDivs.map(dv=>{
@@ -1671,13 +1618,12 @@ function venueBlock(wk,v){
         </div>`;
       }).join('')}
     </div>` : '';
-  const venLockBtn = isLocked(wk) ? '' : `<button data-act="toggleVenueLock" data-wk="${iceEscA(wk)}" data-venue="${iceEscA(v.venue)}" title="${isVenueLocked(wk,v.venue)?'Unlock this venue':'Lock just this venue \u2014 hold its games, skip it in auto-solve, and disable edits/moves here'}" style="margin-left:8px;font-size:10.5px;padding:2px 9px;border-radius:6px;font-weight:700;cursor:pointer;border:1px solid ${isVenueLocked(wk,v.venue)?'var(--ok)':'var(--line-l)'};background:${isVenueLocked(wk,v.venue)?'#e8f6ee':'#fff'};color:${isVenueLocked(wk,v.venue)?'var(--ok)':'var(--mut-d)'};white-space:nowrap">${isVenueLocked(wk,v.venue)?'\uD83D\uDD12 Locked \u00b7 unlock':'\uD83D\uDD13 Lock venue'}</button>`;
-  return `<div class="venue-block"${overBooked?' style="border:2px solid var(--red)"':(isVenueLocked(wk,v.venue)&&!isLocked(wk)?' style="border:1.5px solid var(--ok)"':'')}>
+  return `<div class="venue-block">
     <div class="venue-top"><div class="vn">${v.venue.replace(/\s*\(NEW\)/i,'')}${isNew?'<span class="new">NEW · SOURCE ICE</span>':''}
-      <span class="pill ${regClass(v.region)}" style="margin-left:8px">${v.region}</span>${Math.max(sheetsForCap(v.capFri),sheetsForCap(v.capSat),sheetsForCap(v.capSun))>1?`<span class="pill" style="margin-left:6px;background:#EEEDFE;color:#3C3489">${Math.max(sheetsForCap(v.capFri),sheetsForCap(v.capSat),sheetsForCap(v.capSun))} sheets</span>`:''}${overBooked?`<span class="pill" title="More games than ice slots${overDays.length?' on '+overDays.join(', '):''}" style="margin-left:6px;background:var(--red);color:#fff;font-weight:800">\u26A0 OVERBOOKED ${totUsed}/${totCap}${overDays.length?' \u00b7 '+overDays.join('/'):''}</span>`:''}${isVenueLocked(wk,v.venue)?`<span class="pill" style="margin-left:6px;background:#e8f6ee;color:var(--ok);font-weight:800">\uD83D\uDD12 locked</span>`:''}${venLockBtn}</div>
+      <span class="pill ${regClass(v.region)}" style="margin-left:8px">${v.region}</span>${Math.max(sheetsForCap(v.capFri),sheetsForCap(v.capSat),sheetsForCap(v.capSun))>1?`<span class="pill" style="margin-left:6px;background:#EEEDFE;color:#3C3489">${Math.max(sheetsForCap(v.capFri),sheetsForCap(v.capSat),sheetsForCap(v.capSun))} sheets</span>`:''}</div>
       <div class="slots">${slot('Fri')}${slot('Sat')}${slot('Sun')}<div class="slot ${tcls}"><div class="d">tot</div><div class="v">${totUsed}/${totCap||'—'}</div></div></div></div>
-    ${parkBar}${lockedNote}
-    ${(SLOT_EDIT===(wk+'|||'+v.venue) && !vLocked)?slotGrid(wk,v.venue):''}
+    ${parkBar}
+    ${SLOT_EDIT===(wk+'|||'+v.venue)?slotGrid(wk,v.venue):''}
     ${swapBar}
     <div class="venue-games">${bodyGroups||'<div style="color:var(--mut-d);font-size:12px;padding:8px 0">No games placed here yet.</div>'}
     </div></div>`;
@@ -1687,11 +1633,10 @@ function gameLine(g){
   return `<div class="gline">
     <span class="gnum" title="Game number" style="font-variant-numeric:tabular-nums;font-weight:800;color:var(--mut-d);font-size:11px;margin-right:2px">${matchNo(g)}</span>
     <span class="gd" style="width:auto;min-width:54px;white-space:nowrap">${timeTxt}</span>
-    ${slotTooShort(g)?`<span title="${g.division} needs ${slotHours(g.division)}h of ice but this slot is only 2h." style="margin-left:6px;font-size:9.5px;font-weight:800;color:#fff;background:var(--red);border-radius:4px;padding:1px 6px;white-space:nowrap">\u26A0 2h slot</span>`:''}
     <span class="gdiv">${g.division}</span>
     <span class="gm">${g.home}<span class="vs">vs</span>${g.away}</span>
     ${g.sheet?`<span style="margin-left:8px;font-size:11px;color:var(--mut-d);white-space:nowrap">\u25F8 ${iceEscA(g.sheet)}</span>`:''}
-    ${isEffLocked(g.weekend,g.venue)?'':`<button data-act="pgPark" data-id="${iceEscA(g.id)}" title="Park this game — hold it on this weekend with no slot" style="margin-left:auto;font-size:10px;padding:2px 7px;border:1px solid var(--line-l);border-radius:5px;background:#fff;color:var(--warn);cursor:pointer;white-space:nowrap">🅿 Park</button>`}
+    <button data-act="pgPark" data-id="${iceEscA(g.id)}" title="Park this game — hold it on this weekend with no slot" style="margin-left:auto;font-size:10px;padding:2px 7px;border:1px solid var(--line-l);border-radius:5px;background:#fff;color:var(--warn);cursor:pointer;white-space:nowrap">🅿 Park</button>
     </div>`;
 }
 
@@ -2250,7 +2195,6 @@ const XP=(function(){
   function dur(g){const a=parseMin(g.time),b=parseMin(g.endTime);if(a==null||b==null)return '';let d=b-a;if(d<0)d+=1440;const h=Math.floor(d/60),m=d%60;return ((h?h+'h':'')+(m?(h?' ':'')+m+'m':'')) || '0m';}
   const needsWk=k=>k==='arenawknd';
   function itemsFor(kind){
-    if(kind==='league')return [['ALL','All divisions \u2014 whole league schedule']];
     if(kind==='team')return DATA.teams.slice().sort((a,b)=>DIVORDER.indexOf(a.division)-DIVORDER.indexOf(b.division)||a.name.localeCompare(b.name)).map(t=>[t.division+'|||'+t.name,t.name+'  \u2014  '+t.division]);
     if(kind==='division')return DIVORDER.map(d=>[d,d]);
     if(kind==='weekend')return WK.map(w=>[w,w+'  ('+(WKDATE[w]||'')+')']);
@@ -2264,16 +2208,10 @@ const XP=(function(){
       .map(w=>{const n=games.filter(g=>g.venue===STATE.key&&g.weekend===w).length;
         return [w,w+'  ('+(WKDATE[w]||'')+')  \u2014  '+n+' game'+(n===1?'':'s')];});
   }
-  const kindLabel=k=>({league:'Scope',team:'Team',division:'Division',weekend:'Weekend',city:'City',arena:'Arena / building',arenawknd:'Arena / building'}[k]||'Item');
+  const kindLabel=k=>({team:'Team',division:'Division',weekend:'Weekend',city:'City',arena:'Arena / building',arenawknd:'Arena / building'}[k]||'Item');
   function spec(kind,key,key2){
     let title='',cols=[],rows=[],color=()=>'#ffffff',legend='',note='';
-    if(kind==='league'){
-      const gs=games.slice().sort((a,b)=>DIVORDER.indexOf(a.division)-DIVORDER.indexOf(b.division)||gsort(a,b));
-      title='FSL \u2014 Full League Schedule (all divisions)';
-      cols=['Division','Weekend','Date','Day','Time','City','Arena','Ice Surface','Home','Away'];
-      rows=gs.map(g=>({c:[g.division,g.weekend,dateCol(g),g.day||'',g.time||'TBD',cityOf(g.venue),arenaOf(g.venue),g.sheet||'',g.home,g.away],k:g.division}));
-      color=r=>DIVFILL[r.k]||'#ffffff'; legend='color = division \u00b7 every game in the league';
-    } else if(kind==='team'){
+    if(kind==='team'){
       const p=String(key).split('|||'),div=p[0],nm=p[1],t=teamObj(nm,div);
       const gs=games.filter(g=>g.division===div&&(g.home===nm||g.away===nm)).sort(gsort);
       title=nm+' \u2014 '+div+' \u2014 Team Schedule';
@@ -2354,7 +2292,7 @@ const XP=(function(){
     ensureKey();
     const prim='padding:6px 14px;border-radius:8px;border:1px solid transparent;background:var(--ok);color:#fff;font-size:12px;font-weight:700;cursor:pointer;';
     const selSty='margin-top:3px;padding:4px 8px;border:1px solid var(--line-l);border-radius:7px;font-size:12px;max-width:340px';
-    const typeOpts=[['league','\uD83C\uDFD2 Whole league (all divisions)'],['team','Team schedule'],['division','Division schedule'],['weekend','Weekend schedule'],['city','Venue schedule (by city)'],['arena','Arena schedule (by building)'],['arenawknd','Arena \u2014 one weekend (send to the arena)']];
+    const typeOpts=[['team','Team schedule'],['division','Division schedule'],['weekend','Weekend schedule'],['city','Venue schedule (by city)'],['arena','Arena schedule (by building)'],['arenawknd','Arena \u2014 one weekend (send to the arena)']];
     const items=itemsFor(STATE.kind);
     const sp=(STATE.key!=null&&(!needsWk(STATE.kind)||STATE.key2!=null))?spec(STATE.kind,STATE.key,STATE.key2):null;
     const wkSel=needsWk(STATE.kind)?`<label style="font-size:12px;font-weight:700">Weekend<br><select data-actchange="xpKey2" style="${selSty}">${itemsFor2().map(([v,l])=>`<option value="${escA(v)}" ${v===STATE.key2?'selected':''}>${esc(l)}</option>`).join('')}</select></label>`:'';
@@ -2386,22 +2324,9 @@ const PG=(function(){
       if(g){g.venue='';}
       else{games.push({id:id,weekend:e.wk,division:e.division,home:e.home,away:e.away,venue:'',day:'',time:''});}});
   }
-  const parkedFor=wk=>games.filter(g=>g.weekend===wk&&isParked(g)&&!isTbd(g));
+  const parkedFor=wk=>games.filter(g=>g.weekend===wk&&isParked(g));
   const allParked=()=>games.filter(isParked);
-  // Item 7: a parked game can be flagged "date & time TBD" — it keeps counting for both teams
-  // but is no longer tied to the weekend it was pulled from (shown in its own TBD group).
-  function isTbd(g){return !!(PARKING[String(g.id)]&&PARKING[String(g.id)].tbd);}
-  const allTbd=()=>games.filter(g=>isParked(g)&&isTbd(g));
-  function toggleTbd(d){ const id=String(d.id); const e=PARKING[id]; const g=games.find(x=>String(x.id)===id);
-    if(!g){showToast('Could not find that game.','warn');return;}
-    if(!e){ // park it first if it isn't already parked, then flag TBD
-      PARKING[id]={from:g.venue||'',day:g.day||'',time:g.time||'',sheet:g.sheet||'',end:g.endTime||'',wk:g.weekend,division:g.division,home:g.home,away:g.away};
-      g.venue='';g.day='';g.time='';g.sheet='';g.endTime='';
-    }
-    PARKING[id].tbd=!PARKING[id].tbd; saveParking(); render();
-    showToast(PARKING[id].tbd?('\uD83D\uDCC5 '+g.home+' vs '+g.away+' \u2192 date & time TBD (not tied to '+g.weekend+').'):('Re-attached '+g.home+' vs '+g.away+' to '+g.weekend+'.'),'good'); }
   function park(d){const g=games.find(x=>String(x.id)===String(d.id));if(!g)return;
-    if(isEffLocked(g.weekend,g.venue)){showToast('\uD83D\uDD12 This venue is locked \u2014 unlock it to park games.','warn');return;}
     PARKING[String(g.id)]={from:g.venue||'',day:g.day||'',time:g.time||'',sheet:g.sheet||'',end:g.endTime||'',wk:g.weekend,division:g.division,home:g.home,away:g.away};
     g.venue='';g.day='';g.time='';g.sheet='';g.endTime='';saveParking();render();
     showToast('\uD83C\uDD7F Parked: '+g.home+' vs '+g.away+'  ('+g.weekend+')','warn');}
@@ -2410,24 +2335,23 @@ const PG=(function(){
       g.venue='';g.day='';g.time='';g.sheet='';g.endTime='';});
     saveParking();render();
     showToast('\uD83C\uDD7F Parked '+gs.length+' game'+(gs.length>1?'s':'')+(label?' \u2014 '+label:''),'warn'); }
-  function parkVenue(d){ if(isEffLocked(d.wk,d.venue)){showToast('\uD83D\uDD12 This venue is locked \u2014 unlock it first.','warn');return;} const gs=games.filter(g=>g.weekend===d.wk&&g.venue===d.venue); if(!gs.length)return;
+  function parkVenue(d){ const gs=games.filter(g=>g.weekend===d.wk&&g.venue===d.venue); if(!gs.length)return;
     if(!confirm('Park all '+gs.length+' games at '+short(d.venue)+' ('+d.wk+') to the garage?\n\nThey keep counting toward team totals but lose their day/time slots. Undo, or \u201cReturn\u201d in the garage, brings them back.'))return;
     parkMany(gs, short(d.venue)+' \u00b7 '+d.wk); }
-  function parkDivision(d){ if(isEffLocked(d.wk,d.venue)){showToast('\uD83D\uDD12 This venue is locked \u2014 unlock it first.','warn');return;} const gs=games.filter(g=>g.weekend===d.wk&&g.venue===d.venue&&g.division===d.div); if(!gs.length)return;
+  function parkDivision(d){ const gs=games.filter(g=>g.weekend===d.wk&&g.venue===d.venue&&g.division===d.div); if(!gs.length)return;
     if(!confirm('Park all '+gs.length+' '+d.div+' games at '+short(d.venue)+' ('+d.wk+') to the garage?\n\nThey keep counting toward team totals but lose their slots. Undo or \u201cReturn\u201d brings them back.'))return;
     parkMany(gs, d.div+' \u00b7 '+short(d.venue)); }
   function assign(el){const id=el.dataset.id,val=el.value;if(!val)return;const g=games.find(x=>String(x.id)===String(id));if(!g)return;
     let wk=g.weekend, ven=val;
     if(val.indexOf('|||')>=0){const p=val.split('|||');wk=p[0];ven=p.slice(1).join('|||');}
-    if(isEffLocked(wk,ven)){showToast('\uD83D\uDD12 That venue/weekend is locked \u2014 pick a different target.','warn');render();return;}
     g.weekend=wk; g.venue=ven; g.day='';g.time='';g.sheet='';g.endTime='';g.date='';
     delete PARKING[String(id)]; GAME_TIMES[String(id)]={date:'',weekend:wk,day:'',time:'',end:'',sheet:'',venue:ven};
     saveParking(); try{saveGameTimes();}catch(err){}
     render();showToast('Assigned '+g.home+' vs '+g.away+' \u2192 '+short(ven)+' \u00b7 '+wkDateShort(wk),'good');}
   function unparkOrig(d){const e=PARKING[String(d.id)],g=games.find(x=>String(x.id)===String(d.id));if(!g||!e||!e.from)return;
     g.venue=e.from;g.day=e.day||'';g.time=e.time||'';g.sheet=e.sheet||'';g.endTime=e.end||'';delete PARKING[String(d.id)];saveParking();render();showToast('\u21A9 Returned to '+short(e.from),'good');}
-  function removeParked(d){if(!confirm('Remove this parked game from the schedule entirely?\n\nIt will no longer count for the teams, and it will STAY removed across future schedule reloads / new versions (until you restore it via Undo).'))return;
-    const i=games.findIndex(x=>String(x.id)===String(d.id));if(i>=0)games.splice(i,1);delete PARKING[String(d.id)];markGameRemoved(d.id);saveParking();render();showToast('Removed game \u2014 it will stay removed across reloads.','warn');}
+  function removeParked(d){if(!confirm('Remove this parked game from the schedule entirely? (It will no longer count for the teams.)'))return;
+    const i=games.findIndex(x=>String(x.id)===String(d.id));if(i>=0)games.splice(i,1);delete PARKING[String(d.id)];saveParking();render();showToast('Removed parked game.','warn');}
   function addParked(g){PARKING[String(g.id)]={from:'',wk:g.weekend,division:g.division,home:g.home,away:g.away};saveParking();}
   function assignOpts(g){
     // Every venue-weekend where THIS game's division is scheduled, in chronological order (WK is date-ordered).
@@ -2448,14 +2372,12 @@ const PG=(function(){
   function toggleSuggest(key){ sugKey = (sugKey===key ? null : key); render(); }
   function placeAt(d){ const g=games.find(x=>String(x.id)===String(d.id)); if(!g||!d.key)return;
     const p=d.key.split('|||'), wk=p[0], ven=p.slice(1).join('|||');
-    if(isEffLocked(wk,ven)){showToast('\uD83D\uDD12 That venue/weekend is locked \u2014 pick a different target.','warn');return;}
     g.weekend=wk; g.venue=ven; g.day='';g.time='';g.sheet='';g.endTime='';g.date='';
     delete PARKING[String(g.id)]; GAME_TIMES[String(g.id)]={date:'',weekend:wk,day:'',time:'',end:'',sheet:'',venue:ven}; sugKey=null;
     saveParking(); try{saveGameTimes();}catch(e){}
     render(); showToast('Placed '+g.home+' vs '+g.away+' \u2192 '+short(ven)+' \u00b7 '+wkDateShort(wk),'good'); }
   function placeAll(d){ const set=allParked().filter(g=>g.weekend===d.wk&&g.division===d.div); if(!set.length||!d.key)return;
     const p=d.key.split('|||'), wk=p[0], ven=p.slice(1).join('|||');
-    if(isEffLocked(wk,ven)){showToast('\uD83D\uDD12 That venue/weekend is locked \u2014 pick a different target.','warn');return;}
     set.forEach(g=>{ g.weekend=wk; g.venue=ven; g.day='';g.time='';g.sheet='';g.endTime='';g.date=''; delete PARKING[String(g.id)]; GAME_TIMES[String(g.id)]={date:'',weekend:wk,day:'',time:'',end:'',sheet:'',venue:ven}; });
     sugKey=null; saveParking(); try{saveGameTimes();}catch(e){}
     render(); showToast('Placed '+set.length+' games \u2192 '+short(ven)+' \u00b7 '+wkDateShort(wk),'good'); }
@@ -2507,11 +2429,9 @@ const PG=(function(){
     const restore=e.from?`<button data-act="pgRestore" data-id="${escA(g.id)}" title="Return to ${escA(short(e.from))}" style="font-size:11px;padding:2px 9px;border:1px solid var(--ok);border-radius:5px;background:#fff;color:var(--ok);cursor:pointer;white-space:nowrap;font-weight:700">\u21A9 Return</button>`:'';
     const on=sugKey==='g:'+String(g.id);
     const sug=`<button data-act="pgSuggest" data-key="g:${escA(g.id)}" title="Suggest viable spots for this game" style="font-size:11px;padding:2px 9px;border:1px solid ${on?'#3C3489':'#C9C4F0'};border-radius:5px;background:${on?'#EEEDFE':'#fff'};color:#3C3489;cursor:pointer;font-weight:700;white-space:nowrap">\uD83D\uDCA1 Suggest</button>`;
-    const tbdOn=isTbd(g);
-    const tbd=`<button data-act="pgTbd" data-id="${escA(g.id)}" title="${tbdOn?'Re-attach this game to '+esc(g.weekend):'Mark date & time TBD \u2014 keep it counting but stop tying it to '+esc(g.weekend)}" style="font-size:11px;padding:2px 9px;border:1px solid ${tbdOn?'#7a5b00':'#E0A743'};border-radius:5px;background:${tbdOn?'#FFF3D6':'#fff'};color:#7a5b00;cursor:pointer;font-weight:700;white-space:nowrap">\uD83D\uDCC5 ${tbdOn?'TBD \u2713':'TBD'}</button>`;
     return `<tr><td><span class="pill">${esc(g.division)}</span></td><td class="tm">${esc(g.home)}</td><td class="tm">${esc(g.away)}</td>
       <td><select data-actchange="pgAssign" data-id="${escA(g.id)}" style="font-size:12px;padding:3px 6px;border:1px solid var(--line-l);border-radius:6px;max-width:340px"><option value="">\u2014 move to a date &amp; venue \u2014</option>${vopts}</select></td>
-      <td style="white-space:nowrap">${sug} ${tbd} ${restore} <button data-act="pgRemove" data-id="${escA(g.id)}" style="font-size:11px;padding:2px 8px;border:1px solid var(--line-l);border-radius:5px;background:#fff;color:var(--red);cursor:pointer">\u2715</button></td></tr>`;
+      <td style="white-space:nowrap">${sug} ${restore} <button data-act="pgRemove" data-id="${escA(g.id)}" style="font-size:11px;padding:2px 8px;border:1px solid var(--line-l);border-radius:5px;background:#fff;color:var(--red);cursor:pointer">\u2715</button></td></tr>`;
   }
   function sectionForWeekend(wk){
     const ps=parkedFor(wk);if(!ps.length)return '';
@@ -2524,27 +2444,22 @@ const PG=(function(){
   function view(){
     const ps=allParked();
     if(!ps.length)return `<div class="wk-head"><h2>\uD83C\uDD7F Parking garage</h2>
-      <div class="dt">No parked games right now. When a game can\u2019t fit a weekend\u2019s slots, hit \u201c\uD83C\uDD7F Park\u201d on it in the weekend view (or pick \u201cParking garage\u201d as the venue when adding a game). It stays on its weekend, still counts for both teams, and shows up here until you assign it a slot. Use \uD83D\uDCC5 TBD on any parked game to hold it with no fixed date.</div></div>`;
-    const tbd=allTbd();
-    const wknd=ps.filter(g=>!isTbd(g));
-    const byWk={};wknd.forEach(g=>{(byWk[g.weekend]=byWk[g.weekend]||[]).push(g);});
+      <div class="dt">No parked games right now. When a game can\u2019t fit a weekend\u2019s slots, hit \u201c\uD83C\uDD7F Park\u201d on it in the weekend view (or pick \u201cParking garage\u201d as the venue when adding a game). It stays on its weekend, still counts for both teams, and shows up here until you assign it a slot.</div></div>`;
+    const byWk={};ps.forEach(g=>{(byWk[g.weekend]=byWk[g.weekend]||[]).push(g);});
     const blocks=WK.filter(w=>byWk[w]).map(w=>`<div class="wk-head" style="margin-top:16px"><h3>${w} <span style="color:var(--mut);font-weight:600;font-size:13px">\u00b7 ${WKDATE[w]||''}</span> <span class="pill" style="background:var(--warnbg);color:var(--warn);margin-left:6px">${byWk[w].length}</span></h3></div>
       ${garageTable(w, byWk[w])}`).join('');
-    const tbdBlock = tbd.length ? `<div class="wk-head" style="margin-top:16px"><h3>\uD83D\uDCC5 Date &amp; time TBD <span style="color:var(--mut);font-weight:600;font-size:13px">\u00b7 not tied to any weekend</span> <span class="pill" style="background:#FFF3D6;color:#7a5b00;margin-left:6px">${tbd.length}</span></h3></div>
-      <div class="dt" style="padding:2px 0 6px">These still count toward team totals. Assign a date &amp; venue when you\u2019re ready, or hit \uD83D\uDCC5 TBD again to re-attach a game to its original weekend.</div>
-      ${garageTable('', tbd)}` : '';
-    return `<div class="wk-head"><h2>\uD83C\uDD7F Parking garage <span class="pill" style="background:var(--warnbg);color:var(--warn);margin-left:8px">${ps.length} total</span>${tbd.length?` <span class="pill" style="background:#FFF3D6;color:#7a5b00;margin-left:6px">${tbd.length} TBD</span>`:''}</h2>
-      <div class="dt">Every game held without a slot. These still count toward team game totals \u2014 assign a venue when ice opens up, or mark \uD83D\uDCC5 TBD to hold with no fixed date.</div></div>${blocks}${tbdBlock}`;
+    return `<div class="wk-head"><h2>\uD83C\uDD7F Parking garage <span class="pill" style="background:var(--warnbg);color:var(--warn);margin-left:8px">${ps.length} total</span></h2>
+      <div class="dt">Every game held without a slot, grouped by weekend. These still count toward team game totals \u2014 assign a venue when ice opens up.</div></div>${blocks}`;
   }
-  return {overlay,isParked,parkedFor,allParked,park,parkVenue,parkDivision,assign,unparkOrig,removeParked,addParked,sectionForWeekend,view,toggleSuggest,toggleTbd,isTbd,placeAt,placeAll,count:()=>allParked().length};
+  return {overlay,isParked,parkedFor,allParked,park,parkVenue,parkDivision,assign,unparkOrig,removeParked,addParked,sectionForWeekend,view,toggleSuggest,placeAt,placeAll,count:()=>allParked().length};
 })();
 window.PG=PG;
 
 /* ============ GLOBAL UNDO ============ */
 var UNDO_STACK=[];
 var SOLVE_REPORT={}; // wk -> last auto-solve result (per-venue day splits, flags, review items)
-const MUTATING=new Set(['iceHave','iceNo','iceHeld','iceDel','iceRestore','iceReset','venueAdd','venueAddDel','impApply','impReset','pgPark','pgParkVenue','pgParkDiv','pgAssign','podSwap','podTime','slotAssign','pgPlaceAt','pgPlaceAll','pgRestore','pgRemove','autosolve','toggleLock','toggleVenueLock','pgTbd']);;
-function pushUndo(label){try{UNDO_STACK.push(JSON.stringify({games:games,gid:gid,ice:ICE_DECISIONS,times:GAME_TIMES,parking:PARKING,locked:LOCKED,removed:REMOVED_GAMES,label:label||''}));if(UNDO_STACK.length>40)UNDO_STACK.shift();}catch(e){}}
+const MUTATING=new Set(['iceHave','iceNo','iceHeld','iceDel','iceRestore','iceReset','venueAdd','venueAddDel','impApply','impReset','pgPark','pgParkVenue','pgParkDiv','pgAssign','podSwap','podTime','slotAssign','pgPlaceAt','pgPlaceAll','pgRestore','pgRemove','autosolve']);
+function pushUndo(label){try{UNDO_STACK.push(JSON.stringify({games:games,gid:gid,ice:ICE_DECISIONS,times:GAME_TIMES,parking:PARKING,label:label||''}));if(UNDO_STACK.length>40)UNDO_STACK.shift();}catch(e){}}
 function undo(){
   if(!UNDO_STACK.length){showToast('Nothing to undo.','');return;}
   const s=JSON.parse(UNDO_STACK.pop());
@@ -2552,8 +2467,6 @@ function undo(){
   ICE_DECISIONS=s.ice||{};saveIceDecisions();
   GAME_TIMES=s.times||{};saveGameTimes();
   PARKING=s.parking||{};saveParking();
-  if(s.locked){LOCKED=s.locked;saveLocked();}
-  if(s.removed){REMOVED_GAMES=s.removed;saveRemovedGames();}
   SOLVE_REPORT={};
   render();showToast('\u21B6 Undone'+(s.label?': '+s.label:''),'good');
 }
@@ -2566,19 +2479,15 @@ const ACTIONS={
   pgParkDiv:d=>PG.parkDivision(d),
   pgAssign:el=>PG.assign(el),
   pgSuggest:d=>PG.toggleSuggest(d.key),
-  pgTbd:d=>PG.toggleTbd(d),
   pgPlaceAt:d=>PG.placeAt(d),
   pgPlaceAll:d=>PG.placeAll(d),
   confAck:d=>{ if(d&&d.id){ CONFLICT_ACK[d.id]=Date.now(); saveConflictAck(); render(); } },
   confUnack:d=>{ if(d&&d.id){ delete CONFLICT_ACK[d.id]; saveConflictAck(); render(); } },
   confAckClear:()=>{ if(!confirm('Un-acknowledge all conflicts? They will show in the alert counts again.'))return; CONFLICT_ACK={}; saveConflictAck(); render(); },
   podSwap:d=>{ const a=document.getElementById(d.a), b=document.getElementById(d.b); if(!a||!b){ showToast('Could not read the swap selectors.','warn'); return; } doSwapOpp(a.value,b.value); },
-  podTime:d=>{ if(isEffLocked(d.wk,d.venue)){showToast('\uD83D\uDD12 '+(isVenueLocked(d.wk,d.venue)?d.venue.replace(/\s*\(NEW\)/i,''):d.wk)+' is locked \u2014 unlock it to make changes.','warn');return;} const r=solveOneVenue(d.wk,d.venue); showToast(r.msg, r.ok?'good':'warn'); render(); },
-  toggleLock:d=>{ if(!d||!d.wk)return; if(isLocked(d.wk)) delete LOCKED[d.wk]; else LOCKED[d.wk]=Date.now(); saveLocked(); render(); showToast(isLocked(d.wk)?('\uD83D\uDD12 Locked '+d.wk+' \u2014 no changes will be applied here.'):('\uD83D\uDD13 Unlocked '+d.wk+' \u2014 changes allowed again.'), isLocked(d.wk)?'':'good'); },
-  toggleVenueLock:d=>{ if(!d||!d.wk||!d.venue)return; const k=venueLockKey(d.wk,d.venue); if(LOCKED[k]) delete LOCKED[k]; else LOCKED[k]=Date.now(); saveLocked(); render(); const vn=d.venue.replace(/\s*\(NEW\)/i,''); showToast(LOCKED[k]?('\uD83D\uDD12 Locked '+vn+' \u00b7 '+d.wk+' \u2014 held as-is; auto-solve will skip it.'):('\uD83D\uDD13 Unlocked '+vn+' \u00b7 '+d.wk), LOCKED[k]?'':'good'); },
+  podTime:d=>{ const r=solveOneVenue(d.wk,d.venue); showToast(r.msg, r.ok?'good':'warn'); render(); },
   slotEditToggle:d=>{ const k=d.wk+'|||'+d.venue; SLOT_EDIT=(SLOT_EDIT===k?null:k); render(); },
   slotAssign:el=>{ const d=el.dataset, gid=el.value;
-    if(isEffLocked(d.wk,d.venue)){showToast('\uD83D\uDD12 '+(isVenueLocked(d.wk,d.venue)?'This venue':d.wk)+' is locked \u2014 unlock it to change slots.','warn');render();return;}
     const hhmm=m=>String(Math.floor((m%1440)/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0');
     const start=parseInt(d.start,10), end=(d.end===''||d.end==null)?null:parseInt(d.end,10);
     const timeStr=hhmm(start), endStr=end!=null?hhmm(end):'';
@@ -2660,7 +2569,6 @@ const ACTIONS={
         }catch(e){ showToast('Could not load file: '+e.message,'bad'); return; }
         // File is valid — apply it. A later redraw error must NOT be reported as a load failure.
         games=arr.map(g=>({day:'',time:'',...g}));
-        try{applyRemovedGames();}catch(e){}  // item 5: keep permanently-removed games out after a reload
         let mx=0;games.forEach(g=>{const x=parseInt(String(g.id||'').replace(/\D/g,''),10);if(x>mx)mx=x;});gid=mx+1;
         // Persist the loaded schedule (weekend + venue + day/time/sheet) so placements survive
         // future reloads and new app versions — not just this session.
@@ -2681,7 +2589,6 @@ const ACTIONS={
     openAddGame(wk);
   },
   autosolve:d=>{ // assign days + start times across this weekend's venues per the spec
-    if(isLocked(d.wk)){showToast('\uD83D\uDD12 '+d.wk+' is locked \u2014 unlock it to auto-solve.','warn');return;}
     const r=solveWeekend(d.wk);
     if(r.report) SOLVE_REPORT[d.wk]=r.report;
     showToast(r.msg, r.ok?'good':'warn');
@@ -2695,7 +2602,6 @@ if(DATA.published&&Array.isArray(DATA.published.games)&&DATA.published.games.len
   var mx=0;games.forEach(g=>{var n=parseInt(String(g.id).replace(/\D/g,''),10);if(n>mx)mx=n;});
   gid=mx+1;
 }
-try{applyRemovedGames();}catch(e){}  // item 5: drop games the user permanently removed (persists across versions)
 try{IMP.overlay();}catch(e){}
 try{PG.overlay();}catch(e){}
 render();
