@@ -2482,6 +2482,51 @@ const PG=(function(){
   function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
   function escA(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');}
   const short=s=>String(s||'').replace(/\s*\(NEW\)/i,'');
+  const cityOf=v=>String(v||'').split(/\s*[\u2014\u2013-]\s*/)[0].trim();
+  /* ===== Preferred dates & locations for a parked game =====
+     Stored on PARKING[id]: prefWks (array of weekend keys) and prefCities (array of city names).
+     A venue-weekend "matches" when its city is in prefCities (or no city pref set) AND its weekend
+     is in prefWks (or no date pref set). It's "open" when real contracted ice has a spare slot:
+     realAvailTotal(wk,venue) > games already placed there. The assign dropdown highlights options
+     that both match the prefs AND are open, grouping them at the top with a ★. */
+  function prefsFor(id){ const e=PARKING[String(id)]||{}; return {wks:Array.isArray(e.prefWks)?e.prefWks:[], cities:Array.isArray(e.prefCities)?e.prefCities:[]}; }
+  function hasPrefs(id){ const p=prefsFor(id); return p.wks.length>0 || p.cities.length>0; }
+  function slotOpenAt(wk,venue){
+    try{
+      if(typeof iceDoesNotExist==='function' && iceDoesNotExist(wk,venue)) return false;
+      const real=(typeof realAvailTotal==='function')?realAvailTotal(wk,venue):0;
+      if(real<=0) return false;
+      const placed=games.filter(x=>x.weekend===wk && x.venue===venue).length;
+      return placed<real;
+    }catch(e){ return false; }
+  }
+  // Does a venue-weekend option (key "wk|||venue") satisfy this game's preferences?
+  function optMatchesPref(id, key){
+    const p=prefsFor(id); if(!p.wks.length && !p.cities.length) return false;
+    const parts=key.split('|||'), w=parts[0], ven=parts.slice(1).join('|||');
+    const okWk = !p.wks.length || p.wks.indexOf(w)>=0;
+    const okCity = !p.cities.length || p.cities.indexOf(cityOf(ven))>=0;
+    return okWk && okCity;
+  }
+  // All distinct cities that appear on the schedule's venues (for the location checklist).
+  function allCities(){
+    const s=new Set();
+    (DATA.venues||[]).forEach(v=>{ const c=cityOf(v.venue); if(c) s.add(c); });
+    return [...s].sort();
+  }
+  let prefKey=null; // which parked game id has its preferences panel open, or null
+  function togglePrefs(d){ const id=String(d.id); prefKey=(prefKey===id?null:id); render(); }
+  function setPref(el){
+    const id=String(el.dataset.id), kind=el.dataset.kind, val=el.dataset.val, on=!!el.checked;
+    const e=PARKING[id]; if(!e) return;
+    const field = kind==='wk' ? 'prefWks' : 'prefCities';
+    const arr = Array.isArray(e[field]) ? e[field].slice() : [];
+    const i=arr.indexOf(val);
+    if(on && i<0) arr.push(val);
+    if(!on && i>=0) arr.splice(i,1);
+    e[field]=arr; saveParking(); render();
+  }
+  function clearPrefs(d){ const e=PARKING[String(d.id)]; if(!e) return; delete e.prefWks; delete e.prefCities; saveParking(); render(); }
   function isParked(g){return WK.includes(g.weekend)&&(!g.venue||String(g.venue).trim()==='');}
   function overlay(){
     Object.keys(PARKING).forEach(id=>{const e=PARKING[id],g=games.find(x=>String(x.id)===String(id));
@@ -2675,21 +2720,61 @@ const PG=(function(){
     const table=`<table class="tbl"><thead><tr><th style="width:28px"></th><th>Division</th><th>Home</th><th>Away</th><th>Assign to venue</th><th></th></tr></thead><tbody>${ps.map(parkRow).join('')}</tbody></table>`;
     return chipBar + table + sugPanelFor(wk, ps);
   }
+  function prefPanel(g){
+    if(prefKey!==String(g.id)) return '';
+    const p=prefsFor(g.id);
+    const wkBoxes=WK.map(w=>{
+      const on=p.wks.indexOf(w)>=0;
+      return `<label style="display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:2px 7px;border:1px solid ${on?'#3C3489':'var(--line-l)'};border-radius:12px;background:${on?'#EEEDFE':'#fff'};color:${on?'#3C3489':'var(--mut-d)'};cursor:pointer;margin:0 4px 4px 0">
+        <input type="checkbox" data-actchange="pgSetPref" data-id="${escA(g.id)}" data-kind="wk" data-val="${escA(w)}" ${on?'checked':''} style="width:13px;height:13px;accent-color:#3C3489;cursor:pointer">${esc(w)}</label>`;
+    }).join('');
+    const cityBoxes=allCities().map(c=>{
+      const on=p.cities.indexOf(c)>=0;
+      return `<label style="display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:2px 7px;border:1px solid ${on?'#1E7F4F':'var(--line-l)'};border-radius:12px;background:${on?'#E7F6ED':'#fff'};color:${on?'#1E7F4F':'var(--mut-d)'};cursor:pointer;margin:0 4px 4px 0">
+        <input type="checkbox" data-actchange="pgSetPref" data-id="${escA(g.id)}" data-kind="city" data-val="${escA(c)}" ${on?'checked':''} style="width:13px;height:13px;accent-color:#1E7F4F;cursor:pointer">${esc(c)}</label>`;
+    }).join('');
+    return `<tr><td></td><td colspan="5" style="padding:0 6px 10px">
+      <div style="border:1.5px solid #C9C4F0;background:#FCFBFF;border-radius:8px;padding:10px 12px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+          <div style="font-weight:800;font-size:12px;color:#3C3489">\u2605 Preferences \u2014 ${esc(g.home)} vs ${esc(g.away)}</div>
+          <div><button data-act="pgClearPrefs" data-id="${escA(g.id)}" style="font-size:11px;border:1px solid var(--line-l);background:#fff;border-radius:5px;padding:2px 9px;cursor:pointer;color:var(--mut-d);margin-right:6px">Clear all</button><button data-act="pgTogglePrefs" data-id="${escA(g.id)}" style="font-size:11px;border:1px solid var(--line-l);background:#fff;border-radius:5px;padding:2px 9px;cursor:pointer;color:var(--mut-d)">Done</button></div>
+        </div>
+        <div style="font-size:11px;font-weight:700;color:var(--mut-d);margin:2px 0 4px">Preferred dates</div>
+        <div style="display:flex;flex-wrap:wrap">${wkBoxes}</div>
+        <div style="font-size:11px;font-weight:700;color:var(--mut-d);margin:8px 0 4px">Preferred locations (city)</div>
+        <div style="display:flex;flex-wrap:wrap">${cityBoxes}</div>
+        <div style="font-size:10px;color:var(--mut);margin-top:8px">Pick any dates and/or cities you\u2019d take. In the \u201cmove to\u201d dropdown, matching venue-weekends that currently have an <b>open real-ice slot</b> jump to a \u201c\u2605 Preferred &amp; open\u201d group at the top. Leave a section blank to mean \u201cany\u201d.</div>
+      </div></td></tr>`;
+  }
   function parkRow(g){
     const e=PARKING[String(g.id)]||{};
     let opts=assignOpts(g);
     if(!opts.length) opts=venuesFor(g.weekend).map(v=>({key:g.weekend+'|||'+v.venue, label:`${wkDateShort(g.weekend)} \u00b7 ${short(v.venue)}${v.region?' \u00b7 '+v.region:''}`}));
-    const vopts=opts.map(o=>`<option value="${escA(o.key)}">${esc(o.label)}</option>`).join('');
+    // Split options into "preferred & currently open" vs the rest, so matches surface at the top.
+    const prefsSet=hasPrefs(g.id);
+    const pref=[], rest=[];
+    opts.forEach(o=>{
+      const parts=o.key.split('|||'), w=parts[0], ven=parts.slice(1).join('|||');
+      if(prefsSet && optMatchesPref(g.id,o.key) && slotOpenAt(w,ven)) pref.push(o); else rest.push(o);
+    });
+    const optHtml = o=>`<option value="${escA(o.key)}">${esc(o.label)}</option>`;
+    const prefGroup = pref.length ? `<optgroup label="\u2605 Preferred &amp; open">${pref.map(o=>`<option value="${escA(o.key)}">\u2605 ${esc(o.label)}</option>`).join('')}</optgroup>` : '';
+    const restGroup = rest.length ? (pref.length?`<optgroup label="Other venue-weekends">${rest.map(optHtml).join('')}</optgroup>`:rest.map(optHtml).join('')) : '';
+    const vopts = prefGroup + restGroup;
     const restore=e.from?`<button data-act="pgRestore" data-id="${escA(g.id)}" title="Return to ${escA(short(e.from))}" style="font-size:11px;padding:2px 9px;border:1px solid var(--ok);border-radius:5px;background:#fff;color:var(--ok);cursor:pointer;white-space:nowrap;font-weight:700">\u21A9 Return</button>`:'';
     const on=sugKey==='g:'+String(g.id);
     const sug=`<button data-act="pgSuggest" data-key="g:${escA(g.id)}" title="Suggest viable spots for this game" style="font-size:11px;padding:2px 9px;border:1px solid ${on?'#3C3489':'#C9C4F0'};border-radius:5px;background:${on?'#EEEDFE':'#fff'};color:#3C3489;cursor:pointer;font-weight:700;white-space:nowrap">\uD83D\uDCA1 Suggest</button>`;
+    const prefsOn=prefKey===String(g.id);
+    const prefCount=(function(){const p=prefsFor(g.id);return p.wks.length+p.cities.length;})();
+    const prefBtn=`<button data-act="pgTogglePrefs" data-id="${escA(g.id)}" title="Set preferred dates &amp; locations \u2014 matching open ice is highlighted in the dropdown" style="font-size:11px;padding:2px 9px;border:1px solid ${prefsOn||prefCount?'#3C3489':'#C9C4F0'};border-radius:5px;background:${prefsOn?'#EEEDFE':'#fff'};color:#3C3489;cursor:pointer;font-weight:700;white-space:nowrap">\u2605 Prefs${prefCount?' \u00b7 '+prefCount:''}</button>`;
     const tbdOn=isTbd(g);
     const tbd=`<button data-act="pgTbd" data-id="${escA(g.id)}" title="${tbdOn?'Re-attach this game to '+esc(g.weekend):'Mark date & time TBD \u2014 keep it counting but stop tying it to '+esc(g.weekend)}" style="font-size:11px;padding:2px 9px;border:1px solid ${tbdOn?'#7a5b00':'#E0A743'};border-radius:5px;background:${tbdOn?'#FFF3D6':'#fff'};color:#7a5b00;cursor:pointer;font-weight:700;white-space:nowrap">\uD83D\uDCC5 ${tbdOn?'TBD \u2713':'TBD'}</button>`;
     const checked = SEL.has(String(g.id));
     const chk=`<td style="text-align:center"><input type="checkbox" data-actchange="pgSelToggle" data-id="${escA(g.id)}" ${checked?'checked':''} title="Select this game to move with others" style="width:16px;height:16px;cursor:pointer;accent-color:#3C3489"></td>`;
-    return `<tr${checked?' style="background:#F3F1FF"':''}>${chk}<td><span class="pill">${esc(g.division)}</span></td><td class="tm">${esc(g.home)}</td><td class="tm">${esc(g.away)}</td>
+    const prefFlag = pref.length ? ` <span title="${pref.length} preferred venue-weekend${pref.length>1?'s':''} with open ice" style="font-size:10px;font-weight:800;color:#1E7F4F;background:#E7F6ED;border-radius:4px;padding:1px 6px;white-space:nowrap">\u2605 ${pref.length} open</span>` : (prefsSet?` <span title="No preferred spot is open right now" style="font-size:10px;font-weight:700;color:var(--mut-d);white-space:nowrap">\u2605 set</span>`:'');
+    return `<tr${checked?' style="background:#F3F1FF"':''}>${chk}<td><span class="pill">${esc(g.division)}</span></td><td class="tm">${esc(g.home)}</td><td class="tm">${esc(g.away)}${prefFlag}</td>
       <td><select data-actchange="pgAssign" data-id="${escA(g.id)}" style="font-size:12px;padding:3px 6px;border:1px solid var(--line-l);border-radius:6px;max-width:340px"><option value="">\u2014 move to a date &amp; venue \u2014</option>${vopts}</select></td>
-      <td style="white-space:nowrap">${sug} ${tbd} ${restore} <button data-act="pgRemove" data-id="${escA(g.id)}" style="font-size:11px;padding:2px 8px;border:1px solid var(--line-l);border-radius:5px;background:#fff;color:var(--red);cursor:pointer">\u2715</button></td></tr>`;
+      <td style="white-space:nowrap">${prefBtn} ${sug} ${tbd} ${restore} <button data-act="pgRemove" data-id="${escA(g.id)}" style="font-size:11px;padding:2px 8px;border:1px solid var(--line-l);border-radius:5px;background:#fff;color:var(--red);cursor:pointer">\u2715</button></td></tr>${prefPanel(g)}`;
   }
   function sectionForWeekend(wk){
     const ps=parkedFor(wk);if(!ps.length)return '';
@@ -2729,7 +2814,7 @@ const PG=(function(){
     return `<div class="wk-head"><h2>\uD83C\uDD7F Parking garage <span class="pill" style="background:var(--warnbg);color:var(--warn);margin-left:8px">${ps.length} total</span>${tbd.length?` <span class="pill" style="background:#FFF3D6;color:#7a5b00;margin-left:6px">${tbd.length} TBD</span>`:''}</h2>
       <div class="dt">Every game held without a slot. These still count toward team game totals \u2014 assign a venue when ice opens up, or mark \uD83D\uDCC5 TBD to hold with no fixed date. Tick rows to move several at once, or use a pod dropdown to move a whole division.</div></div>${selBar}${blocks}${tbdBlock}`;
   }
-  return {overlay,isParked,parkedFor,allParked,park,parkVenue,parkDivision,assign,unparkOrig,removeParked,addParked,sectionForWeekend,view,toggleSuggest,toggleTbd,isTbd,placeAt,placeAll,podMove,toggleSel,clearSel,selMove,count:()=>allParked().length};
+  return {overlay,isParked,parkedFor,allParked,park,parkVenue,parkDivision,assign,unparkOrig,removeParked,addParked,sectionForWeekend,view,toggleSuggest,toggleTbd,isTbd,placeAt,placeAll,podMove,toggleSel,clearSel,selMove,togglePrefs,setPref,clearPrefs,count:()=>allParked().length};
 })();
 window.PG=PG;
 
@@ -2766,6 +2851,9 @@ const ACTIONS={
   pgSelToggle:el=>PG.toggleSel(el.dataset),
   pgSelClear:()=>PG.clearSel(),
   pgSelMove:el=>PG.selMove(el),
+  pgTogglePrefs:d=>PG.togglePrefs(d),
+  pgSetPref:el=>PG.setPref(el),
+  pgClearPrefs:d=>PG.clearPrefs(d),
   confAck:d=>{ if(d&&d.id){ CONFLICT_ACK[d.id]=Date.now(); saveConflictAck(); render(); } },
   confUnack:d=>{ if(d&&d.id){ delete CONFLICT_ACK[d.id]; saveConflictAck(); render(); } },
   confAckClear:()=>{ if(!confirm('Un-acknowledge all conflicts? They will show in the alert counts again.'))return; CONFLICT_ACK={}; saveConflictAck(); render(); },
