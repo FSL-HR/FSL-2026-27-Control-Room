@@ -484,10 +484,22 @@ function detectConflicts(scope){
 
   // Item 2: 16U/19U games need 2.25h; flag any sitting on a slot shorter than required (e.g. 2h).
   pool.forEach(g=>{ if(slotTooShort(g)) out.push({sev:'soft',rule:'Slot too short',
-    msg:`${g.division}: ${g.home} vs ${g.away} at ${g.venue.replace(/\s*\(NEW\)/i,'')} ${g.day||''} ${g.time||''} (${g.weekend}) is on a 2-hour slot but needs ${slotHours(g.division)}h.`,wk:g.weekend}); });
+    msg:`${g.division}: ${g.home} vs ${g.away} at ${g.venue.replace(/\s*\(NEW\)/i,'')} ${g.day||''} ${g.time?clock12(g.time):''} (${g.weekend}) is on a 2-hour slot but needs ${slotHours(g.division)}h.`,wk:g.weekend}); });
 
   out.forEach(c=>{ c.id=confId(c); c.ack=!!(CONFLICT_ACK&&CONFLICT_ACK[c.id]); });
   return out;
+}
+/* Display a stored 24-hour "HH:MM" as 12-hour with AM/PM. Data stays 24h internally.
+   Passes blanks and non-HH:MM (e.g. "TBD") through unchanged. */
+function clock12(t){
+  if(t==null) return '';
+  const s=String(t).trim();
+  const m=s.match(/^(\d{1,2}):(\d{2})$/);
+  if(!m) return s;
+  let h=parseInt(m[1],10); const mn=m[2];
+  if(isNaN(h)||h>23) return s;
+  const ap=h>=12?'PM':'AM'; const hh=(h%12)||12;
+  return hh+':'+mn+' '+ap;
 }
 function clusterName(vn){
   // venue names are now full arena strings like "Edmonton — Silent Ice Center (Hatch+Hesco)";
@@ -496,7 +508,7 @@ function clusterName(vn){
   const city=v.split(/\s*[—–-]\s*/)[0].trim();
   const map={'Calgary':'Calgary-area','Calgary-area':'Calgary-area','Cochrane':'Calgary-area','Canmore':'Calgary-area','Banff':'Calgary-area',
     'Grand Prairie':'Calgary-area','Grande Prairie':'Calgary-area',
-    'Edmonton':'Edmonton','Aberdeen':'Aberdeen','Lloydminster':'Lloydminster','Winnipeg':'Winnipeg',
+    'Edmonton':'Edmonton','Morinville':'Edmonton','Spruce Grove':'Edmonton','Aberdeen':'Aberdeen','Lloydminster':'Lloydminster','Winnipeg':'Winnipeg',
     'Abbotsford':'Lower Mainland','Delta':'Lower Mainland','Lower Mainland':'Lower Mainland',
     'Cowichan':'Cowichan','Kimberley':'Kimberley'};
   return map[city]||map[v]||city;
@@ -978,7 +990,7 @@ function iceToFindView(){
         <div class="slot"><div class="d">Real ice</div><div class="v">${b.real}</div></div>
         <div class="slot"><div class="d">Games</div><div class="v">${b.have}</div></div></div></div>
     <div class="venue-games"><div style="font-size:11px;color:var(--mut-d);padding:6px 0 4px">Games riding on this ice:</div>
-      ${b.games.map(g=>`<div class="gline"><span class="gd">${g.day||'\u2014'} ${g.time||''}</span><span class="gdiv">${g.division}</span><span class="gm">${g.home}<span class="vs">vs</span>${g.away}</span></div>`).join('')}
+      ${b.games.map(g=>`<div class="gline"><span class="gd">${g.day||'\u2014'} ${g.time?clock12(g.time):''}</span><span class="gdiv">${g.division}</span><span class="gm">${g.home}<span class="vs">vs</span>${g.away}</span></div>`).join('')}
     </div></div>`).join('');
   return `<div class="wk-head"><h2>Ice to Find</h2><div class="dt">Games beyond your REAL contracted ice \u2014 the definitive sourcing list. Matches the master workbook's Ice_To_Source tab. Aberdeen weekends under 18 games are exempt${exemptSlots?` (${exemptSlots} slot${exemptSlots>1?'s':''} waived there)`:''}.</div></div>
     <div class="grid cards4" style="margin-bottom:18px">
@@ -1254,6 +1266,7 @@ function solveWeekend(wk){
   const wkGames=games.filter(g=>g.weekend===wk && g.venue); // exclude parked (venue==='')
   if(!wkGames.length) return {ok:true,changed:0,msg:'No placed games this weekend to solve.',report:null};
   const byVenue={}; wkGames.forEach(g=>{(byVenue[g.venue]=byVenue[g.venue]||[]).push(g);});
+  Object.keys(byVenue).forEach(v=>{ byVenue[v]=byVenue[v].filter(g=>!isTimeLocked(g)); });
   const hhmm=x=>String(Math.floor((x%1440)/60)).padStart(2,'0')+':'+String(x%60).padStart(2,'0');
   const report={wk:wk, ts:Date.now(), venues:[]}; let changed=0, issues=0;
   Object.keys(byVenue).forEach(venue=>{
@@ -1371,7 +1384,7 @@ function placeIntoSlots(list, slots){
   return {out, unplaced, flags, repairs, warns};
 }
 function solveOneVenue(wk, venue){
-  const list=games.filter(g=>g.weekend===wk && g.venue===venue);
+  const list=games.filter(g=>g.weekend===wk && g.venue===venue && !isTimeLocked(g));
   const vshort=venue.split(' \u2014 ')[0]||venue;
   if(!list.length) return {ok:true, msg:'No placed games in this pod to time.'};
   const hhmm=x=>String(Math.floor((x%1440)/60)).padStart(2,'0')+':'+String(x%60).padStart(2,'0');
@@ -1589,6 +1602,7 @@ function solveReport(wk){
     </div>`;
 }
 let SLOT_EDIT=null;   // "wk|||venue" whose manual slot editor is open, or null
+let TIME_EDIT=null;   // game id whose inline manual time editor is open, or null
 function slotGrid(wk, venue){
   const hhmm=m=>String(Math.floor((m%1440)/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0');
   const to12=m=>{let h=Math.floor((m%1440)/60),mn=m%60,ap=h>=12?'PM':'AM',hh=h%12||12;return hh+':'+String(mn).padStart(2,'0')+ap;};
@@ -1664,11 +1678,13 @@ function venueBlock(wk,v){
   const bDivs=divs.map(dv=>{const n=vgames.filter(g=>g.division===dv).length;return `<button data-act="pgParkDiv" data-wk="${iceEscA(wk)}" data-venue="${iceEscA(v.venue)}" data-div="${iceEscA(dv)}" title="Pull just the ${dv} games here to the garage (leaves the rest)" style="font-size:11px;padding:4px 10px;border:1px solid #E0A743;border-radius:6px;background:#fff;color:var(--warn);cursor:pointer;font-weight:600;white-space:nowrap">🅿 ${dv} (${n})</button>`;}).join('');
   // Always expose a per-division pull; "Whole pod" only adds value when >1 division is present.
   const vLocked=isEffLocked(wk,v.venue);
-  const parkBar = (vgames.length && !vLocked) ? `<div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:8px 17px;border-bottom:1px solid var(--line-l);background:#FFFDF7">
-      <span style="font-size:11px;color:var(--mut-d);font-weight:600;margin-right:2px">Pull to garage →</span>
-      ${divs.length>1?bWhole:''}${bDivs}
+  const podDiv = divs.length===1 ? divs[0] : '';
+  const addToPodBtn = `<button data-act="addToPod" data-wk="${iceEscA(wk)}" data-venue="${iceEscA(v.venue)}" data-div="${iceEscA(podDiv)}" title="Add a new game straight into this pod (${v.venue.replace(/\s*\(NEW\)/i,'')} · ${wk})" style="font-size:11px;padding:4px 10px;border:1px solid var(--ok);border-radius:6px;background:#fff;color:var(--ok);cursor:pointer;font-weight:700;white-space:nowrap">＋ Add game</button>`;
+  const parkBar = (!vLocked) ? `<div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:8px 17px;border-bottom:1px solid var(--line-l);background:#FFFDF7">
+      ${addToPodBtn}
+      ${vgames.length?`<span style="font-size:11px;color:var(--mut-d);font-weight:600;margin-right:2px;margin-left:4px">Pull to garage →</span>${divs.length>1?bWhole:''}${bDivs}
       <button data-act="slotEditToggle" data-wk="${iceEscA(wk)}" data-venue="${iceEscA(v.venue)}" title="Manually assign games to this venue's real ice slots" style="margin-left:auto;font-size:11px;padding:4px 10px;border:1px solid #3C3489;border-radius:6px;background:${SLOT_EDIT===(wk+'|||'+v.venue)?'#EEEDFE':'#fff'};color:#3C3489;cursor:pointer;font-weight:700;white-space:nowrap">${SLOT_EDIT===(wk+'|||'+v.venue)?'\u2715 Close slots':'\u270E Assign slots'}</button>
-      <button data-act="podTime" data-wk="${iceEscA(wk)}" data-venue="${iceEscA(v.venue)}" title="Assign day + start times to just this pod (same rules as Auto weekend solve)" style="font-size:11px;padding:4px 10px;border:1px solid var(--red);border-radius:6px;background:#fff;color:var(--red);cursor:pointer;font-weight:700;white-space:nowrap">⚙ Time this pod</button>
+      <button data-act="podTime" data-wk="${iceEscA(wk)}" data-venue="${iceEscA(v.venue)}" title="Assign day + start times to just this pod (same rules as Auto weekend solve)" style="font-size:11px;padding:4px 10px;border:1px solid var(--red);border-radius:6px;background:#fff;color:var(--red);cursor:pointer;font-weight:700;white-space:nowrap">⚙ Time this pod</button>`:''}
     </div>` : '';
   const lockedNote = (vgames.length && isVenueLocked(wk,v.venue) && !isLocked(wk)) ? `<div style="padding:7px 17px;border-bottom:1px solid var(--line-l);background:#eef6ff;font-size:11.5px;color:#25507f"><b>\uD83D\uDD12 This venue is locked.</b> Its games are held as-is \u2014 auto-solve skips it, and timing / slot edits / parking / swaps are disabled here. Use the \uD83D\uDD12 button above to unlock.</div>` : '';
   // Swap opponents between two games in a division (counts are preserved by construction).
@@ -1702,15 +1718,27 @@ function venueBlock(wk,v){
     </div></div>`;
 }
 function gameLine(g){
-  const timeTxt=(g.time||'TBD')+(g.time&&g.endTime?'\u2013'+g.endTime:'');
-  return `<div class="gline">
+  const locked=isTimeLocked(g);
+  const id=iceEscA(g.id);
+  const editing=(TIME_EDIT===String(g.id));
+  const timeTxt=(g.time?clock12(g.time):'TBD')+(g.time&&g.endTime?'\u2013'+clock12(g.endTime):'');
+  const editor = editing
+    ? `<span class="tedit" style="display:inline-flex;align-items:center;gap:4px;white-space:nowrap">
+         <input type="time" value="${g.time||''}" data-actchange="timeSet" data-id="${id}" data-field="time" style="font-size:11px;padding:1px 3px;border:1px solid #3C3489;border-radius:4px" title="Start time">
+         <span style="color:var(--mut-d)">\u2013</span>
+         <input type="time" value="${g.endTime||''}" data-actchange="timeSet" data-id="${id}" data-field="end" style="font-size:11px;padding:1px 3px;border:1px solid #3C3489;border-radius:4px" title="End time">
+         <button data-act="timeEditDone" data-id="${id}" title="Done" style="font-size:10px;padding:1px 6px;border:1px solid #3C3489;border-radius:4px;background:#EEEDFE;color:#3C3489;cursor:pointer;font-weight:700">done</button>
+       </span>`
+    : `<span class="gd" style="width:auto;min-width:54px;white-space:nowrap">${timeTxt}${locked?' <span title="You set this time manually — the app will not change it" style="color:#3C3489">\uD83D\uDD12</span>':''}</span>
+       <button data-act="timeEdit" data-id="${id}" title="Edit start/end time (locks it so the app won't change it)" style="margin-left:4px;font-size:10px;padding:1px 5px;border:1px solid var(--line-l);border-radius:4px;background:#fff;color:#3C3489;cursor:pointer">\u270E</button>${locked?`<button data-act="timeUnlock" data-id="${id}" title="Unlock — let the auto-solver time this game again" style="margin-left:3px;font-size:10px;padding:1px 5px;border:1px solid var(--line-l);border-radius:4px;background:#fff;color:var(--mut-d);cursor:pointer">unlock</button>`:''}`;
+  return `<div class="gline"${locked?' style="background:#F7F6FF"':''}>
     <span class="gnum" title="Game number" style="font-variant-numeric:tabular-nums;font-weight:800;color:var(--mut-d);font-size:11px;margin-right:2px">${matchNo(g)}</span>
-    <span class="gd" style="width:auto;min-width:54px;white-space:nowrap">${timeTxt}</span>
+    ${editor}
     ${slotTooShort(g)?`<span title="${g.division} needs ${slotHours(g.division)}h of ice but this slot is only 2h." style="margin-left:6px;font-size:9.5px;font-weight:800;color:#fff;background:var(--red);border-radius:4px;padding:1px 6px;white-space:nowrap">\u26A0 2h slot</span>`:''}
     <span class="gdiv">${g.division}</span>
     <span class="gm">${g.home}<span class="vs">vs</span>${g.away}</span>
     ${g.sheet?`<span style="margin-left:8px;font-size:11px;color:var(--mut-d);white-space:nowrap">\u25F8 ${iceEscA(g.sheet)}</span>`:''}
-    ${isEffLocked(g.weekend,g.venue)?'':`<button data-act="pgPark" data-id="${iceEscA(g.id)}" title="Park this game — hold it on this weekend with no slot" style="margin-left:auto;font-size:10px;padding:2px 7px;border:1px solid var(--line-l);border-radius:5px;background:#fff;color:var(--warn);cursor:pointer;white-space:nowrap">🅿 Park</button>`}
+    ${isEffLocked(g.weekend,g.venue)?'':`<button data-act="pgPark" data-id="${id}" title="Park this game — hold it on this weekend with no slot" style="margin-left:auto;font-size:10px;padding:2px 7px;border:1px solid var(--line-l);border-radius:5px;background:#fff;color:var(--warn);cursor:pointer;white-space:nowrap">🅿 Park</button>`}
     </div>`;
 }
 
@@ -1763,7 +1791,7 @@ function fixturesTable(div){
   const th=(key,label)=>`<th data-act="fixsort" data-div="${div}" data-key="${key}" style="cursor:pointer;user-select:none">${label}${arrow(key)}</th>`;
   const rows=gs.map(g=>`<tr>
     <td style="font-variant-numeric:tabular-nums;font-weight:800;color:var(--mut-d)">${matchNo(g)}</td>
-    <td><b>${g.weekend}</b></td><td>${g.day||''}</td><td>${g.time||'TBD'}</td>
+    <td><b>${g.weekend}</b></td><td>${g.day||''}</td><td>${g.time?clock12(g.time):'TBD'}</td>
     <td>${g.venue.replace(/\s*\(NEW\)/i,'')}</td>
     <td class="tm" style="color:var(--mut-d)">${g.sheet?iceEscA(g.sheet):''}</td>
     <td class="tm">${g.home}</td><td style="color:var(--mut-d)">vs</td><td class="tm">${g.away}</td></tr>`).join('');
@@ -1802,7 +1830,7 @@ function teamView(nm,div){
     const v=gs[0].venue;const cl=clusterName(v);
     const type=t.homeCluster===cl?'HOME':(t.region!==venueRegion(v)?'TRAVEL':'Local');
     const tc=type==='HOME'?'background:var(--okbg);color:#0f6e56':type==='TRAVEL'?'background:var(--warnbg);color:var(--warn)':'background:#eef;color:#3338a0';
-    const opps=gs.map(g=>{const opp=g.home===nm?g.away:g.home;const meta=[g.day,g.time,g.sheet].filter(Boolean).join(' \u00b7 ');return opp+(meta?` <span style="color:var(--mut-d);font-size:11px">(${iceEscA(meta)})</span>`:'');});
+    const opps=gs.map(g=>{const opp=g.home===nm?g.away:g.home;const meta=[g.day,g.time?clock12(g.time):'',g.sheet].filter(Boolean).join(' \u00b7 ');return opp+(meta?` <span style="color:var(--mut-d);font-size:11px">(${iceEscA(meta)})</span>`:'');});
     return `<tr><td><b>${wk}</b></td><td>${v.replace(/\s*\(NEW\)/i,'')}</td>
       <td><span class="pill" style="${tc}">${type}</span></td><td>${gs.length}</td>
       <td style="font-size:12px">${opps.join('<br>')}</td></tr>`;
@@ -1887,7 +1915,7 @@ function itinerariesView(){
       const rows=Object.keys(byWk).sort((a,b)=>WK.indexOf(a)-WK.indexOf(b)).map(wk=>{
         const gs=byWk[wk];const v=gs[0].venue;const cl=clusterName(v);
         const tt=travelType(t.homeCluster,cl);
-        const opps=gs.map(g=>{const opp=g.home===nm?g.away:g.home;const meta=[g.day,g.time,g.sheet].filter(Boolean).join(' \u00b7 ');return opp+(meta?` <span style="color:var(--mut-d);font-size:11px">(${iceEscA(meta)})</span>`:'');});
+        const opps=gs.map(g=>{const opp=g.home===nm?g.away:g.home;const meta=[g.day,g.time?clock12(g.time):'',g.sheet].filter(Boolean).join(' \u00b7 ');return opp+(meta?` <span style="color:var(--mut-d);font-size:11px">(${iceEscA(meta)})</span>`:'');});
         return `<tr><td style="font-weight:700">${wk}</td><td>${v.replace(/\s*\(NEW\)/i,'')}</td>
           <td><span class="pill" style="${TT_STYLE[tt]}">${TT_LABEL[tt]}</span></td>
           <td>${gs.length}</td><td style="font-size:11.5px">${opps.join('<br>')}</td></tr>`;
@@ -1937,19 +1965,27 @@ function confItem(c){
 }
 
 /* ============ MODAL: ADD GAME ============ */
-function openAddGame(wk,venue){
+function openAddGame(wk,venue,opts){
+  opts=opts||{};
+  const lockVenue=!!opts.lockVenue;          // fix the venue to this pod (no picker)
+  const presetDiv=opts.division||null;        // pre-select this pod's division
   const allVenues=venuesFor(wk);
   const v0=venue||(allVenues[0]&&allVenues[0].venue)||'';
+  const vShort=v0.replace(/\s*\(NEW\)/i,'');
+  const divList = presetDiv ? [presetDiv].concat(DIVS.filter(d=>d!==presetDiv)) : DIVS;
+  const venueField = lockVenue
+    ? `<div class="fld"><label>Venue (this pod)</label><div style="padding:7px 10px;border:1px solid var(--line-l);border-radius:7px;background:#F7F6FF;font-weight:700;color:#3C3489">${vShort}</div><input type="hidden" id="m-venue" value="${iceEscA(v0)}"></div>`
+    : `<div class="fld"><label>Venue</label><select id="m-venue">${allVenues.map(v=>`<option value="${v.venue}" ${v.venue===v0?'selected':''}>${v.venue.replace(/\s*\(NEW\)/i,'')}${/NEW/i.test(v.venue)?' (NEW)':''} · ${v.capFri}-${v.capSat}-${v.capSun}</option>`).join('')}<option value="__PARK__">🅿 Parking garage (hold — no slot)</option></select></div>`;
   const modal=document.createElement('div');modal.className='modal-bg';modal.id='modalbg';
   modal.innerHTML=`<div class="modal">
-    <div class="modal-h"><h3>Add game · ${wk}</h3><button class="x" data-close>✕</button></div>
+    <div class="modal-h"><h3>Add game · ${wk}${lockVenue?' · '+vShort:''}</h3><button class="x" data-close>✕</button></div>
     <div class="modal-b">
-      <div class="fld"><label>Division</label><select id="m-div">${DIVS.map(d=>`<option>${d}</option>`).join('')}</select></div>
+      <div class="fld"><label>Division</label><select id="m-div">${divList.map(d=>`<option>${d}</option>`).join('')}</select></div>
       <div class="fld-row">
         <div class="fld"><label>Home</label><select id="m-home"></select></div>
         <div class="fld"><label>Away</label><select id="m-away"></select></div>
       </div>
-      <div class="fld"><label>Venue</label><select id="m-venue">${allVenues.map(v=>`<option value="${v.venue}" ${v.venue===v0?'selected':''}>${v.venue.replace(/\s*\(NEW\)/i,'')}${/NEW/i.test(v.venue)?' (NEW)':''} · ${v.capFri}-${v.capSat}-${v.capSun}</option>`).join('')}<option value="__PARK__">🅿 Parking garage (hold — no slot)</option></select></div>
+      ${venueField}
       <div class="fld-row">
         <div class="fld"><label>Day</label><select id="m-day"><option>Fri</option><option selected>Sat</option><option>Sun</option></select></div>
         <div class="fld"><label>Start time</label><input id="m-time" type="time" value="13:00" min="08:00" max="22:45"></div>
@@ -1973,7 +2009,7 @@ function openAddGame(wk,venue){
     if(warns.length){w.className='live-warn show';w.innerHTML='<b>This will create '+warns.length+' conflict'+(warns.length>1?'s':'')+':</b><br>'+warns.map(x=>'• '+x.msg).join('<br>');}
     else{w.className='live-warn';w.innerHTML='';}
   }
-  ['#m-home','#m-away','#m-venue','#m-day','#m-time'].forEach(s=>modal.querySelector(s).oninput=checkWarn);
+  ['#m-home','#m-away','#m-venue','#m-day','#m-time'].forEach(s=>{const el=modal.querySelector(s);if(el)el.oninput=checkWarn;});
   modal.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>modal.remove());
   modal.onclick=e=>{if(e.target===modal)modal.remove();};
   modal.querySelector('#m-save').onclick=()=>{const g=gather();
@@ -1987,6 +2023,36 @@ function openAddGame(wk,venue){
 /* ============ GAME-TIMES IMPORT (matching LOGIC only; no CSV data embedded) ============ */
 var GAME_TIMES=(function(){try{return JSON.parse(localStorage.getItem('fsl_game_times_v1')||'{}')||{};}catch(e){return {};}})();
 function saveGameTimes(){try{localStorage.setItem('fsl_game_times_v1',JSON.stringify(GAME_TIMES));}catch(e){}}
+/* ===== Manual (user-locked) game times ===== Only the user sets these; the auto-solver,
+   pod timer, and CSV import all skip a locked game. Stored by id: {day,time,end,sheet}. */
+var MANUAL_TIMES=(function(){try{return JSON.parse(localStorage.getItem('fsl_manual_times_v1')||'{}')||{};}catch(e){return {};}})();
+function saveManualTimes(){try{localStorage.setItem('fsl_manual_times_v1',JSON.stringify(MANUAL_TIMES));}catch(e){}}
+function isTimeLocked(g){ return !!(g && MANUAL_TIMES[String(g.id)]); }
+function applyManualTimes(){
+  Object.keys(MANUAL_TIMES).forEach(id=>{
+    const gg=games.find(x=>String(x.id)===String(id)); if(!gg) return;
+    const m=MANUAL_TIMES[id];
+    if(m.day!=null && m.day!=='') gg.day=m.day;
+    if(m.time!=null) gg.time=m.time;
+    if(m.end!=null) gg.endTime=m.end;
+    if(m.sheet!=null && m.sheet!=='') gg.sheet=m.sheet;
+    GAME_TIMES[String(gg.id)]=Object.assign({}, GAME_TIMES[String(gg.id)]||{}, {day:gg.day,time:gg.time,end:gg.endTime,sheet:gg.sheet||''});
+  });
+}
+function setManualTime(id, patch){
+  const gg=games.find(x=>String(x.id)===String(id)); if(!gg) return false;
+  const cur=MANUAL_TIMES[String(id)]||{day:gg.day||'',time:gg.time||'',end:gg.endTime||'',sheet:gg.sheet||''};
+  const next=Object.assign({}, cur, patch);
+  MANUAL_TIMES[String(id)]=next;
+  if(next.day!=null && next.day!=='') gg.day=next.day;
+  if(next.time!=null) gg.time=next.time;
+  if(next.end!=null) gg.endTime=next.end;
+  if(next.sheet!=null) gg.sheet=next.sheet;
+  GAME_TIMES[String(gg.id)]=Object.assign({}, GAME_TIMES[String(gg.id)]||{}, {day:gg.day,time:gg.time,end:gg.endTime,sheet:gg.sheet||''});
+  saveManualTimes(); try{saveGameTimes();}catch(e){}
+  return true;
+}
+function clearManualTime(id){ delete MANUAL_TIMES[String(id)]; saveManualTimes(); }
 const IMP=(function(){
   // ---- FSL game-times import engine (pure; used by browser + node test) ----
   function parseCSV(text){
@@ -2189,7 +2255,9 @@ const IMP=(function(){
     const A=analyze();if(!A)return;const g=A.groups[d.key];if(!g)return;
     const P=pairing(g),df=CSV.dayFirst!==false;let n=0;
     g.slots.forEach((r,i)=>{const gid=(SEL[d.key]&&SEL[d.key][i]!=null)?SEL[d.key][i]:P.def[i];
-      if(!gid)return;const dt=parseDate(r.Date,df);
+      if(!gid)return;
+      if(typeof isTimeLocked==='function' && isTimeLocked({id:gid})) return;
+      const dt=parseDate(r.Date,df);
       GAME_TIMES[gid]={date:r.Date,day:dayFromDate(dt),time:fmtTime(r['Start Time']),end:fmtTime(r['End Time']),sheet:(r['Ice Surface']||'').trim(),venue:g.label};
       const gg=games.find(x=>String(x.id)===String(gid));
       if(gg){gg.day=GAME_TIMES[gid].day;gg.time=GAME_TIMES[gid].time;gg.sheet=GAME_TIMES[gid].sheet;gg.endTime=GAME_TIMES[gid].end;gg.date=r.Date;gg.venue=g.label;}
@@ -2200,7 +2268,7 @@ const IMP=(function(){
   function resetTimes(){if(!confirm('Remove ALL imported game times from every game? Your schedule and matchups are unchanged.'))return;
     Object.keys(GAME_TIMES).forEach(id=>{const gg=games.find(x=>String(x.id)===String(id));if(gg){gg.day='';gg.time='';gg.sheet='';gg.endTime='';gg.date='';}});
     GAME_TIMES={};saveGameTimes();render();showToast('All imported times reset.','warn');}
-  function overlay(){Object.keys(GAME_TIMES).forEach(id=>{const gg=games.find(x=>String(x.id)===String(id));if(gg){const t=GAME_TIMES[id];if(t.weekend)gg.weekend=t.weekend;if(t.day)gg.day=t.day;if(t.time)gg.time=t.time;if(t.end)gg.endTime=t.end;gg.sheet=t.sheet;gg.date=t.date;if(t.venue)gg.venue=t.venue;}});}
+  function overlay(){Object.keys(GAME_TIMES).forEach(id=>{const gg=games.find(x=>String(x.id)===String(id));if(gg){if(typeof isTimeLocked==='function'&&isTimeLocked(gg))return;const t=GAME_TIMES[id];if(t.weekend)gg.weekend=t.weekend;if(t.day)gg.day=t.day;if(t.time)gg.time=t.time;if(t.end)gg.endTime=t.end;gg.sheet=t.sheet;gg.date=t.date;if(t.venue)gg.venue=t.venue;}});}
   function view(){
     const btn='padding:4px 12px;border-radius:7px;border:1px solid var(--line-l);background:#fff;font-size:12px;font-weight:700;cursor:pointer;';
     const prim=btn+'background:var(--ok);color:#fff;border-color:transparent;';
@@ -2351,8 +2419,8 @@ const XP=(function(){
     if(kind==='league'){
       const gs=games.slice().sort((a,b)=>DIVORDER.indexOf(a.division)-DIVORDER.indexOf(b.division)||gsort(a,b));
       title='FSL \u2014 Full League Schedule (all divisions)';
-      cols=['Division','Weekend','Date','Day','Time','City','Arena','Ice Surface','Home','Away'];
-      rows=gs.map(g=>({c:[g.division,g.weekend,dateCol(g),g.day||'',g.time||'TBD',cityOf(g.venue),arenaOf(g.venue),g.sheet||'',g.home,g.away],k:g.division}));
+      cols=['Division','Weekend','Date','Day','Time','End','City','Arena','Ice Surface','Home','Away'];
+      rows=gs.map(g=>({c:[g.division,g.weekend,dateCol(g),g.day||'',(g.time?clock12(g.time):'TBD'),(g.endTime?clock12(g.endTime):''),cityOf(g.venue),arenaOf(g.venue),g.sheet||'',g.home,g.away],k:g.division}));
       color=r=>DIVFILL[r.k]||'#ffffff'; legend='color = division \u00b7 every game in the league';
     } else if(kind==='sourced'){
       const rs=sourceNeededRows();
@@ -2377,42 +2445,42 @@ const XP=(function(){
       const p=String(key).split('|||'),div=p[0],nm=p[1],t=teamObj(nm,div);
       const gs=games.filter(g=>g.division===div&&(g.home===nm||g.away===nm)).sort(gsort);
       title=nm+' \u2014 '+div+' \u2014 Team Schedule';
-      cols=['Weekend','Date','Day','Time','City','Arena','Ice Surface','H/A','Opponent','Type'];
+      cols=['Weekend','Date','Day','Time','End','City','Arena','Ice Surface','H/A','Opponent','Type'];
       rows=gs.map(g=>{const home=g.home===nm,opp=home?g.away:g.home,cl=clusterName(g.venue);
         const type=(t&&t.homeCluster===cl)?'HOME':((t&&t.region)!==venueRegion(g.venue)?'TRAVEL':'Local');
-        return {c:[g.weekend,dateCol(g),g.day||'',g.time||'TBD',cityOf(g.venue),arenaOf(g.venue),g.sheet||'',home?'HOME':'AWAY',opp,type],k:type};});
+        return {c:[g.weekend,dateCol(g),g.day||'',(g.time?clock12(g.time):'TBD'),(g.endTime?clock12(g.endTime):''),cityOf(g.venue),arenaOf(g.venue),g.sheet||'',home?'HOME':'AWAY',opp,type],k:type};});
       color=r=>r.k==='HOME'?'#E2EFDA':r.k==='TRAVEL'?'#FCE4D6':'#DDEBF7';
       legend='HOME = green \u00b7 TRAVEL = orange \u00b7 Local = blue';
     } else if(kind==='division'){
       const gs=games.filter(g=>g.division===key).sort(gsort);
       title=key+' \u2014 Division Schedule';
-      cols=['Weekend','Date','Day','Time','City','Arena','Ice Surface','Home','Away'];
+      cols=['Weekend','Date','Day','Time','End','City','Arena','Ice Surface','Home','Away'];
       const wl=[...new Set(gs.map(g=>g.weekend))];
-      rows=gs.map(g=>({c:[g.weekend,dateCol(g),g.day||'',g.time||'TBD',cityOf(g.venue),arenaOf(g.venue),g.sheet||'',g.home,g.away],k:g.weekend}));
+      rows=gs.map(g=>({c:[g.weekend,dateCol(g),g.day||'',(g.time?clock12(g.time):'TBD'),(g.endTime?clock12(g.endTime):''),cityOf(g.venue),arenaOf(g.venue),g.sheet||'',g.home,g.away],k:g.weekend}));
       color=r=>wl.indexOf(r.k)%2?'#F2F2F2':'#ffffff'; legend='alternating shade per weekend';
     } else if(kind==='weekend'){
       const gs=games.filter(g=>g.weekend===key).sort((a,b)=>DIVORDER.indexOf(a.division)-DIVORDER.indexOf(b.division)||gsort(a,b));
       title=key+'  ('+(WKDATE[key]||'')+') \u2014 Weekend Schedule';
-      cols=['Division','Day','Time','City','Arena','Ice Surface','Home','Away'];
-      rows=gs.map(g=>({c:[g.division,g.day||'',g.time||'TBD',cityOf(g.venue),arenaOf(g.venue),g.sheet||'',g.home,g.away],k:g.division}));
+      cols=['Division','Day','Time','End','City','Arena','Ice Surface','Home','Away'];
+      rows=gs.map(g=>({c:[g.division,g.day||'',(g.time?clock12(g.time):'TBD'),(g.endTime?clock12(g.endTime):''),cityOf(g.venue),arenaOf(g.venue),g.sheet||'',g.home,g.away],k:g.division}));
       color=r=>DIVFILL[r.k]||'#ffffff'; legend='color = division';
     } else if(kind==='city'){
       const gs=games.filter(g=>cityOf(g.venue)===key).sort(gsort);
       title=key+' \u2014 Venue (City) Schedule';
-      cols=['Weekend','Date','Day','Time','Arena','Ice Surface','Division','Home','Away'];
-      rows=gs.map(g=>({c:[g.weekend,dateCol(g),g.day||'',g.time||'TBD',arenaOf(g.venue),g.sheet||'',g.division,g.home,g.away],k:g.division}));
+      cols=['Weekend','Date','Day','Time','End','Arena','Ice Surface','Division','Home','Away'];
+      rows=gs.map(g=>({c:[g.weekend,dateCol(g),g.day||'',(g.time?clock12(g.time):'TBD'),(g.endTime?clock12(g.endTime):''),arenaOf(g.venue),g.sheet||'',g.division,g.home,g.away],k:g.division}));
       color=r=>DIVFILL[r.k]||'#ffffff'; legend='color = division';
     } else if(kind==='arena'){
       const gs=games.filter(g=>g.venue===key).sort(gsort);
       title=arenaOf(key)+'  ('+cityOf(key)+') \u2014 Arena Schedule';
       cols=['Weekend','Date','Day','Start','Stop','Duration','Floods','Ice Surface','Division','Home','Away'];
-      rows=gs.map(g=>({c:[g.weekend,dateCol(g),g.day||'',g.time||'TBD',g.endTime||'',dur(g),floodFor(g.division),g.sheet||'',g.division,g.home,g.away],k:g.division}));
+      rows=gs.map(g=>({c:[g.weekend,dateCol(g),g.day||'',(g.time?clock12(g.time):'TBD'),(g.endTime?clock12(g.endTime):''),dur(g),floodFor(g.division),g.sheet||'',g.division,g.home,g.away],k:g.division}));
       color=r=>FLOOD2.has(r.k)?'#ffffff':'#FFF2CC'; legend='White = 1-flood games \u00b7 Yellow = 2-flood games'; note=FLOOD_NOTE;
     } else if(kind==='arenawknd'){
       const gs=games.filter(g=>g.venue===key&&g.weekend===key2).sort(gsort);
       title=arenaOf(key)+'  ('+cityOf(key)+')  \u2014  '+key2+'  ('+(WKDATE[key2]||'')+')  \u2014 Arena Weekend Sheet';
       cols=['Day','Date','Start','Stop','Duration','Floods','Ice Surface','Division','Home','Away'];
-      rows=gs.map(g=>({c:[g.day||'',dateCol(g),g.time||'TBD',g.endTime||'',dur(g),floodFor(g.division),g.sheet||'',g.division,g.home,g.away],k:g.division}));
+      rows=gs.map(g=>({c:[g.day||'',dateCol(g),(g.time?clock12(g.time):'TBD'),(g.endTime?clock12(g.endTime):''),dur(g),floodFor(g.division),g.sheet||'',g.division,g.home,g.away],k:g.division}));
       color=r=>FLOOD2.has(r.k)?'#ffffff':'#FFF2CC'; legend='White = 1-flood games \u00b7 Yellow = 2-flood games'; note=FLOOD_NOTE;
     }
     return {kind,key,key2,title,cols,rows,color,legend,note};
@@ -2821,7 +2889,7 @@ window.PG=PG;
 /* ============ GLOBAL UNDO ============ */
 var UNDO_STACK=[];
 var SOLVE_REPORT={}; // wk -> last auto-solve result (per-venue day splits, flags, review items)
-const MUTATING=new Set(['iceHave','iceNo','iceHeld','iceDel','iceRestore','iceReset','venueAdd','venueAddDel','impApply','impReset','pgPark','pgParkVenue','pgParkDiv','pgAssign','podSwap','podTime','slotAssign','pgPlaceAt','pgPlaceAll','pgPodMove','pgSelMove','pgRestore','pgRemove','autosolve','toggleLock','toggleVenueLock','pgTbd']);;
+const MUTATING=new Set(['iceHave','iceNo','iceHeld','iceDel','iceRestore','iceReset','venueAdd','venueAddDel','impApply','impReset','pgPark','pgParkVenue','pgParkDiv','pgAssign','podSwap','podTime','slotAssign','pgPlaceAt','pgPlaceAll','pgPodMove','pgSelMove','pgRestore','pgRemove','autosolve','toggleLock','toggleVenueLock','pgTbd','timeSet','timeUnlock']);;
 function pushUndo(label){try{UNDO_STACK.push(JSON.stringify({games:games,gid:gid,ice:ICE_DECISIONS,times:GAME_TIMES,parking:PARKING,locked:LOCKED,removed:REMOVED_GAMES,label:label||''}));if(UNDO_STACK.length>40)UNDO_STACK.shift();}catch(e){}}
 function undo(){
   if(!UNDO_STACK.length){showToast('Nothing to undo.','');return;}
@@ -2862,6 +2930,15 @@ const ACTIONS={
   toggleLock:d=>{ if(!d||!d.wk)return; if(isLocked(d.wk)) delete LOCKED[d.wk]; else LOCKED[d.wk]=Date.now(); saveLocked(); render(); showToast(isLocked(d.wk)?('\uD83D\uDD12 Locked '+d.wk+' \u2014 no changes will be applied here.'):('\uD83D\uDD13 Unlocked '+d.wk+' \u2014 changes allowed again.'), isLocked(d.wk)?'':'good'); },
   toggleVenueLock:d=>{ if(!d||!d.wk||!d.venue)return; const k=venueLockKey(d.wk,d.venue); if(LOCKED[k]) delete LOCKED[k]; else LOCKED[k]=Date.now(); saveLocked(); render(); const vn=d.venue.replace(/\s*\(NEW\)/i,''); showToast(LOCKED[k]?('\uD83D\uDD12 Locked '+vn+' \u00b7 '+d.wk+' \u2014 held as-is; auto-solve will skip it.'):('\uD83D\uDD13 Unlocked '+vn+' \u00b7 '+d.wk), LOCKED[k]?'':'good'); },
   slotEditToggle:d=>{ const k=d.wk+'|||'+d.venue; SLOT_EDIT=(SLOT_EDIT===k?null:k); render(); },
+  timeEdit:d=>{ if(!d||!d.id)return; TIME_EDIT=String(d.id); render(); },
+  timeEditDone:()=>{ TIME_EDIT=null; render(); },
+  timeUnlock:d=>{ if(!d||!d.id)return; clearManualTime(d.id); TIME_EDIT=null; render(); showToast('\uD83D\uDD13 Time unlocked \u2014 the auto-solver can set this game\u2019s time again.','good'); },
+  timeSet:el=>{ const d=el.dataset, val=el.value||'';
+    if(val && !/^\d{2}:\d{2}$/.test(val)){ showToast('Enter a valid time.','warn'); return; }
+    setManualTime(d.id, d.field==='end'?{end:val}:{time:val});
+    const g=games.find(x=>String(x.id)===String(d.id));
+    showToast('\uD83D\uDD12 Time set manually'+(g?(' \u2014 '+g.home+' vs '+g.away):'')+'. The app won\u2019t change it.','good');
+    render(); },
   slotAssign:el=>{ const d=el.dataset, gid=el.value;
     if(isEffLocked(d.wk,d.venue)){showToast('\uD83D\uDD12 '+(isVenueLocked(d.wk,d.venue)?'This venue':d.wk)+' is locked \u2014 unlock it to change slots.','warn');render();return;}
     const hhmm=m=>String(Math.floor((m%1440)/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0');
@@ -2965,6 +3042,11 @@ const ACTIONS={
     const wk=(view.type==='weekend'&&view.wk)||WK.find(w=>venuesFor(w).length)||WK[0];
     openAddGame(wk);
   },
+  addToPod:d=>{ // add a new game straight into a specific pod (venue+weekend); venue locked
+    if(!d||!d.wk||!d.venue)return;
+    if(isEffLocked(d.wk,d.venue)){showToast('\uD83D\uDD12 That venue/weekend is locked \u2014 unlock it to add a game.','warn');return;}
+    openAddGame(d.wk, d.venue, {lockVenue:true, division:d.div||null});
+  },
   autosolve:d=>{ // assign days + start times across this weekend's venues per the spec
     if(isLocked(d.wk)){showToast('\uD83D\uDD12 '+d.wk+' is locked \u2014 unlock it to auto-solve.','warn');return;}
     const r=solveWeekend(d.wk);
@@ -2983,6 +3065,7 @@ if(DATA.published&&Array.isArray(DATA.published.games)&&DATA.published.games.len
 try{applyRemovedGames();}catch(e){}  // item 5: drop games the user permanently removed (persists across versions)
 try{IMP.overlay();}catch(e){}
 try{PG.overlay();}catch(e){}
+try{applyManualTimes();}catch(e){}
 render();
 (function(){var s=document.getElementById('pubstamp');if(s&&DATA.published&&DATA.published.stamp)s.textContent='Published '+DATA.published.stamp;})();
 
