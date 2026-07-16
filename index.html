@@ -4406,7 +4406,8 @@ render();
       manualTimes:(typeof MANUAL_TIMES!=='undefined'?MANUAL_TIMES:undefined),
       hypoTimes:(typeof HYPO_TIMES!=='undefined'?HYPO_TIMES:undefined),
       matchupLog:(typeof MATCHUP_LOG!=='undefined'?MATCHUP_LOG:undefined),
-      parking:(typeof PARKING!=='undefined'?PARKING:undefined)};
+      parking:(typeof PARKING!=='undefined'?PARKING:undefined),
+      activityLog:(typeof window.__actLogGet==='function'?window.__actLogGet():undefined)};
   }
 
   // ---- Apply an incoming payload (mirrors the Load handler's restore logic) ----
@@ -4463,6 +4464,11 @@ render();
       else { games.forEach(g=>{ if(WK.includes(g.weekend) && (!g.venue||!String(g.venue).trim())){ PARKING[String(g.id)]={from:'',day:g.day||'',time:g.time||'',sheet:g.sheet||'',end:g.endTime||'',wk:g.weekend,division:g.division,home:g.home,away:g.away}; } }); }
       saveParking(); }catch(e){}
     try{applyManualTimes();}catch(e){}
+    try{ if(Array.isArray(o.activityLog) && typeof window.__actLogMerge==='function'){
+      window.__actLogMerge(o.activityLog);
+      const L=window.__actLogGet?window.__actLogGet():[];
+      if(L.length && typeof window.__actLogNote==='function') window.__actLogNote(L[L.length-1]);
+    } }catch(e){}
     try{ render(); }catch(e){}
     return true;
   }
@@ -4577,6 +4583,169 @@ render();
     if(!u){ u=(prompt('Your name (so your teammate sees who made a change):','')||'').trim(); if(u) localStorage.setItem('fsl_cloud_user_v1',u); }
     window.__cloudUser=u||'';
   }catch(e){ window.__cloudUser=''; }
+})();
+
+/* =====================================================================
+   ACTIVITY LOG  (who changed what, when) + "last action" note by name
+   Self-contained. Rides on the SAME Firebase doc via a small extra
+   field, and records a plain-English line for every state-changing
+   action. Adds a "Log" button to the toolbar and a note on the pill.
+   ===================================================================== */
+(function(){
+  const LOG_KEY='fsl_activity_log_v1';
+  const MAX=500;                       // keep the most recent 500 entries
+  let LOG=[];
+  try{ LOG=JSON.parse(localStorage.getItem(LOG_KEY)||'[]'); if(!Array.isArray(LOG)) LOG=[]; }catch(e){ LOG=[]; }
+  window.__actLog=LOG;
+
+  // Plain-English label for each action code.
+  const LABELS={
+    iceHave:'marked ice as have', iceNo:'marked ice as needed', iceHeld:'held ice unsourced',
+    iceDel:'removed an ice row', iceRestore:'restored an ice row', iceReset:'reset all ice decisions',
+    venueAdd:'added a venue', venueAddDel:'deleted an added venue',
+    slotAddDel:'removed an added slot', addSlot:'added an ice slot', removeSlot:'removed an ice slot',
+    impApply:'applied imported times', impReset:'reset imported times', impClear:'cleared an import',
+    pgPark:'parked a game', pgParkVenue:'parked a whole pod', pgParkDiv:'parked a division pod',
+    pgAssign:'moved a parked game', pgPlaceAt:'placed a game', pgPlaceAll:'placed all games in a pod',
+    pgPodMove:'moved a whole pod', pgSelMove:'moved selected games', pgRestore:'returned a game',
+    pgRemove:'removed a game', pgTbd:'toggled a game to TBD',
+    autosolve:'ran auto weekend solve', toggleLock:'locked/unlocked a weekend',
+    toggleVenueLock:'locked/unlocked a venue',
+    timeSet:'set a game time', timeUnlock:'unlocked a game time', timeEdit:'edited a game time',
+    hypoTime:'added hypothetical times', hypoClear:'cleared hypothetical times',
+    hypoLock:'locked hypothetical times in as real', hypoEdit:'edited a hypothetical time',
+    slotAssign:'assigned a slot', slotDrop:'moved a game between slots',
+    matchupSet:'changed a matchup', matchupSwap:'swapped a matchup', podSwap:'swapped opponents in a pod',
+    matchupRevertOne:'reverted a matchup', matchupRevertAll:'reverted all matchups',
+    quickadd:'opened Add game', undo:'undid the last change',
+    exportj:'saved a backup file', importj:'loaded a schedule file',
+    confAck:'acknowledged a conflict', confUnack:'un-acknowledged a conflict'
+  };
+  function labelFor(code){ return LABELS[code] || (code ? ('did: '+code) : 'made a change'); }
+
+  function timeStr(ts){
+    try{ const d=new Date(ts); return d.toLocaleString([], {month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}); }
+    catch(e){ return ''; }
+  }
+
+  // Merge two logs by id, keep newest MAX. Used when the cloud sends us theirs.
+  function mergeLog(incoming){
+    if(!Array.isArray(incoming)) return;
+    const seen=new Set(LOG.map(e=>e.id));
+    incoming.forEach(e=>{ if(e && e.id && !seen.has(e.id)){ LOG.push(e); seen.add(e.id); } });
+    LOG.sort((a,b)=>(a.ts||0)-(b.ts||0));
+    if(LOG.length>MAX) LOG.splice(0, LOG.length-MAX);
+    try{ localStorage.setItem(LOG_KEY, JSON.stringify(LOG)); }catch(e){}
+  }
+  window.__actLogMerge=mergeLog;
+  window.__actLogGet=()=>LOG.slice();
+
+  let lastNoteEl=null;
+  function updatePillNote(entry){
+    const pill=document.getElementById('cloudpill');
+    if(!pill) return;
+    let note=document.getElementById('cloudpill-note');
+    if(!note){
+      note=document.createElement('div'); note.id='cloudpill-note';
+      note.style.cssText='font:500 10.5px -apple-system,Segoe UI,Roboto,sans-serif;color:#cfcfd6;'
+        +'margin-top:3px;max-width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis';
+      pill.style.flexDirection='column'; pill.style.alignItems='flex-start';
+      pill.appendChild(note);
+    }
+    if(entry){ note.textContent=(entry.by||'Someone')+' '+entry.what; note.title=note.textContent+' \u00b7 '+timeStr(entry.ts); }
+  }
+  window.__actLogNote=updatePillNote;
+
+  function record(code){
+    const entry={
+      id: Date.now().toString(36)+Math.random().toString(36).slice(2,6),
+      ts: Date.now(),
+      by: (window.__cloudUser||'Someone'),
+      code: code||'',
+      what: labelFor(code)
+    };
+    LOG.push(entry);
+    if(LOG.length>MAX) LOG.splice(0, LOG.length-MAX);
+    try{ localStorage.setItem(LOG_KEY, JSON.stringify(LOG)); }catch(e){}
+    updatePillNote(entry);
+    try{ if(document.getElementById('actlog-panel')&&document.getElementById('actlog-panel').style.display!=='none') renderPanel(); }catch(e){}
+    return entry;
+  }
+
+  // Capture every state-changing click. We read the action code straight off
+  // the [data-act] the user clicked, and only log ones the app treats as real
+  // changes (plus a few useful non-mutating ones like save/load).
+  const ALSO=new Set(['exportj','importj','quickadd','undo','confAck','confUnack','matchupRevertOne','matchupRevertAll','addSlot','removeSlot','timeEdit','hypoEdit']);
+  document.addEventListener('click', (e)=>{
+    const el=e.target && e.target.closest && e.target.closest('[data-act]');
+    if(!el) return;
+    const code=el.dataset.act;
+    let isMut=false; try{ isMut=(typeof MUTATING!=='undefined')&&MUTATING.has(code); }catch(e){}
+    if(isMut || ALSO.has(code)) record(code);
+  }, true);
+  document.addEventListener('change', (e)=>{
+    const el=e.target && e.target.closest && e.target.closest('[data-actchange]');
+    if(!el) return;
+    const code=el.dataset.actchange;
+    let isMut=false; try{ isMut=(typeof MUTATING!=='undefined')&&MUTATING.has(code); }catch(e){}
+    if(isMut) record(code);
+  }, true);
+
+  // ---- The log panel (a slide-over) ----
+  function ensurePanel(){
+    let p=document.getElementById('actlog-panel');
+    if(p) return p;
+    p=document.createElement('div'); p.id='actlog-panel';
+    p.style.cssText='position:fixed;top:0;right:0;width:min(380px,92vw);height:100%;z-index:10000;'
+      +'background:#fff;box-shadow:-4px 0 24px rgba(0,0,0,.22);display:none;flex-direction:column;'
+      +'font:400 13px -apple-system,Segoe UI,Roboto,sans-serif';
+    p.innerHTML=
+      '<div style="padding:14px 16px;border-bottom:1px solid #eee;display:flex;align-items:center;justify-content:space-between">'
+      +'<b style="font-size:15px">Activity log</b>'
+      +'<button id="actlog-close" style="border:none;background:#f2f2f4;border-radius:7px;width:30px;height:30px;cursor:pointer;font-size:16px">\u2715</button></div>'
+      +'<div id="actlog-body" style="flex:1;overflow:auto;padding:8px 0"></div>';
+    document.body.appendChild(p);
+    p.querySelector('#actlog-close').onclick=()=>{ p.style.display='none'; };
+    return p;
+  }
+  function renderPanel(){
+    const p=ensurePanel();
+    const body=p.querySelector('#actlog-body');
+    if(!LOG.length){ body.innerHTML='<div style="padding:20px 16px;color:#999">No activity recorded yet.</div>'; return; }
+    const rows=LOG.slice().reverse().map(e=>{
+      const who=(e.by||'Someone').replace(/</g,'&lt;');
+      const what=(e.what||'made a change').replace(/</g,'&lt;');
+      return '<div style="padding:9px 16px;border-bottom:1px solid #f2f2f4">'
+        +'<div style="font-weight:600">'+who+' <span style="font-weight:400;color:#444">'+what+'</span></div>'
+        +'<div style="font-size:11px;color:#999;margin-top:2px">'+timeStr(e.ts)+'</div></div>';
+    }).join('');
+    body.innerHTML=rows;
+  }
+  window.__actLogOpen=function(){ const p=ensurePanel(); p.style.display='flex'; renderPanel(); };
+
+  // ---- Add a "Log" button into the toolbar, next to Save/Load ----
+  function injectButton(){
+    if(document.getElementById('actlog-btn')) return;
+    // find the Load button and drop our button right after it
+    const load=document.querySelector('[data-act="importj"]');
+    if(!load || !load.parentNode) return;
+    const b=document.createElement('button');
+    b.id='actlog-btn'; b.className=load.className;
+    b.textContent='\uD83D\uDCDC Log';
+    b.title='See who changed what, and when';
+    b.style.whiteSpace='nowrap';
+    b.onclick=()=>window.__actLogOpen();
+    load.parentNode.insertBefore(b, load.nextSibling);
+  }
+  // The toolbar is re-created on every render(); re-inject after each.
+  const _origRender=window.render;
+  if(typeof _origRender==='function'){
+    window.render=function(){ const r=_origRender.apply(this,arguments); try{ injectButton(); }catch(e){} return r; };
+  }
+  // Also try shortly after load in case render already ran.
+  setTimeout(()=>{ try{ injectButton(); }catch(e){} }, 400);
+  // Show the most recent entry's note on the pill at startup.
+  setTimeout(()=>{ if(LOG.length) updatePillNote(LOG[LOG.length-1]); }, 800);
 })();
 
 </script>
