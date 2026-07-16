@@ -210,6 +210,78 @@ button{font-family:inherit;cursor:pointer}
   width:100%;color:var(--mut-d);font-weight:700;font-size:12px;display:flex;align-items:center;justify-content:center;gap:7px}
 .addgame:hover{border-color:var(--red);color:var(--red)}
 
+/* SLOT EDITOR — drag a game onto a slot to move it */
+.slotpanel{border-bottom:1px solid var(--line-l);background:#F7FBFF;padding-bottom:4px}
+.slothint{padding:9px 17px 3px;font-size:11.5px;color:var(--mut-d);line-height:1.5}
+.slothint b{color:#3C3489}
+.slottbl{margin:4px 8px 8px}
+.slottbl td{vertical-align:middle}
+.slottbl .sday{font-weight:700}
+.slottbl .tm{font-variant-numeric:tabular-nums}
+.slottbl .ssheet{color:var(--mut-d)}
+.slotcell{display:flex;align-items:center;gap:8px}
+.slotcell .dbl{color:var(--red);font-size:10.5px;font-weight:700;white-space:nowrap}
+/* the "pick from list" dropdown is a quiet secondary control — small and only visible on hover/focus */
+.slotpick{font-size:12px;padding:2px 4px;border:1px solid var(--line-l);border-radius:6px;max-width:150px;
+  background:#fff;color:var(--mut-d);opacity:0;transition:opacity .12s;flex-shrink:0}
+.slotcell:hover .slotpick,.slotpick:focus{opacity:1}
+.slotcell.empty .slotpick{opacity:.6;max-width:240px}
+.slotcell.empty:hover .slotpick,.slotcell.empty .slotpick:focus{opacity:1}
+.slotcell .ez{font-size:11.5px;color:var(--mut);font-style:italic}
+.slotcell.empty{color:var(--mut)}
+
+/* draggable game chip */
+.dragchip{display:inline-flex;align-items:center;gap:7px;cursor:grab;border:1px solid var(--line-l);border-radius:7px;
+  background:#fff;padding:4px 9px;font-size:12px;font-weight:600;color:var(--txt);max-width:330px;
+  user-select:none;-webkit-user-select:none;transition:box-shadow .12s,border-color .12s,transform .06s;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+.dragchip:hover{border-color:#3C3489;box-shadow:0 2px 8px rgba(60,52,137,.16)}
+.dragchip:active{cursor:grabbing;transform:scale(.98)}
+.dragchip.dragging{opacity:.35}
+.dragchip .grip{color:var(--line-l);font-size:11px;letter-spacing:-3px;line-height:1;flex-shrink:0}
+.dragchip:hover .grip{color:#9a95c8}
+.dragchip .cn{font-weight:800;color:var(--red);font-size:10.5px;flex-shrink:0;font-variant-numeric:tabular-nums}
+.dragchip .cm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* drop-target feedback (rows + tray) */
+.slotdrop{transition:background .12s,box-shadow .12s}
+tr.slotdrop.dragok td:last-child{box-shadow:inset 0 0 0 1.5px #bfe6cd}
+tr.slotdrop.dragover td{background:#DBF4E3 !important}
+tr.slotdrop.dragover td:last-child{box-shadow:inset 0 0 0 2px var(--ok)}
+
+/* MATCHUP EDITOR — drag a team onto the HOME or AWAY slot */
+.mmpanel{display:inline-flex;flex-direction:column;gap:7px;background:#F7FBFF;border:1px solid #d8e2ef;
+  border-radius:9px;padding:9px 11px;margin:3px 0;max-width:520px}
+.mmrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.mmslots{display:flex;align-items:center;gap:8px}
+.mmslot{display:inline-flex;flex-direction:column;gap:2px;min-width:150px;border:1.5px dashed #c7cfdb;
+  border-radius:8px;padding:5px 9px;background:#fff;transition:background .12s,border-color .12s,box-shadow .12s}
+.mmslot .lbl{font-size:8.5px;letter-spacing:1px;text-transform:uppercase;color:var(--mut-d);font-weight:800}
+.mmslot .team{font-size:12.5px;font-weight:700;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mmslot.dragok{border-color:#9fd8b4;background:#F1FAF4}
+.mmslot.dragover{border-color:var(--ok);border-style:solid;background:#DBF4E3;box-shadow:inset 0 0 0 1px var(--ok)}
+.mmslot .teamchip{cursor:grab}
+.mmvs{font-size:10px;font-weight:800;color:var(--mut-d)}
+.mmpalette{display:flex;flex-wrap:wrap;gap:5px;padding-top:6px;border-top:1px dashed #d8e2ef}
+.mmplabel{width:100%;font-size:10px;color:var(--mut-d);font-weight:700;margin-bottom:1px}
+.teamchip{display:inline-flex;align-items:center;gap:5px;cursor:grab;border:1px solid var(--line-l);border-radius:6px;
+  background:#fff;padding:3px 8px;font-size:11.5px;font-weight:600;color:var(--txt);
+  user-select:none;-webkit-user-select:none;transition:box-shadow .12s,border-color .12s,transform .06s}
+.teamchip:hover{border-color:#3C3489;box-shadow:0 2px 7px rgba(60,52,137,.15)}
+.teamchip:active{cursor:grabbing;transform:scale(.97)}
+.teamchip.dragging{opacity:.35}
+.teamchip.inplay{border-color:#3C3489;background:#EEEDFE;color:#3C3489}
+.mmnone{font-size:11px;color:var(--mut-d);font-style:italic}
+.teamchip .grip{color:var(--line-l);font-size:10px;letter-spacing:-3px;line-height:1}
+.teamchip:hover .grip{color:#9a95c8}
+
+/* the unassigned tray */
+.dragpool{margin:0 8px 8px;padding:9px 11px;border:1px dashed var(--line-l);border-radius:9px;background:#fbfcff;transition:background .12s,box-shadow .12s,border-color .12s}
+.dragpool.dragok{border-color:#bfe6cd}
+.dragpool.dragover{background:#DBF4E3;border-color:var(--ok);box-shadow:inset 0 0 0 2px var(--ok)}
+.dragpool .plabel{display:block;font-size:11px;color:var(--mut-d);font-weight:700;margin-bottom:7px}
+.dragpool .poolchips{display:flex;flex-wrap:wrap;gap:7px}
+.dragpool .poolempty{font-size:11.5px;color:var(--mut);font-style:italic}
+
 /* EMPTY */
 .empty{text-align:center;padding:50px 20px;color:var(--mut-d)}
 .empty .ic{font-size:34px;color:var(--line-l)}
@@ -231,8 +303,8 @@ button{font-family:inherit;cursor:pointer}
 .conf-item .ctx{font-size:11px;color:var(--mut-d);margin-top:2px}
 
 /* MODAL */
-.modal-bg{position:absolute;inset:0;background:rgba(10,10,10,.55);display:flex;align-items:flex-start;
-  justify-content:center;padding:60px 20px;z-index:100}
+.modal-bg{position:fixed;inset:0;background:rgba(10,10,10,.55);display:flex;align-items:flex-start;
+  justify-content:center;padding:60px 20px;z-index:300;overflow:auto}
 .modal{background:#fff;border-radius:14px;width:100%;max-width:520px;overflow:hidden;
   box-shadow:0 20px 60px rgba(0,0,0,.3)}
 .modal-h{background:var(--blk);color:#fff;padding:16px 20px;display:flex;align-items:center;justify-content:between;gap:12px}
@@ -691,6 +763,79 @@ function attachNav(){
   document.querySelectorAll('[data-act]').forEach(el=>{el.onclick=()=>{const a=el.dataset.act;if(MUTATING.has(a))pushUndo(a);ACTIONS[a](el.dataset);};});
   document.querySelectorAll('[data-actchange]').forEach(el=>{el.onchange=()=>{const a=el.dataset.actchange;if(MUTATING.has(a))pushUndo(a);ACTIONS[a](el);};});
   document.querySelectorAll('[data-actfile]').forEach(el=>{el.onchange=()=>ACTIONS[el.dataset.actfile](el);});
+  attachDragDrop();
+}
+// Drag a game "chip" onto a slot row (or the unslotted pool) to move/free it. Reuses ACTIONS.slotDrop,
+// which shares the exact placement logic used by the assign dropdown — so drops respect the same
+// swap/free/lock rules, persist to GAME_TIMES, and are undoable.
+let DRAG_GAME=null;   // {id, wk, venue} of the chip currently being dragged, or null
+function attachDragDrop(){
+  document.querySelectorAll('.dragchip[draggable="true"]').forEach(chip=>{
+    chip.addEventListener('dragstart', e=>{
+      DRAG_GAME={id:chip.dataset.dragid, wk:chip.dataset.dragwk, venue:chip.dataset.dragvenue};
+      chip.classList.add('dragging');
+      try{ e.dataTransfer.effectAllowed='move'; e.dataTransfer.setData('text/plain', String(chip.dataset.dragid)); }catch(err){}
+      // Highlight every slot in THIS pod as a valid drop target.
+      document.querySelectorAll('.slotdrop').forEach(t=>{
+        if(t.dataset.wk===DRAG_GAME.wk && t.dataset.venue===DRAG_GAME.venue) t.classList.add('dragok');
+      });
+    });
+    chip.addEventListener('dragend', ()=>{
+      chip.classList.remove('dragging');
+      document.querySelectorAll('.slotdrop').forEach(t=>t.classList.remove('dragok','dragover'));
+      DRAG_GAME=null;
+    });
+  });
+  document.querySelectorAll('.slotdrop').forEach(target=>{
+    const samemap=()=>DRAG_GAME && target.dataset.wk===DRAG_GAME.wk && target.dataset.venue===DRAG_GAME.venue;
+    let depth=0;   // enter/leave counter so moving between a row's cells doesn't flicker the highlight
+    target.addEventListener('dragenter', e=>{ if(!samemap())return; e.preventDefault(); depth++; target.classList.add('dragover'); });
+    target.addEventListener('dragover', e=>{ if(!samemap())return; e.preventDefault(); try{e.dataTransfer.dropEffect='move';}catch(err){} });
+    target.addEventListener('dragleave', ()=>{ if(!samemap())return; depth=Math.max(0,depth-1); if(depth===0) target.classList.remove('dragover'); });
+    target.addEventListener('drop', e=>{
+      e.preventDefault(); depth=0; target.classList.remove('dragover');
+      if(!samemap()) return;
+      const d=Object.assign({}, target.dataset, {dragid:DRAG_GAME.id});
+      DRAG_GAME=null;
+      if(MUTATING.has('slotDrop')) pushUndo('slotDrop');
+      ACTIONS.slotDrop(d);
+    });
+  });
+  attachMatchupDrag();
+}
+// Drag a team chip onto a HOME/AWAY slot to set that side of a matchup; drag one slot's team onto
+// the other slot to swap. Chips carry data-mmteam (the team), data-mmid (game id), and — when the
+// chip is sitting in a slot — data-mmfrom (home|away). Slots carry data-mmslot + data-mmid.
+let DRAG_TEAM=null;   // {team, id, from} of the team chip being dragged, or null
+function attachMatchupDrag(){
+  document.querySelectorAll('.teamchip[draggable="true"]').forEach(chip=>{
+    chip.addEventListener('dragstart', e=>{
+      DRAG_TEAM={team:chip.dataset.mmteam, id:chip.dataset.mmid, from:chip.dataset.mmfrom||''};
+      chip.classList.add('dragging');
+      try{ e.dataTransfer.effectAllowed='move'; e.dataTransfer.setData('text/plain', String(chip.dataset.mmteam||'')); }catch(err){}
+      // highlight this editor's two slots as valid targets
+      document.querySelectorAll('.mmdrop').forEach(t=>{ if(t.dataset.mmid===DRAG_TEAM.id) t.classList.add('dragok'); });
+    });
+    chip.addEventListener('dragend', ()=>{
+      chip.classList.remove('dragging');
+      document.querySelectorAll('.mmdrop').forEach(t=>t.classList.remove('dragok','dragover'));
+      DRAG_TEAM=null;
+    });
+  });
+  document.querySelectorAll('.mmdrop').forEach(target=>{
+    const same=()=>DRAG_TEAM && target.dataset.mmid===DRAG_TEAM.id;
+    let depth=0;
+    target.addEventListener('dragenter', e=>{ if(!same())return; e.preventDefault(); depth++; target.classList.add('dragover'); });
+    target.addEventListener('dragover', e=>{ if(!same())return; e.preventDefault(); try{e.dataTransfer.dropEffect='move';}catch(err){} });
+    target.addEventListener('dragleave', ()=>{ if(!same())return; depth=Math.max(0,depth-1); if(depth===0) target.classList.remove('dragover'); });
+    target.addEventListener('drop', e=>{
+      e.preventDefault(); depth=0; target.classList.remove('dragover');
+      if(!same()) return;
+      const payload={ id:DRAG_TEAM.id, field:target.dataset.mmslot, team:DRAG_TEAM.team, from:DRAG_TEAM.from };
+      DRAG_TEAM=null;
+      ACTIONS.matchupDrop(payload);
+    });
+  });
 }
 
 /* ============ SIDEBAR ============ */
@@ -737,6 +882,7 @@ function sidebar(){
     <div class="navsec" style="padding-top:0">
       <button class="navitem ${view.type==='unusedice'?'on':''}" data-nav="unusedice"><span class="ic">❄</span>Unused ice</button>
       <button class="navitem ${view.type==='icetofind'?'on':''}" data-nav="icetofind"><span class="ic">🔍</span>Ice to find</button>
+      <button class="navitem ${view.type==='addedslots'?'on':''}" data-nav="addedslots"><span class="ic">＋</span>Added slots ${(()=>{const n=(typeof SLOT_ADDS!=='undefined')?SLOT_ADDS.length:0;return n?`<span style="margin-left:auto;background:var(--ok);color:#fff;font-size:10px;padding:1px 7px;border-radius:20px;font-weight:800">${n}</span>`:'';})()}</button>
     </div>
     <div class="navsec">
       <h4>Overview</h4>
@@ -768,6 +914,7 @@ function main(){
   else if(view.type==='parking'){body=PG.view();crumb='<b>Parking garage</b>';}
   else if(view.type==='unusedice'){body=unusedIceView();crumb='Ice › <b>Unused</b>';}
   else if(view.type==='icetofind'){body=iceToFindView();crumb='Ice › <b>To Find</b>';}
+  else if(view.type==='addedslots'){body=addedSlotsView();crumb='Ice › <b>Added slots</b>';}
   else if(view.type==='weekend'){body=weekendView(view.wk);crumb=`Weekends › <b>${view.wk}</b>`;}
   else if(view.type==='divlayout'){body=divLayoutView();crumb='Divisions › <b>Divisional layout</b>';}
   else if(view.type==='division'){body=divisionView(view.div);crumb=`Divisions › <b>${view.div}</b>`;}
@@ -900,7 +1047,9 @@ function applySlotAdds(){
     _SLOT_ADDS_APPLIED[key]=n;
     const v=DATA.venues.find(x=>x.weekend===a.weekend&&x.venue===a.venue);
     if(v){ v[ck]=(v[ck]||0)+delta; }
-    try{ if(DATA.realIce&&DATA.realIce[a.weekend]&&DATA.realIce[a.weekend][a.venue]){ const ri=DATA.realIce[a.weekend][a.venue]; ri[a.day]=(ri[a.day]||0)+delta; } }catch(e){}
+    try{ DATA.realIce=DATA.realIce||{}; DATA.realIce[a.weekend]=DATA.realIce[a.weekend]||{};
+      const ri=(DATA.realIce[a.weekend][a.venue]=DATA.realIce[a.weekend][a.venue]||{Fri:0,Sat:0,Sun:0});
+      ri[a.day]=(ri[a.day]||0)+delta; }catch(e){}
   });
 }
 applySlotAdds();
@@ -1039,6 +1188,13 @@ function iceDoesNotExist(wk,venue){
   if(dec==='no') return true;                 // user flagged it as needing sourcing
   if(clusterName(venue)==='Aberdeen' && aberdeenExempt(wk)) return false; // league flex
   return realAvailTotal(wk,venue)<=0;         // no real contracted ice
+}
+// A pod (venue-weekend) is "unsourced" only when it has games AND no real contracted ice at all.
+// A pod that already holds real ice is NOT unsourced even if a few extra games exceed its capacity
+// (those spill-over games are handled by sourcing/parking, not by re-timing the whole pod).
+function isUnsourcedPod(wk,venue){
+  try{ if(!gamesFor(wk).some(g=>g.venue===venue)) return false; }catch(e){}
+  try{ return (typeof iceDoesNotExist==='function') ? iceDoesNotExist(wk,venue) : false; }catch(e){ return false; }
 }
 function askRegionBucket(venue){
   // Mirror the HSL trade-sheet region buckets so the app and the trade sheet agree.
@@ -1473,6 +1629,17 @@ function realSlotListFor(wk, venue){
       if(out.length) base=out;
     }
   }
+  // Merge user-added timed slots (from "＋ Add slot" on a pod): they carry start/end + rink/surface
+  // and are counted as sourced real ice, so they belong in this venue-weekend's slot list.
+  try{
+    const hm=t=>{const m=/^(\d{1,2}):(\d{2})$/.exec(String(t||'').trim());return m?(+m[1])*60+(+m[2]):null;};
+    const adds=(typeof SLOT_ADDS!=='undefined'?SLOT_ADDS:[]).filter(a=>a.weekend===wk&&a.venue===venue&&a.start);
+    if(adds.length){
+      const extra=adds.map(a=>({day:a.day,start:hm(a.start),end:a.end?hm(a.end):null,sheet:a.sheet||'',added:true}))
+        .filter(s=>s.day&&s.start!=null);
+      if(extra.length) base=(base||[]).concat(extra);
+    }
+  }catch(e){}
   if(!base) return null;
   return base;
 }
@@ -1623,6 +1790,14 @@ function suggestSpots(setGames){
   const homeG={}; tObj.forEach(t=>{ homeG[t.name]=games.filter(x=>isPlaced(x)&&x.division===div&&!ids.has(String(x.id))&&(x.home===t.name||x.away===t.name)&&clusterName(x.venue)===t.homeCluster).length; });
   const minH=tObj.length?Math.min(...tObj.map(t=>homeG[t.name])):0;
   const underCluster=new Set(tObj.filter(t=>homeG[t.name]===minH).map(t=>t.homeCluster)); // clusters of the team(s) most "owed" a home game
+  // --- extra factors: divisional pod layout, break-time spacing, home/away travel balance ---
+  const podsCfg=(CFG.pods&&CFG.pods[div])||{};
+  const baseName=t=>String(t).replace(/-\s*\w+$/,'').trim();
+  const podKeysFor=nm=>Object.keys(podsCfg).filter(pk=>(podsCfg[pk]||[]).some(m=>m===nm||baseName(m)===baseName(nm)));
+  const setPodKeys=new Set(); teams.forEach(t=>podKeysFor(t).forEach(pk=>setPodKeys.add(pk)));
+  const HA={}; (DATA.homeAway||[]).filter(r=>r.division===div).forEach(r=>{ HA[r.team]={home:r.home,away:r.away}; });
+  const curHome={}; games.filter(x=>isPlaced(x)&&x.division===div&&!ids.has(String(x.id))).forEach(x=>{ curHome[x.home]=(curHome[x.home]||0)+1; });
+  const teamWks={}; tObj.forEach(t=>{ teamWks[t.name]=games.filter(x=>isPlaced(x)&&x.division===div&&!ids.has(String(x.id))&&(x.home===t.name||x.away===t.name)).map(x=>WK.indexOf(x.weekend)); });
   const out=[];
   cand.forEach(({wk,venue,v})=>{
     if(!wk||!venue) return;
@@ -1669,11 +1844,62 @@ function suggestSpots(setGames){
     if(pairOver){ score-=200; warns.push('exceeds '+repMax+'\u00d7 same matchup that weekend'); }
     if(overloaded.length){ score-=120; warns.push(overloaded.join(' & ')+' would top '+per+' games that weekend'); }
     if(bo){ score-=500; warns.push('BLOCKED \u2014 '+bo); }
+    // (a) divisional pod layout — favour keeping the configured pod together, penalise cross-pod mixing
+    const hereTeams=[...new Set(divHere.flatMap(x=>[x.home,x.away]))];
+    let samePod=0, crossPod=0;
+    hereTeams.forEach(t=>{ const pk=podKeysFor(t); if(pk.length&&pk.some(k=>setPodKeys.has(k))) samePod++; else if(setPodKeys.size) crossPod++; });
+    if(samePod){ score+=10; reasons.push('fits the '+div+' pod layout'); }
+    if(crossPod){ score-=6; warns.push('mixes in another pod\u2019s teams'); }
+    // (b) break-time balance — reward good spacing, penalise a back-to-back weekend (short break)
+    let nearest=null; tObj.forEach(t=>{ (teamWks[t.name]||[]).forEach(i=>{ if(i===idx) return; const dst=Math.abs(i-idx); if(nearest===null||dst<nearest) nearest=dst; }); });
+    if(nearest===1){ score-=10; warns.push('back-to-back weekend for a team (short break)'); }
+    else if(nearest!==null && nearest>=3){ score+=8; reasons.push('good rest/spacing for the teams'); }
+    // (c) over the venue's TOTAL slot capacity (beyond just real-ice room)
+    const totCap = v?((v.capFri||0)+(v.capSat||0)+(v.capSun||0)):realSlots;
+    if(totCap>0 && atVW.length+N>totCap){ score-=25; warns.push('would put the venue over its '+totCap+'-slot capacity'); }
+    // (d) travel / be-home balance — host teams owed a home game get one; visitors' travel is weighed
+    let homeBonus=0, travelPts=0; const flyNames=[];
+    setGames.forEach(sg=>{ const ho=teamObj(sg.home,div), ao=teamObj(sg.away,div);
+      if(ho && cluster===ho.homeCluster){ const need=(HA[sg.home]?HA[sg.home].home:0)-(curHome[sg.home]||0); homeBonus += need>0?8:-2; }
+      [ho,ao].forEach(o=>{ if(!o) return; const tt=travelTypeFor(o,cluster);
+        if(tt==='FLY'){ travelPts-=6; flyNames.push(o.name); } else if(tt==='FERRY'){ travelPts-=2; } else if(tt==='HOME'){ travelPts+=3; } else if(tt==='LOCAL'){ travelPts+=1; } });
+    });
+    score += homeBonus + travelPts;
+    if(homeBonus>0) reasons.push('home game for a team that\u2019s owed one');
+    if(flyNames.length) warns.push('flight for '+[...new Set(flyNames)].join(' & '));
     out.push({wk, venue, region, key:wk+'|||'+venue, score, reasons, warns, realRoom, realSlots, present:present.length, host:hosts.length>0, blocked:!!bo||pairOver||overloaded.length>0||cantSource});
   });
   const wi=w=>WK.indexOf(w);
   out.sort((a,b)=> (a.blocked-b.blocked) || (b.score-a.score) || (wi(a.wk)-wi(b.wk)));
   return out;
+}
+function addedSlotsView(){
+  const DORD={Fri:0,Sat:1,Sun:2};
+  const rows=(typeof SLOT_ADDS!=='undefined'?SLOT_ADDS:[]).slice().sort((a,b)=>
+    (WK.indexOf(a.weekend)-WK.indexOf(b.weekend)) || ((DORD[a.day]||0)-(DORD[b.day]||0)) || String(a.start||'').localeCompare(String(b.start||'')) );
+  if(!rows.length){
+    return `<div class="wk-head"><h2>➕ Added ice slots</h2><div class="dt">Every ice slot you add manually (via “＋ Add slot” on a venue pod) shows up here. Remove one — here or on the pod — and it drops off this list.</div></div>
+      <div class="empty"><div class="ic">➕</div><h3>No added slots yet</h3><div>Use “＋ Add slot” on any venue pod to source extra ice; it will appear here.</div></div>`;
+  }
+  const body=rows.map(a=>{
+    const vShort=String(a.venue).replace(/\s*\(NEW\)/i,'');
+    const occ=games.find(g=>g.weekend===a.weekend&&g.venue===a.venue&&g.day===a.day&&(a.start?g.time===a.start:false)&&String(g.sheet||'')===String(a.sheet||''));
+    const timeTxt=a.start?(clock12(a.start)+(a.end?'\u2013'+clock12(a.end):'')):'<span style="color:var(--mut-d)">\u2014</span>';
+    const surf=(a.surface||a.sheet)?iceEscA(a.surface||a.sheet):'<span style="color:var(--mut-d)">\u2014</span>';
+    const onSlot=occ?`${iceEscA(occ.home)} <span style="color:var(--mut-d)">vs</span> ${iceEscA(occ.away)} <span class="pill" style="background:#EEEDFE;color:#3C3489;margin-left:4px">${occ.division}</span>`:'<span style="color:var(--mut-d)">\u2014 open \u2014</span>';
+    return `<tr>
+      <td><a class="tlink" data-nav="weekend" data-wk="${iceEscA(a.weekend)}" style="color:var(--red);cursor:pointer;font-weight:700">${a.weekend}</a></td>
+      <td>${iceEscA(vShort)}</td>
+      <td style="font-weight:700">${a.day||'\u2014'}</td>
+      <td class="tm">${timeTxt}</td>
+      <td>${surf}</td>
+      <td style="font-size:12px">${onSlot}</td>
+      <td style="white-space:nowrap"><button data-act="slotAddDel" data-wk="${iceEscA(a.weekend)}" data-venue="${iceEscA(a.venue)}" data-day="${iceEscA(a.day||'')}" data-start="${iceEscA(a.start||'')}" data-sheet="${iceEscA(a.sheet||'')}" style="font-size:11px;padding:5px 12px;border:1px solid var(--red);border-radius:6px;background:#fff;color:var(--red);cursor:pointer;font-weight:700">\u2212 Remove</button></td>
+    </tr>`;
+  }).join('');
+  return `<div class="wk-head"><h2>➕ Added ice slots <span style="color:var(--mut-d);font-size:14px">\u00b7 ${rows.length}</span></h2>
+    <div class="dt">Every ice slot added manually via “＋ Add slot”, counted as <b>sourced</b> real ice. Removing a slot here (or on the pod) drops it from this list; if a game is sitting on it, that game is sent to the Unscheduled Showcase.</div></div>
+    <table class="tbl"><thead><tr><th>Weekend</th><th>Arena</th><th>Day</th><th>Time</th><th>Surface</th><th>Game on slot</th><th></th></tr></thead><tbody>${body}</tbody></table>`;
 }
 function weekendView(wk){
   const allVs=venuesFor(wk);
@@ -1746,6 +1972,7 @@ function solveReport(wk){
 }
 let SLOT_EDIT=null;   // "wk|||venue" whose manual slot editor is open, or null
 let TIME_EDIT=null;   // game id whose inline manual time editor is open, or null
+let MATCHUP_EDIT=null;// game id whose inline home/away matchup editor is open, or null
 function slotGrid(wk, venue){
   const hhmm=m=>String(Math.floor((m%1440)/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0');
   const to12=m=>{let h=Math.floor((m%1440)/60),mn=m%60,ap=h>=12?'PM':'AM',hh=h%12||12;return hh+':'+String(mn).padStart(2,'0')+ap;};
@@ -1774,21 +2001,39 @@ function slotGrid(wk, venue){
     const avail=optSorted.filter(g=>!assignedIds.has(String(g.id)) || (cur&&String(cur.id)===String(g.id)));
     return ['<option value="">\u2014 open \u2014</option>'].concat(avail.map(g=>`<option value="${iceEscA(g.id)}" ${cur&&String(cur.id)===String(g.id)?'selected':''}>${iceEscA(matchNo(g)+'  '+g.division+'  '+g.home+' vs '+g.away)}</option>`)).join('');
   };
+  // A clean draggable "chip" for a game. Dragging it onto a slot row moves the game there;
+  // dragging it to the pool frees it. Uses the same placement logic as the dropdown (slotAssign).
+  const chip=g=>`<span class="dragchip" draggable="true" data-dragid="${iceEscA(g.id)}" data-dragwk="${iceEscA(wk)}" data-dragvenue="${iceEscA(venue)}" title="Drag to another slot to move \u00b7 drag to the tray below to unassign"><span class="grip">\u22EE\u22EE</span><span class="cn">${iceEscA(matchNo(g))}</span><span class="cm">${iceEscA(g.division+' \u00b7 '+g.home+' vs '+g.away)}</span></span>`;
   const rows=assigned.map(({s,g},i)=>{
     const warn=conf.has(i);
-    return `<tr${warn?' style="background:var(--dangerbg)"':''}>
-      <td style="font-weight:700">${s.day}</td>
+    const dropAttrs=`data-dropslot="1" data-wk="${iceEscA(wk)}" data-venue="${iceEscA(venue)}" data-day="${s.day}" data-start="${s.start}" data-end="${s.end!=null?s.end:''}" data-sheet="${iceEscA(s.sheet||'')}"`;
+    // Occupied slots show just the game chip (clean). Empty slots show a subtle dropzone + a compact
+    // "pick" dropdown so you can still choose from a list. This avoids two controls on every row.
+    const cell = g
+      ? `<div class="slotcell filled">${chip(g)}${warn?'<span class="dbl">\u26A0 double-booked</span>':''}
+           <select class="slotpick" data-actchange="slotAssign" data-wk="${iceEscA(wk)}" data-venue="${iceEscA(venue)}" data-day="${s.day}" data-start="${s.start}" data-end="${s.end!=null?s.end:''}" data-sheet="${iceEscA(s.sheet||'')}" title="Change or clear this slot">${optFor(g)}</select>
+         </div>`
+      : `<div class="slotcell empty">
+           <span class="ez">Empty \u00b7 drop a game here</span>
+           <select class="slotpick" data-actchange="slotAssign" data-wk="${iceEscA(wk)}" data-venue="${iceEscA(venue)}" data-day="${s.day}" data-start="${s.start}" data-end="${s.end!=null?s.end:''}" data-sheet="${iceEscA(s.sheet||'')}" title="Or pick a game from the list">${optFor(g)}</select>
+         </div>`;
+    return `<tr class="slotdrop${g?' hasgame':''}" ${dropAttrs}${warn?' style="background:var(--dangerbg)"':''}>
+      <td class="sday">${s.day}</td>
       <td class="tm">${to12(s.start)}${s.end!=null?'\u2013'+to12(s.end):''}</td>
-      <td class="tm" style="color:var(--mut-d)">${iceEscA(s.sheet||'')}</td>
-      <td><select data-actchange="slotAssign" data-wk="${iceEscA(wk)}" data-venue="${iceEscA(venue)}" data-day="${s.day}" data-start="${s.start}" data-end="${s.end!=null?s.end:''}" data-sheet="${iceEscA(s.sheet||'')}" style="font-size:12px;padding:3px 6px;border:1px solid ${warn?'var(--red)':'var(--line-l)'};border-radius:6px;max-width:380px">${optFor(g)}</select>${warn?' <span style="color:var(--red);font-size:11px;font-weight:700">\u26A0 team double-booked</span>':''}</td>
+      <td class="tm ssheet">${iceEscA(s.sheet||'')}</td>
+      <td>${cell}</td>
     </tr>`;
   }).join('');
   const unslot=pod.filter(g=>!assigned.some(a=>a.g&&String(a.g.id)===String(g.id)));
-  const note=unslot.length?`<div style="font-size:11px;color:var(--mut-d);padding:2px 17px 10px">${unslot.length} game${unslot.length>1?'s':''} at this venue not in a real slot yet \u2014 assign them from a dropdown above.</div>`:'';
-  return `<div style="border-bottom:1px solid var(--line-l);background:#F7FBFF">
-    <div style="padding:8px 17px 4px;font-size:11px;color:var(--mut-d);font-weight:600">Manual slot assignment \u00b7 ${S.length} real slot${S.length>1?'s':''} on ${wk}. Pick which game fills each slot \u2014 choosing a game moves it here (time + sheet) and frees whatever slot it held. \u201C\u2014 open \u2014\u201D empties a slot; the game stays at the venue with its day unset.</div>
-    <table class="tbl" style="margin:2px 8px 6px"><thead><tr><th>Day</th><th>Time</th><th>Sheet</th><th>Assigned game</th></tr></thead><tbody>${rows}</tbody></table>
-    ${note}
+  // Unslotted "tray": draggable chips + a drop target. Dropping a slotted game here frees it.
+  const pool=`<div class="dragpool slotdrop" data-dropslot="1" data-dropfree="1" data-wk="${iceEscA(wk)}" data-venue="${iceEscA(venue)}">
+      <span class="plabel">${unslot.length?('Unassigned \u2014 '+unslot.length+' game'+(unslot.length>1?'s':'')+' not in a slot'):'Unassigned tray \u2014 drag a game here to take it out of its slot'}</span>
+      <div class="poolchips">${unslot.length?unslot.map(chip).join(''):'<span class="poolempty">Nothing here \u2014 every game has a slot.</span>'}</div>
+    </div>`;
+  return `<div class="slotpanel">
+    <div class="slothint"><b>Drag</b> a game onto any slot to move it. Drop onto the tray at the bottom to unassign. Occupied slots swap automatically.</div>
+    <table class="tbl slottbl"><thead><tr><th>Day</th><th>Time</th><th>Sheet</th><th>Game</th></tr></thead><tbody>${rows}</tbody></table>
+    ${pool}
   </div>`;
 }
 function venueBlock(wk,v){
@@ -1799,15 +2044,19 @@ function venueBlock(wk,v){
   const slot=d=>{const c=caps[d];const n=vgames.filter(g=>g.day===d).length;
     let cls='';if(c&&n>c)cls='over';else if(c&&n===c&&n>0)cls='full';
     return `<div class="slot ${cls}"><div class="d">${d}</div><div class="v">${n}/${c||'—'}</div></div>`;};
-  // day-assigned groups
+  // Effective day/start for ordering: real time wins, else the hypothetical (planning) time.
+  const _eh=g=>(!g.time && typeof hypoFor==='function')?hypoFor(g):null;
+  const effDay=g=>{ if(g.day&&DAYS.includes(g.day))return g.day; const h=_eh(g); return (h&&h.day)?h.day:''; };
+  const effStart=g=>{ if(g.time)return g.time; const h=_eh(g); return h?h.time:''; };
+  // day-assigned groups (real day OR hypothetical day), each sorted by effective start time
   const dayGroups=DAYS.map(d=>{
-    const gs=vgames.filter(g=>g.day===d).sort((a,b)=>(a.time||'').localeCompare(b.time||''));
+    const gs=vgames.filter(g=>effDay(g)===d).sort((a,b)=>String(effStart(a)||'~').localeCompare(String(effStart(b)||'~')));
     if(!gs.length)return '';
     return `<div class="day-grp"><div class="dlabel">${d}</div>
       ${gs.map(g=>gameLine(g)).join('')}</div>`;
   }).join('');
-  // games with no day assigned yet
-  const noDay=vgames.filter(g=>!g.day||!DAYS.includes(g.day));
+  // games with neither a real nor a hypothetical day
+  const noDay=vgames.filter(g=>!effDay(g));
   const naGroup=noDay.length?`<div class="day-grp"><div class="dlabel" style="color:var(--mut-d)">Day not set (${noDay.length})</div>
       ${noDay.slice().sort((a,b)=>(a.home+a.away).localeCompare(b.home+b.away)).map(g=>gameLine(g)).join('')}</div>`:'';
   const bodyGroups=dayGroups+naGroup;
@@ -1824,8 +2073,18 @@ function venueBlock(wk,v){
   const addSlotBtn = `<button data-act="addSlot" data-wk="${iceEscA(wk)}" data-venue="${iceEscA(v.venue)}" title="Add a new ice slot on ${v.venue.replace(/\s*\(NEW\)/i,'')} · ${wk} so another game can fit here" style="font-size:11px;padding:4px 10px;border:1px solid var(--ok);border-radius:6px;background:#fff;color:var(--ok);cursor:pointer;font-weight:700;white-space:nowrap">＋ Add slot</button>`;
   const _sAdds=(typeof slotAddsFor==='function')?slotAddsFor(wk,v.venue):{total:0};
   const removeSlotBtn = _sAdds.total>0 ? `<button data-act="removeSlot" data-wk="${iceEscA(wk)}" data-venue="${iceEscA(v.venue)}" title="Remove an ice slot you added on ${v.venue.replace(/\s*\(NEW\)/i,'')} · ${wk} (${_sAdds.total} added)" style="font-size:11px;padding:4px 10px;border:1px solid var(--red);border-radius:6px;background:#fff;color:var(--red);cursor:pointer;font-weight:700;white-space:nowrap">\u2212 Remove slot (${_sAdds.total})</button>` : '';
+  const unsourced=(typeof isUnsourcedPod==='function')&&isUnsourcedPod(wk,v.venue);
+  const hasHypo=(typeof podHasHypo==='function')&&podHasHypo(wk,v.venue);
+  // "Lock in as real" promotes the pod's hypothetical times to real, confirmed times (shown wherever
+  // real times are — team/division/itinerary exports too). Offered whenever hypo times exist; most
+  // useful once the ice for this pod has actually been sourced and the plan should become final.
+  const hypoLockBtn = hasHypo ? `<button data-act="hypoLock" data-wk="${iceEscA(wk)}" data-venue="${iceEscA(v.venue)}" title="Lock these hypothetical times in as REAL, confirmed times. Use this once the ice for this pod has been sourced — the planned day/time/sheet becomes the real time on every export and the app won\u2019t change it. You can still edit each time afterward." style="font-size:11px;padding:4px 10px;border:1px solid var(--ok);border-radius:6px;background:#e8f6ee;color:var(--ok);cursor:pointer;font-weight:800;white-space:nowrap">\u2713 Lock in as real</button>` : '';
+  const hypoBtn = (unsourced&&vgames.length) ? `<button data-act="hypoTime" data-wk="${iceEscA(wk)}" data-venue="${iceEscA(v.venue)}" title="Suggest ideal HYPOTHETICAL game times for this unsourced pod — a planning aid shown on venue/city exports only. Real ice (CSV or added slots) always overrides it." style="font-size:11px;padding:4px 10px;border:1px solid #7a5b00;border-radius:6px;background:#FFF8E1;color:#7a5b00;cursor:pointer;font-weight:700;white-space:nowrap">\u23F1 Hypothetical times</button>`
+      + hypoLockBtn
+      + (hasHypo?`<button data-act="hypoClear" data-wk="${iceEscA(wk)}" data-venue="${iceEscA(v.venue)}" title="Clear the hypothetical times for this pod" style="font-size:11px;padding:4px 9px;border:1px solid var(--line-l);border-radius:6px;background:#fff;color:var(--mut-d);cursor:pointer;font-weight:700;white-space:nowrap">\u2715 Clear hypo</button>`:'')
+      : (hasHypo ? (hypoLockBtn + `<button data-act="hypoClear" data-wk="${iceEscA(wk)}" data-venue="${iceEscA(v.venue)}" title="Clear the hypothetical times for this pod" style="font-size:11px;padding:4px 9px;border:1px solid var(--line-l);border-radius:6px;background:#fff;color:var(--mut-d);cursor:pointer;font-weight:700;white-space:nowrap">\u2715 Clear hypo</button>`) : '');
   const parkBar = (!vLocked) ? `<div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:8px 17px;border-bottom:1px solid var(--line-l);background:#FFFDF7">
-      ${addSlotBtn}${removeSlotBtn}
+      ${addSlotBtn}${removeSlotBtn}${hypoBtn}
       ${vgames.length?`<span style="font-size:11px;color:var(--mut-d);font-weight:600;margin-right:2px;margin-left:4px">Pull to garage →</span>${divs.length>1?bWhole:''}${bDivs}
       <button data-act="slotEditToggle" data-wk="${iceEscA(wk)}" data-venue="${iceEscA(v.venue)}" title="Manually assign games to this venue's real ice slots" style="margin-left:auto;font-size:11px;padding:4px 10px;border:1px solid #3C3489;border-radius:6px;background:${SLOT_EDIT===(wk+'|||'+v.venue)?'#EEEDFE':'#fff'};color:#3C3489;cursor:pointer;font-weight:700;white-space:nowrap">${SLOT_EDIT===(wk+'|||'+v.venue)?'\u2715 Close slots':'\u270E Assign slots'}</button>
       <button data-act="podTime" data-wk="${iceEscA(wk)}" data-venue="${iceEscA(v.venue)}" title="Assign day + start times to just this pod (same rules as Auto weekend solve)" style="font-size:11px;padding:4px 10px;border:1px solid var(--red);border-radius:6px;background:#fff;color:var(--red);cursor:pointer;font-weight:700;white-space:nowrap">⚙ Time this pod</button>`:''}
@@ -1865,7 +2124,9 @@ function gameLine(g){
   const locked=isTimeLocked(g);
   const id=iceEscA(g.id);
   const editing=(TIME_EDIT===String(g.id));
-  const timeTxt=(g.time?clock12(g.time):'TBD')+(g.time&&g.endTime?'\u2013'+clock12(g.endTime):'');
+  const _hyp=(!g.time && typeof hypoFor==='function')?hypoFor(g):null;
+  const timeTxt=g.time?(clock12(g.time)+(g.endTime?'\u2013'+clock12(g.endTime):''))
+    :(_hyp?`<span style="color:#a1791a;font-style:italic" title="Hypothetical planning time (no real ice sourced yet). Shows on venue/city exports only; real ice overrides it.">~${clock12(_hyp.time)}${_hyp.end?'\u2013'+clock12(_hyp.end):''} \u00b7 ${_hyp.day}${_hyp.sheet?' \u00b7 '+iceEscA(_hyp.sheet):''} (hyp)</span>`:'TBD');
   const editor = editing
     ? `<span class="tedit" style="display:inline-flex;align-items:center;gap:4px;white-space:nowrap">
          <input type="time" value="${g.time||''}" data-actchange="timeSet" data-id="${id}" data-field="time" style="font-size:11px;padding:1px 3px;border:1px solid #3C3489;border-radius:4px" title="Start time">
@@ -1873,6 +2134,9 @@ function gameLine(g){
          <input type="time" value="${g.endTime||''}" data-actchange="timeSet" data-id="${id}" data-field="end" style="font-size:11px;padding:1px 3px;border:1px solid #3C3489;border-radius:4px" title="End time">
          <button data-act="timeEditDone" data-id="${id}" title="Done" style="font-size:10px;padding:1px 6px;border:1px solid #3C3489;border-radius:4px;background:#EEEDFE;color:#3C3489;cursor:pointer;font-weight:700">done</button>
        </span>`
+    : _hyp
+    ? `<span class="gd" style="width:auto;min-width:54px;white-space:nowrap">${timeTxt}</span>
+       <button data-act="hypoEdit" data-id="${id}" title="Edit this hypothetical time \u2014 you'll get the option to shift the whole pod by the same amount" style="margin-left:4px;font-size:10px;padding:1px 5px;border:1px solid #b8860b;border-radius:4px;background:#FFF8E1;color:#7a5b00;cursor:pointer">\u270E</button>`
     : `<span class="gd" style="width:auto;min-width:54px;white-space:nowrap">${timeTxt}${locked?' <span title="You set this time manually — the app will not change it" style="color:#3C3489">\uD83D\uDD12</span>':''}</span>
        <button data-act="timeEdit" data-id="${id}" title="Edit start/end time (locks it so the app won't change it)" style="margin-left:4px;font-size:10px;padding:1px 5px;border:1px solid var(--line-l);border-radius:4px;background:#fff;color:#3C3489;cursor:pointer">\u270E</button>${locked?`<button data-act="timeUnlock" data-id="${id}" title="Unlock — let the auto-solver time this game again" style="margin-left:3px;font-size:10px;padding:1px 5px;border:1px solid var(--line-l);border-radius:4px;background:#fff;color:var(--mut-d);cursor:pointer">unlock</button>`:''}`;
   return `<div class="gline"${locked?' style="background:#F7F6FF"':''}>
@@ -1880,10 +2144,50 @@ function gameLine(g){
     ${editor}
     ${slotTooShort(g)?`<span title="${g.division} needs ${slotHours(g.division)}h of ice but this slot is only 2h." style="margin-left:6px;font-size:9.5px;font-weight:800;color:#fff;background:var(--red);border-radius:4px;padding:1px 6px;white-space:nowrap">\u26A0 2h slot</span>`:''}
     <span class="gdiv">${g.division}</span>
-    <span class="gm">${g.home}<span class="vs">vs</span>${g.away}</span>
+    ${matchupCell(g,id)}
     ${g.sheet?`<span style="margin-left:8px;font-size:11px;color:var(--mut-d);white-space:nowrap">\u25F8 ${iceEscA(g.sheet)}</span>`:''}
     ${isEffLocked(g.weekend,g.venue)?'':`<button data-act="pgPark" data-id="${id}" title="Park this game — hold it on this weekend with no slot" style="margin-left:auto;font-size:10px;padding:2px 7px;border:1px solid var(--line-l);border-radius:5px;background:#fff;color:var(--warn);cursor:pointer;white-space:nowrap">🅿 Park</button>`}
     </div>`;
+}
+// The matchup portion of a game line. Normally shows "Home vs Away" with a small pencil to edit;
+// when this game's matchup editor is open (MATCHUP_EDIT), shows two drop slots (HOME / AWAY) plus a
+// palette of the division's teams as draggable chips. Drag a team onto a slot to set it (or drag
+// between the two slots to swap). Applying a change mutates games + clears the stale time, then
+// re-renders — which recomputes the Opponent matrix (it is derived live from games).
+function matchupCell(g,id){
+  const editing=(MATCHUP_EDIT===String(g.id));
+  const vLocked=isEffLocked(g.weekend,g.venue);
+  if(!editing){
+    return `<span class="gm">${g.home}<span class="vs">vs</span>${g.away}</span>`
+      + (vLocked?'':`<button data-act="matchupEdit" data-id="${id}" title="Change the teams in this matchup by dragging (same division). Updates the opponent matrix." style="margin-left:5px;font-size:10px;padding:1px 5px;border:1px solid var(--line-l);border-radius:4px;background:#fff;color:#3C3489;cursor:pointer">\u270E vs</button>`);
+  }
+  // Only teams ALREADY playing this weekend in this division can be dragged in — dropping one does a
+  // balanced swap (the team it replaces takes its old spot), so nobody's weekend game count changes.
+  // Teams not playing this weekend are intentionally not offered.
+  const playingThisWk=new Set();
+  games.filter(x=>x.weekend===g.weekend && x.division===g.division).forEach(x=>{ playingThisWk.add(x.home); playingThisWk.add(x.away); });
+  // Palette = teams playing this weekend, minus the two already in THIS game (they're shown in the slots).
+  const paletteTeams=teamsByDiv(g.division).filter(t=>playingThisWk.has(t) && t!==g.home && t!==g.away);
+  // A draggable team chip. `field` is set when the chip currently sits in a HOME/AWAY slot, so a
+  // drop handler can tell "palette team" from "slot team" (dragging a slot team enables swapping).
+  const teamChip=(t,field)=>`<span class="teamchip${field?' inplay':''}" draggable="true" data-mmteam="${iceEscA(t)}"${field?` data-mmfrom="${field}"`:''} data-mmid="${id}" title="Drag onto HOME or AWAY \u2014 swaps in, keeping game counts balanced"><span class="grip">\u22EE\u22EE</span>${iceEscA(t)}</span>`;
+  const slot=(field,cur)=>`<span class="mmslot mmdrop" data-mmslot="${field}" data-mmid="${id}">
+      <span class="lbl">${field}</span>
+      ${teamChip(cur,field)}
+    </span>`;
+  const palette=paletteTeams.length
+      ? paletteTeams.map(t=>teamChip(t,null)).join('')
+      : '<span class="mmnone">No other teams are playing this weekend to swap in.</span>';
+  return `<span class="gm mmpanel">
+      <span class="mmrow mmslots">
+        ${slot('home',g.home)}<span class="mmvs">VS</span>${slot('away',g.away)}
+        <button data-act="matchupEditDone" data-id="${id}" title="Done editing this matchup" style="margin-left:4px;font-size:10px;padding:2px 9px;border:1px solid #3C3489;border-radius:5px;background:#EEEDFE;color:#3C3489;cursor:pointer;font-weight:700">done</button>
+      </span>
+      <span class="mmpalette">
+        <span class="mmplabel">Drag a team onto HOME or AWAY \u2014 it swaps with the team already there, so everyone keeps the same number of games this weekend. You can also drag one slot onto the other to flip home/away.</span>
+        ${palette}
+      </span>
+    </span>`;
 }
 
 /* ============ DIVISION ============ */
@@ -1990,8 +2294,45 @@ function divisionView(div){
     <table class="tbl"><thead><tr><th>Team</th><th>Region</th><th>Flags</th><th>Games</th><th>Weekends</th><th>Progress</th></tr></thead><tbody>${rows}</tbody></table>
     <div class="sectionhead"><h2><span class="bar"></span>Opponent matrix</h2></div>
     ${mtx}
+    ${matchupLogPanel(div)}
     <div class="sectionhead"><h2><span class="bar"></span>Fixtures <span style="font-size:11.5px;color:var(--mut-d);font-weight:600">(${games.filter(g=>g.division===div).length} games · click a column to sort)</span></h2></div>
     ${fixturesTable(div)}`;
+}
+// A record of matchup changes made in THIS division, with per-game revert + a revert-all. `orig` in
+// the log is the pre-edit pairing, so revert always restores what you started with. Only shows games
+// whose current pairing still differs from the original (a game reverted/undone back drops off).
+function matchupLogPanel(div){
+  const rows=[];
+  Object.keys(MATCHUP_LOG).forEach(k=>{
+    const rec=MATCHUP_LOG[k]; if(!rec||!rec.orig) return;
+    const g=games.find(x=>String(x.id)===k); if(!g||g.division!==div) return;
+    const changedNow = (g.home!==rec.orig.home || g.away!==rec.orig.away);
+    rows.push({g,rec,changedNow});
+  });
+  if(!rows.length) return '';
+  const changedRows=rows.filter(r=>r.changedNow);
+  const n=changedRows.length;
+  const body=rows.map(({g,rec,changedNow})=>{
+    const nChanges=rec.changes?rec.changes.length:0;
+    return `<tr${changedNow?'':' style="opacity:.55"'}>
+      <td style="font-variant-numeric:tabular-nums;font-weight:800;color:var(--mut-d)">${matchNo(g)}</td>
+      <td><b>${g.weekend}</b></td>
+      <td class="tm" style="color:var(--mut-d)">${iceEscA(rec.orig.home)} <span style="color:var(--mut)">vs</span> ${iceEscA(rec.orig.away)}</td>
+      <td style="color:var(--mut-d)">\u2192</td>
+      <td class="tm"><b>${iceEscA(g.home)}</b> <span style="color:var(--mut)">vs</span> <b>${iceEscA(g.away)}</b>${changedNow?'':' <span style="font-size:10px;color:var(--ok)">(back to original)</span>'}</td>
+      <td style="font-size:10.5px;color:var(--mut-d)">${nChanges} edit${nChanges>1?'s':''}</td>
+      <td>${changedNow?`<button data-act="matchupRevertOne" data-id="${iceEscA(g.id)}" title="Restore this game to ${iceEscA(rec.orig.home)} vs ${iceEscA(rec.orig.away)}" style="font-size:10.5px;padding:2px 9px;border:1px solid var(--ok);border-radius:5px;background:#fff;color:var(--ok);cursor:pointer;font-weight:700;white-space:nowrap">\u21A9 Revert</button>`:''}</td>
+    </tr>`;
+  }).join('');
+  return `<div class="sectionhead"><h2><span class="bar"></span>Matchup change log
+      <span style="font-size:11.5px;color:var(--mut-d);font-weight:600">(${n} currently changed from original)</span></h2>
+      <div style="display:flex;gap:8px">
+        ${n?`<button class="tb-btn" data-act="matchupRevertAll" title="Restore every changed matchup in the whole schedule to its original teams" style="white-space:nowrap;background:#e8f6ee;color:var(--ok);border-color:var(--ok)">\u21A9 Revert all to original</button>`:''}
+        <button class="tb-btn" data-act="matchupLogClear" title="Forget the change log without changing any matchups" style="white-space:nowrap">Clear log</button>
+      </div>
+    </div>
+    <div class="dt" style="margin:-6px 0 10px">Every matchup you change by dragging is recorded here with its original pairing, so you can put any game \u2014 or all of them \u2014 back exactly as they started, even after reloading. The log rides along when you Save/Load the schedule.</div>
+    <table class="tbl" style="font-size:12.5px"><thead><tr><th>#</th><th>Weekend</th><th>Original</th><th></th><th>Now</th><th>History</th><th></th></tr></thead><tbody>${body}</tbody></table>`;
 }
 let fixSort={div:null,key:'wk',dir:1};
 function fixturesTable(div){
@@ -2269,16 +2610,35 @@ function openAddSlot(wk,venue){
   const capNow={Fri:v.capFri||0,Sat:v.capSat||0,Sun:v.capSun||0};
   const usedNow={Fri:0,Sat:0,Sun:0};
   games.filter(g=>g.weekend===wk&&g.venue===venue).forEach(g=>{ if(usedNow[g.day]!=null) usedNow[g.day]++; });
-  const dayOpt=d=>`<option value="${d}">${({Fri:'Friday',Sat:'Saturday',Sun:'Sunday'}[d])} — ${usedNow[d]}/${capNow[d]} used</option>`;
+  // Arena defaults to this venue; offer the weekend's other arenas as alternatives.
+  let arenas=[vShort];
+  try{ venuesFor(wk).forEach(x=>{ const nm=String(x.venue).replace(/\s*\(NEW\)/i,'').trim(); if(nm&&!arenas.includes(nm)) arenas.push(nm); }); }catch(e){}
+  const arenaOpts=arenas.map(s=>`<option value="${iceEscA(s)}"></option>`).join('');
+  // Surface names are arena-specific — match the ones already used by games/slots on THIS pod.
+  let surfaces=[];
+  try{ games.filter(g=>g.weekend===wk&&g.venue===venue&&g.sheet).forEach(g=>surfaces.push(String(g.sheet).trim())); }catch(e){}
+  try{ (realSlotListFor(wk,venue)||[]).forEach(s=>{ if(s.sheet) surfaces.push(String(s.sheet).trim()); }); }catch(e){}
+  try{ SLOT_ADDS.forEach(a=>{ if(a.weekend===wk&&a.venue===venue){ if(a.surface) surfaces.push(String(a.surface).trim()); else if(a.sheet) surfaces.push(String(a.sheet).trim()); } }); }catch(e){}
+  surfaces=[...new Set(surfaces.filter(Boolean))];
+  const surfaceOpts=surfaces.map(s=>`<option value="${iceEscA(s)}"></option>`).join('');
   const modal=document.createElement('div');modal.className='modal-bg';modal.id='modalbg';
   modal.innerHTML=`<div class="modal">
     <div class="modal-h"><h3>Add ice slot · ${wk} · ${vShort}</h3><button class="x" data-close>✕</button></div>
     <div class="modal-b">
-      <div class="dt" style="margin-bottom:10px">Add open ice to this venue so another game can fit. This raises the day's slot count — it does not create a game or assign opponents.</div>
+      <div class="dt" style="margin-bottom:10px">Add a real, <b>sourced</b> ice slot to this venue. It's added to this weekend on the Ice Allocation list (counted as secured ice) and shows in this pod's slot list \u2014 then move a game onto it. <b>Surface</b> should match the names already used at this arena.</div>
       <div class="fld-row">
-        <div class="fld"><label>Day</label><select id="ms-day"><option value="Fri">${({Fri:'Friday'}).Fri} — ${usedNow.Fri}/${capNow.Fri} used</option><option value="Sat" selected>Saturday — ${usedNow.Sat}/${capNow.Sat} used</option><option value="Sun">Sunday — ${usedNow.Sun}/${capNow.Sun} used</option></select></div>
-        <div class="fld"><label>How many slots</label><input id="ms-n" type="number" min="1" max="12" step="1" value="1"></div>
+        <div class="fld"><label>Day</label><select id="ms-day"><option value="Fri">Friday — ${usedNow.Fri}/${capNow.Fri} used</option><option value="Sat" selected>Saturday — ${usedNow.Sat}/${capNow.Sat} used</option><option value="Sun">Sunday — ${usedNow.Sun}/${capNow.Sun} used</option></select></div>
       </div>
+      <div class="fld-row">
+        <div class="fld"><label>Start time</label><input id="ms-start" type="time" step="300"></div>
+        <div class="fld"><label>End time</label><input id="ms-end" type="time" step="300"></div>
+      </div>
+      <div class="fld-row">
+        <div class="fld"><label>Arena</label><input id="ms-arena" type="text" list="ms-arenalist" value="${iceEscA(vShort)}"></div>
+        <div class="fld"><label>Surface</label><input id="ms-surface" type="text" list="ms-surfacelist" placeholder="${surfaces.length?('e.g. '+iceEscA(surfaces.slice(0,2).join(', '))):'this arena\u2019s surface name'}"></div>
+      </div>
+      <datalist id="ms-arenalist">${arenaOpts}</datalist>
+      <datalist id="ms-surfacelist">${surfaceOpts}</datalist>
       <div class="live-warn" id="ms-warn"></div>
     </div>
     <div class="modal-foot"><button class="btn" data-close>Cancel</button><button class="btn primary" id="ms-save">Add slot</button></div>
@@ -2288,78 +2648,100 @@ function openAddSlot(wk,venue){
   modal.onclick=e=>{if(e.target===modal)modal.remove();};
   modal.querySelector('#ms-save').onclick=()=>{
     const day=modal.querySelector('#ms-day').value;
-    const n=Math.max(1,Math.min(12,parseInt(modal.querySelector('#ms-n').value,10)||1));
+    const start=(modal.querySelector('#ms-start').value||'').trim();
+    const end=(modal.querySelector('#ms-end').value||'').trim();
+    const arena=(modal.querySelector('#ms-arena').value||'').trim();
+    const surface=(modal.querySelector('#ms-surface').value||'').trim();
+    const warnEl=modal.querySelector('#ms-warn');
+    if(!start){ warnEl.textContent='Please set a start time for the slot.'; return; }
+    if(end && end<=start){ warnEl.textContent='End time must be after the start time.'; return; }
     if(isEffLocked(wk,venue)){showToast('\uD83D\uDD12 That venue/weekend is locked — unlock it to add ice.','warn');modal.remove();return;}
     pushUndo('add slot');
-    // Merge with any existing add for the same venue-weekend-day, then re-apply from a clean base.
-    const ex=SLOT_ADDS.find(a=>a.weekend===wk&&a.venue===venue&&a.day===day);
-    if(ex){ ex.n=(parseInt(ex.n,10)||0)+n; } else { SLOT_ADDS.push({weekend:wk,venue:venue,day:day,n:n}); }
+    // Sheet = the surface name, matching what the other games on this pod use.
+    const sheet=surface;
+    SLOT_ADDS.push({weekend:wk,venue:venue,day:day,n:1,start:start,end:end||'',sheet:sheet,arena:arena,surface:surface,sourced:true});
     saveSlotAdds();
-    // Bump live capacity immediately (venue cap + realIce inventory) so the pod reflects it now.
+    // Register as real, sourced ice: bump the venue day cap + ensure a realIce record exists and bump it.
     const capKey={Fri:'capFri',Sat:'capSat',Sun:'capSun'}[day];
     const vv=DATA.venues.find(x=>x.weekend===wk&&x.venue===venue);
-    if(vv&&capKey){ vv[capKey]=(vv[capKey]||0)+n; }
-    try{ if(DATA.realIce&&DATA.realIce[wk]&&DATA.realIce[wk][venue]){ DATA.realIce[wk][venue][day]=(DATA.realIce[wk][venue][day]||0)+n; } }catch(e){}
-    try{ const gk=wk+'|||'+venue+'|||'+day; _SLOT_ADDS_APPLIED[gk]=(_SLOT_ADDS_APPLIED[gk]||0)+n; }catch(e){}
+    if(vv&&capKey){ vv[capKey]=(vv[capKey]||0)+1; }
+    try{ DATA.realIce=DATA.realIce||{}; DATA.realIce[wk]=DATA.realIce[wk]||{};
+      const ri=(DATA.realIce[wk][venue]=DATA.realIce[wk][venue]||{Fri:0,Sat:0,Sun:0}); ri[day]=(ri[day]||0)+1; }catch(e){}
+    try{ const gk=wk+'|||'+venue+'|||'+day; _SLOT_ADDS_APPLIED[gk]=(_SLOT_ADDS_APPLIED[gk]||0)+1; }catch(e){}
     try{IMP.resetVenues&&IMP.resetVenues();}catch(e){}
     modal.remove();render();
-    showToast('\u2713 Added '+n+' slot'+(n>1?'s':'')+' on '+({Fri:'Friday',Sat:'Saturday',Sun:'Sunday'}[day])+' \u00b7 '+vShort+' ('+wk+'). Move a game here from the schedule or parking garage.','good');
+    const to12=t=>{const m=/^(\d{1,2}):(\d{2})$/.exec(t);if(!m)return t;let h=+m[1],mn=m[2],ap=h>=12?'PM':'AM',hh=h%12||12;return hh+':'+mn+ap;};
+    showToast('\u2713 Added sourced ice slot \u00b7 '+({Fri:'Fri',Sat:'Sat',Sun:'Sun'}[day])+' '+to12(start)+(end?('\u2013'+to12(end)):'')+(sheet?(' \u00b7 '+sheet):'')+' \u00b7 '+vShort+' ('+wk+'). Assign a game to it in the pod\u2019s slot list or from the garage.','good');
   };
 }
 
 /* ============ MODAL: REMOVE SLOT (undo an added ice slot) ============ */
+// Remove one specific added slot entry: drop it from SLOT_ADDS and lower the venue cap + realIce.
+function removeSlotEntry(entry){
+  const idx=SLOT_ADDS.indexOf(entry); if(idx<0) return false;
+  const day=entry.day, nn=Math.max(1,parseInt(entry.n,10)||1);
+  SLOT_ADDS.splice(idx,1); saveSlotAdds();
+  const capKey={Fri:'capFri',Sat:'capSat',Sun:'capSun'}[day];
+  const v=DATA.venues.find(x=>x.weekend===entry.weekend&&x.venue===entry.venue);
+  if(v&&capKey){ v[capKey]=Math.max(0,(v[capKey]||0)-nn); }
+  try{ if(DATA.realIce&&DATA.realIce[entry.weekend]&&DATA.realIce[entry.weekend][entry.venue]){ const ri=DATA.realIce[entry.weekend][entry.venue]; ri[day]=Math.max(0,(ri[day]||0)-nn);
+    // If this venue's real ice only existed because of added slot(s) and none remain (no games, no
+    // other adds, all days zero), drop the record so it doesn't linger on the Ice Allocation views.
+    const empty=!((ri.Fri||0)||(ri.Sat||0)||(ri.Sun||0));
+    const stillAdded=SLOT_ADDS.some(a=>a.weekend===entry.weekend&&a.venue===entry.venue);
+    const hasGames=games.some(g=>g.weekend===entry.weekend&&g.venue===entry.venue);
+    if(empty&&!stillAdded&&!hasGames){ delete DATA.realIce[entry.weekend][entry.venue];
+      if(!Object.keys(DATA.realIce[entry.weekend]).length) delete DATA.realIce[entry.weekend]; }
+  } }catch(e){}
+  try{ const gk=entry.weekend+'|||'+entry.venue+'|||'+day; _SLOT_ADDS_APPLIED[gk]=Math.max(0,(_SLOT_ADDS_APPLIED[gk]||0)-nn); }catch(e){}
+  try{IMP.resetVenues&&IMP.resetVenues();}catch(e){}
+  return true;
+}
 function openRemoveSlot(wk,venue){
   const vShort=String(venue||'').replace(/\s*\(NEW\)/i,'');
-  const added=slotAddsFor(wk,venue);
-  if(added.total<=0){showToast('No added slots to remove here.','warn');return;}
-  const usedNow={Fri:0,Sat:0,Sun:0};
-  games.filter(g=>g.weekend===wk&&g.venue===venue).forEach(g=>{ if(usedNow[g.day]!=null) usedNow[g.day]++; });
-  const v=DATA.venues.find(x=>x.weekend===wk&&x.venue===venue)||{capFri:0,capSat:0,capSun:0};
-  const capNow={Fri:v.capFri||0,Sat:v.capSat||0,Sun:v.capSun||0};
-  const capKeyName={Fri:'Friday',Sat:'Saturday',Sun:'Sunday'};
-  // Removable per day = min(added there, current cap − games using that day).
-  const removable={Fri:0,Sat:0,Sun:0};
-  ['Fri','Sat','Sun'].forEach(d=>{ removable[d]=Math.max(0, Math.min(added[d]||0, (capNow[d]||0)-(usedNow[d]||0))); });
-  const dayOpts=['Fri','Sat','Sun'].filter(d=>(added[d]||0)>0).map(d=>{
-    const blocked=(added[d]||0)-removable[d];
-    const note=blocked>0?` — ${removable[d]} free to remove, ${blocked} in use`:` — ${added[d]} added`;
-    return `<option value="${d}"${removable[d]<=0?' disabled':''}>${capKeyName[d]}${note}</option>`;
-  }).join('');
-  const firstDay=['Fri','Sat','Sun'].find(d=>removable[d]>0)||['Fri','Sat','Sun'].find(d=>(added[d]||0)>0)||'Sat';
+  if(slotAddsFor(wk,venue).total<=0){showToast('No added slots to remove here.','warn');return;}
+  const DAYNAME={Fri:'Friday',Sat:'Saturday',Sun:'Sunday'};
+  const to12=t=>{const m=/^(\d{1,2}):(\d{2})$/.exec(String(t||''));if(!m)return t||'';let h=+m[1],mn=m[2],ap=h>=12?'PM':'AM',hh=h%12||12;return hh+':'+mn+ap;};
+  const esc2=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const occupantOf=e=>games.find(g=>g.weekend===wk&&g.venue===venue&&g.day===e.day&&(e.start?g.time===e.start:false)&&String(g.sheet||'')===String(e.sheet||''));
   const modal=document.createElement('div');modal.className='modal-bg';modal.id='modalbg';
   modal.innerHTML=`<div class="modal">
     <div class="modal-h"><h3>Remove ice slot · ${wk} · ${vShort}</h3><button class="x" data-close>✕</button></div>
-    <div class="modal-b">
-      <div class="dt" style="margin-bottom:10px">Remove ice you previously added on this venue. You can only remove slots that aren't holding a game \u2014 move a game off the day first if you need to free it. Original contracted ice can't be removed here.</div>
-      <div class="fld-row">
-        <div class="fld"><label>Day</label><select id="rs-day">${dayOpts}</select></div>
-        <div class="fld"><label>How many slots</label><input id="rs-n" type="number" min="1" step="1" value="1"></div>
-      </div>
-      <div class="live-warn" id="rs-warn"></div>
-    </div>
-    <div class="modal-foot"><button class="btn" data-close>Cancel</button><button class="btn primary" id="rs-save">Remove slot</button></div>
+    <div class="modal-b" id="rs-body"></div>
+    <div class="modal-foot"><button class="btn" data-close>Done</button></div>
   </div>`;
   document.getElementById('app').appendChild(modal);
-  const daySel=modal.querySelector('#rs-day'), nInp=modal.querySelector('#rs-n'), warn=modal.querySelector('#rs-warn');
-  if(daySel) daySel.value=firstDay;
-  function refresh(){ const d=daySel.value; const max=removable[d]||0;
-    nInp.max=Math.max(1,max);
-    if((parseInt(nInp.value,10)||0)>max) nInp.value=Math.max(1,max);
-    if(max<=0){ warn.className='live-warn show'; warn.innerHTML='<b>Nothing removable on this day</b> \u2014 the added slot'+((added[d]||0)>1?'s are':' is')+' holding a game. Move it off first.'; }
-    else { warn.className='live-warn'; warn.innerHTML=''; }
+  const close=()=>{modal.remove();render();};
+  modal.querySelectorAll('[data-close]').forEach(b=>b.onclick=close);
+  modal.onclick=e=>{if(e.target===modal)close();};
+  function bodyHtml(){
+    const entries=SLOT_ADDS.filter(a=>a.weekend===wk&&a.venue===venue);
+    if(!entries.length) return '<div class="dt">No added ice slots remain here. (Original contracted ice can\u2019t be removed.)</div>';
+    const rows=entries.map(a=>{
+      const occ=occupantOf(a);
+      const label=DAYNAME[a.day]+(a.start?(' \u00b7 '+to12(a.start)+(a.end?'\u2013'+to12(a.end):'')):'')+(a.sheet?(' \u00b7 '+esc2(a.sheet)):'');
+      const occNote=occ?`<div style="font-size:11px;color:var(--warn);font-weight:600;margin-top:2px">Holding ${esc2(occ.home)} vs ${esc2(occ.away)} — removing sends it to the garage.</div>`:'';
+      return `<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line-l)">
+        <div><div style="font-weight:700;font-size:13px">${label}</div>${occNote}</div>
+        <button class="rs-del" style="font-size:11px;padding:6px 13px;border:1px solid var(--red);border-radius:6px;background:#fff;color:var(--red);cursor:pointer;font-weight:700;white-space:nowrap">\u2212 Remove</button>
+      </div>`;
+    }).join('');
+    return `<div class="dt" style="margin-bottom:8px">Added (sourced) ice slots you can remove — original contracted ice isn\u2019t listed. Removing a slot that holds a game sends that game to the garage.</div>${rows}`;
   }
-  daySel.onchange=refresh; nInp.oninput=refresh; refresh();
-  modal.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>modal.remove());
-  modal.onclick=e=>{if(e.target===modal)modal.remove();};
-  modal.querySelector('#rs-save').onclick=()=>{
-    if(isEffLocked(wk,venue)){showToast('\uD83D\uDD12 That venue/weekend is locked \u2014 unlock it to remove ice.','warn');modal.remove();return;}
-    const day=daySel.value; const want=Math.max(1,parseInt(nInp.value,10)||1);
-    pushUndo('remove slot');
-    const done=removeSlotAdd(wk,venue,day,want);
-    modal.remove();render();
-    if(done>0) showToast('\u2212 Removed '+done+' slot'+(done>1?'s':'')+' on '+capKeyName[day]+' \u00b7 '+vShort+' ('+wk+').','good');
-    else showToast('Couldn\u2019t remove \u2014 those slots are holding games. Move a game off '+capKeyName[day]+' first.','warn');
-  };
+  function wire(){
+    const entries=SLOT_ADDS.filter(a=>a.weekend===wk&&a.venue===venue);
+    modal.querySelectorAll('.rs-del').forEach((b,i)=>{ b.onclick=()=>{
+      const entry=entries[i]; if(!entry)return;
+      if(isEffLocked(wk,venue)){showToast('\uD83D\uDD12 That venue/weekend is locked — unlock it to remove ice.','warn');return;}
+      pushUndo('remove slot');
+      const occ=occupantOf(entry);
+      if(occ && window.PG && PG.parkMany){ PG.parkMany([occ],'',true); }
+      removeSlotEntry(entry);
+      modal.querySelector('#rs-body').innerHTML=bodyHtml(); wire();
+      showToast('\u2212 Removed ice slot \u00b7 '+DAYNAME[entry.day]+(entry.start?(' \u00b7 '+to12(entry.start)):'')+(entry.sheet?(' \u00b7 '+entry.sheet):'')+' \u00b7 '+vShort+(occ?'. Its game was sent to the garage.':'')+'.','good');
+    };});
+  }
+  modal.querySelector('#rs-body').innerHTML=bodyHtml(); wire();
 }
 
 
@@ -2396,6 +2778,193 @@ function setManualTime(id, patch){
   return true;
 }
 function clearManualTime(id){ delete MANUAL_TIMES[String(id)]; saveManualTimes(); }
+/* ===== HYPO_TIMES: hypothetical (planning) game times for UNSOURCED pods. These are never
+   written onto the games themselves — a real time on the game (from CSV import, Add slot +
+   assignment, auto-solve, or manual) always wins. They surface only on venue/city exports and
+   the venue view, and vanish once a pod is sourced. Keyed by game id: {day,time,end,sheet}. */
+var HYPO_TIMES=(function(){try{return JSON.parse(localStorage.getItem('fsl_hypo_times_v1')||'{}')||{};}catch(e){return {};}})();
+function saveHypoTimes(){try{localStorage.setItem('fsl_hypo_times_v1',JSON.stringify(HYPO_TIMES));}catch(e){}}
+/* ===== MATCHUP_LOG: a persistent record of every matchup change the user makes (via the drag
+   editor / swap). Keyed by game id -> { orig:{home,away}, changes:[{from,away...},...] }. `orig` is
+   captured the FIRST time a game is edited, so "revert to original" always restores the pre-edit
+   pairing no matter how many times it was changed. Survives reloads and rides along in Save/Load. */
+var MATCHUP_LOG=(function(){try{return JSON.parse(localStorage.getItem('fsl_matchup_log_v1')||'{}')||{};}catch(e){return {};}})();
+function saveMatchupLog(){try{localStorage.setItem('fsl_matchup_log_v1',JSON.stringify(MATCHUP_LOG));}catch(e){}}
+// Record a matchup change for one game. before/after are {home,away}. Captures orig on first touch.
+function logMatchupChange(id, before, after){
+  const k=String(id);
+  if(!MATCHUP_LOG[k]) MATCHUP_LOG[k]={orig:{home:before.home,away:before.away},changes:[]};
+  MATCHUP_LOG[k].changes.push({from:{home:before.home,away:before.away},to:{home:after.home,away:after.away},ts:Date.now()});
+  saveMatchupLog();
+}
+function matchupLogCount(){return Object.keys(MATCHUP_LOG).length;}
+// Restore every logged game to its ORIGINAL matchup and clear the affected games' times (the
+// pairing is changing back, so a prior slot may no longer satisfy rest). Clears the log afterward.
+function revertAllMatchups(){
+  let n=0;
+  Object.keys(MATCHUP_LOG).forEach(k=>{
+    const rec=MATCHUP_LOG[k]; if(!rec||!rec.orig) return;
+    const g=games.find(x=>String(x.id)===k); if(!g) return;
+    if(g.home!==rec.orig.home || g.away!==rec.orig.away){
+      g.home=rec.orig.home; g.away=rec.orig.away;
+      g.day='';g.time='';g.endTime='';g.sheet=''; delete GAME_TIMES[String(g.id)];
+      n++;
+    }
+  });
+  try{saveGameTimes();}catch(e){}
+  Object.keys(MATCHUP_LOG).forEach(k=>delete MATCHUP_LOG[k]);
+  saveMatchupLog();
+  return n;
+}
+// Revert a SINGLE logged game back to its original matchup (leaves the rest of the log intact).
+function revertOneMatchup(id){
+  const k=String(id), rec=MATCHUP_LOG[k]; if(!rec||!rec.orig) return false;
+  const g=games.find(x=>String(x.id)===k); if(!g) return false;
+  g.home=rec.orig.home; g.away=rec.orig.away;
+  g.day='';g.time='';g.endTime='';g.sheet=''; delete GAME_TIMES[String(g.id)];
+  try{saveGameTimes();}catch(e){}
+  delete MATCHUP_LOG[k]; saveMatchupLog();
+  return true;
+}
+// Effective hypothetical time for a game, only if it should apply: the pod is still unsourced and
+// the game has no real time yet. Returns {day,time,end,sheet} or null.
+function hypoFor(g){
+  if(!g||g.time) return null;                            // real time wins
+  const h=HYPO_TIMES[String(g.id)]; if(!h) return null;
+  if(!g.venue||!isUnsourcedPod(g.weekend,g.venue)) return null;  // sourced ice overrides
+  return h;
+}
+// Build a full HYPOTHETICAL schedule so EVERY game fits under all rules (no game left out). One rink
+// where possible; add rinks only if a pod truly needs them. Fill priority: Saturday first (last game
+// finishes by 8:30 PM), then Sunday (teams out — last game finishes before 3:00 PM), then Friday night
+// as backfill (finishing 8:30 PM, working up). Same rule engine as "Time this pod" (placeIntoSlots:
+// per-day limits, 165-min rest, no team overlap). Stored only in HYPO_TIMES — real ice always overrides.
+function hypoTimePod(wk,venue){
+  const list=games.filter(g=>g.weekend===wk&&g.venue===venue);
+  if(!list.length) return {count:0,unplaced:0};
+  clearHypoPod(wk,venue);
+  const hhmm=x=>String(Math.floor((x%1440)/60)).padStart(2,'0')+':'+String(x%60).padStart(2,'0');
+  const block=d=>Math.round((((CFG.slotHours||{})[d])||2)*60);     // slot length = the division's game duration
+  const BUF=CFG.bufferMin||15;                                     // ice turnover/resurface gap between games (15 min)
+  const maxBlk=Math.max.apply(null, list.map(g=>block(g.division)));
+  const STEP=maxBlk+BUF;                                           // start-to-start = longest game + 15-min gap → no overlap, ≥15 min between games
+  const FRI_END=20*60+30, SAT_END=20*60+30, SUN_END=15*60;        // Fri/Sat finish by 8:30 PM; Sun before 3:00 PM
+  const seq=(startMin,endCap)=>{ const a=[]; for(let t=startMin; t+maxBlk<=endCap; t+=STEP) a.push(t); return a; }; // last game still ends by the cap
+  // one pass over a single day across R rinks; returns games it placed (with times) + who's left
+  const placeDay=(day,startMin,endCap,R,remaining)=>{
+    const slots=[]; for(let r=0;r<R;r++){ seq(startMin,endCap).forEach(st=>slots.push({day:day,start:st,end:null,sheet:(R>1?('Rink '+(r+1)):'')})); }
+    const Rr=placeIntoSlots(remaining, slots);
+    const placed=(Rr.out[day]||[]);
+    const ids=new Set(placed.map(o=>String(o.id)));
+    return { placed:placed, left:remaining.filter(g=>!ids.has(String(g.id))) };
+  };
+  // Try to fit everyone: prefer fewest rinks, and Saturday starting 10:00 (fall back to 8:00 for room).
+  let best=null;
+  outer:
+  for(let R=1;R<=8;R++){
+    for(const satStart of [10*60, 8*60]){
+      let remaining=list.slice(); const out={Fri:[],Sat:[],Sun:[]};
+      const rs=placeDay('Sat',satStart,SAT_END,R,remaining); out.Sat=rs.placed; remaining=rs.left;   // 1) Saturday
+      const ru=placeDay('Sun',8*60,SUN_END,R,remaining);   out.Sun=ru.placed; remaining=ru.left;      // 2) Sunday (before 3pm)
+      const rf=placeDay('Fri',8*60,FRI_END,R,remaining);   out.Fri=rf.placed; remaining=rf.left;      // 3) Friday backfill
+      if(!best || remaining.length<best.remaining.length) best={R:R,out:out,remaining:remaining,satStart:satStart};
+      if(!remaining.length) break outer;
+    }
+  }
+  const R=best.R, out=best.out;
+  // Friday finishes at 8:30 PM and works its way up: per rink, shift Friday games so the last ends 20:30.
+  const friBy={}; out.Fri.forEach(o=>{ (friBy[o.sheet||'']=friBy[o.sheet||'']||[]).push(o); });
+  Object.keys(friBy).forEach(sh=>{ const arr=friBy[sh]; const latest=Math.max.apply(null,arr.map(o=>o.end)); const d=FRI_END-latest; if(d>0) arr.forEach(o=>{o.start+=d;o.end+=d;}); });
+  let count=0;
+  ['Fri','Sat','Sun'].forEach(d=>{ (out[d]||[]).forEach(o=>{ const g=list.find(x=>String(x.id)===String(o.id)); if(!g) return;
+    HYPO_TIMES[String(g.id)]={day:d,time:hhmm(o.start),end:hhmm(o.end),sheet:o.sheet||''}; count++;
+  }); });
+  saveHypoTimes();
+  return {count:count, unplaced:best.remaining.length, rinks:R};
+}
+function clearHypoPod(wk,venue){
+  let n=0; games.filter(g=>g.weekend===wk&&g.venue===venue).forEach(g=>{ if(HYPO_TIMES[String(g.id)]){ delete HYPO_TIMES[String(g.id)]; n++; } });
+  if(n) saveHypoTimes(); return n;
+}
+function podHasHypo(wk,venue){ return games.some(g=>g.weekend===wk&&g.venue===venue&&HYPO_TIMES[String(g.id)]); }
+// Promote a pod's HYPOTHETICAL times to REAL, locked times. Each game's hypo {day,time,end,sheet}
+// is written onto the game as a real manual time (setManualTime -> games + GAME_TIMES + MANUAL_TIMES,
+// persisted and shown on every export like any other confirmed time). The hypo entries are then
+// cleared so nothing is double-counted. Intended for use once real ice has been sourced and the
+// planned schedule should become the confirmed one. Returns the number of games locked in.
+function lockHypoPod(wk,venue){
+  let n=0;
+  games.filter(g=>g.weekend===wk&&g.venue===venue).forEach(g=>{
+    const h=HYPO_TIMES[String(g.id)]; if(!h) return;
+    setManualTime(g.id, {day:h.day||g.day||'', time:h.time||'', end:h.end||'', sheet:h.sheet||g.sheet||''});
+    delete HYPO_TIMES[String(g.id)];
+    n++;
+  });
+  if(n){ saveHypoTimes(); }
+  return n;
+}
+// Edit a single game's HYPOTHETICAL time, with the option to shift every game ON THE SAME DAY by the
+// same amount (e.g. start one game 15 min earlier -> bump that whole day 15 min earlier). Hypothetical only.
+function openHypoTimeEdit(id){
+  const g=games.find(x=>String(x.id)===String(id)); if(!g){return;}
+  const h=HYPO_TIMES[String(id)];
+  if(!h){ showToast('No hypothetical time on this game yet \u2014 run \u201C\u23F1 Hypothetical times\u201D first.','warn'); return; }
+  if(!isUnsourcedPod(g.weekend,g.venue)){ showToast('Hypothetical editing is only for unsourced pods.','warn'); return; }
+  const toMin=t=>{const m=/^(\d{1,2}):(\d{2})$/.exec(String(t||''));return m?(+m[1]*60+ +m[2]):null;};
+  const hhmm=x=>{x=Math.max(0,Math.min(1439,Math.round(x)));return String(Math.floor(x/60)).padStart(2,'0')+':'+String(x%60).padStart(2,'0');};
+  const clk=t=>{const v=toMin(t);if(v==null)return t||'';let hh=Math.floor(v/60),mn=v%60,ap=hh<12?'AM':'PM',h12=hh%12||12;return h12+':'+String(mn).padStart(2,'0')+' '+ap;};
+  const dur=(toMin(h.end)!=null&&toMin(h.time)!=null)?(toMin(h.end)-toMin(h.time)):120;
+  const DAYNAME={Fri:'Friday',Sat:'Saturday',Sun:'Sunday'};
+  const dayN=games.filter(x=>x.weekend===g.weekend&&x.venue===g.venue&&HYPO_TIMES[String(x.id)]&&HYPO_TIMES[String(x.id)].day===h.day).length;
+  const vShort=String(g.venue).replace(/\s*\(NEW\)/i,'');
+  const modal=document.createElement('div');modal.className='modal-bg';modal.id='modalbg';
+  modal.innerHTML=`<div class="modal">
+    <div class="modal-h"><h3>Edit hypothetical time</h3><button class="x" data-close>\u2715</button></div>
+    <div class="modal-b">
+      <div class="dt" style="margin-bottom:10px"><b>${iceEscA(g.home)} vs ${iceEscA(g.away)}</b> \u00b7 ${g.division} \u00b7 ${vShort} \u00b7 ${g.weekend}<br>Currently <b>${h.day} ${clk(h.time)}</b> (hypothetical). This never changes real ice \u2014 it's a planning guide only.</div>
+      <div class="fld-row">
+        <div class="fld"><label>Day</label><select id="he-day"><option${h.day==='Fri'?' selected':''}>Fri</option><option${h.day==='Sat'?' selected':''}>Sat</option><option${h.day==='Sun'?' selected':''}>Sun</option></select></div>
+        <div class="fld"><label>Start time</label><input id="he-start" type="time" value="${h.time||''}"></div>
+      </div>
+      <div class="live-warn" id="he-info" style="display:block;background:#FFF8E1;border:1px solid #E0A743;color:#7a5b00">Set a new start, then choose whether to move just this game or shift the whole day by the same amount.</div>
+    </div>
+    <div class="modal-foot" style="flex-wrap:wrap;gap:6px">
+      <button class="btn" data-close>Cancel</button>
+      <button class="btn" id="he-one">Move just this game</button>
+      <button class="btn primary" id="he-all">Shift whole day</button>
+    </div>
+  </div>`;
+  document.getElementById('app').appendChild(modal);
+  const daySel=modal.querySelector('#he-day'), startInp=modal.querySelector('#he-start'), info=modal.querySelector('#he-info'), allBtn=modal.querySelector('#he-all');
+  const refresh=()=>{ const ns=toMin(startInp.value), os=toMin(h.time); const delta=(ns!=null&&os!=null)?(ns-os):0;
+    const sign=delta>0?'later':(delta<0?'earlier':'');
+    allBtn.textContent = delta ? ('Shift all '+dayN+' '+h.day+' games '+Math.abs(delta)+' min '+sign) : ('Shift whole '+(DAYNAME[h.day]||'day'));
+    info.innerHTML = delta ? ('This moves the game '+Math.abs(delta)+' min '+sign+'. \u201CShift whole '+(DAYNAME[h.day]||'day')+'\u201D applies the same '+Math.abs(delta)+'-min move to all '+dayN+' hypothetical game'+(dayN===1?'':'s')+' on '+(DAYNAME[h.day]||h.day)+(daySel.value!==h.day?' (and moves this game to '+daySel.value+')':'')+'.') : ('Set a new start, then choose to move just this game or shift all of '+(DAYNAME[h.day]||h.day)+' by the same amount.');
+  };
+  startInp.oninput=refresh; daySel.onchange=refresh; refresh();
+  modal.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>modal.remove());
+  modal.onclick=e=>{if(e.target===modal)modal.remove();};
+  modal.querySelector('#he-one').onclick=()=>{
+    const ns=toMin(startInp.value); if(ns==null){showToast('Enter a valid start time.','warn');return;}
+    pushUndo('edit hypothetical time');
+    HYPO_TIMES[String(id)]={day:daySel.value, time:hhmm(ns), end:hhmm(ns+dur), sheet:h.sheet||''};
+    saveHypoTimes(); modal.remove(); render();
+    showToast('Moved this game\u2019s hypothetical time to '+daySel.value+' '+clk(hhmm(ns))+'.','good');
+  };
+  allBtn.onclick=()=>{
+    const ns=toMin(startInp.value), os=toMin(h.time); if(ns==null){showToast('Enter a valid start time.','warn');return;}
+    const delta=ns-os;
+    pushUndo('shift hypothetical day');
+    // shift only the games on the SAME DAY as this game
+    games.filter(x=>x.weekend===g.weekend&&x.venue===g.venue).forEach(x=>{ const hh=HYPO_TIMES[String(x.id)]; if(!hh||hh.day!==h.day)return;
+      const s=toMin(hh.time), e=toMin(hh.end);
+      HYPO_TIMES[String(x.id)]=Object.assign({}, hh, { time:(s!=null?hhmm(s+delta):hh.time), end:(e!=null?hhmm(e+delta):hh.end) });
+    });
+    if(daySel.value!==h.day && HYPO_TIMES[String(id)]) HYPO_TIMES[String(id)].day=daySel.value; // day change applies to just this game
+    saveHypoTimes(); modal.remove(); render();
+    showToast('Shifted all '+dayN+' '+(DAYNAME[h.day]||h.day)+' hypothetical game'+(dayN===1?'':'s')+' '+(delta===0?'(no change)':Math.abs(delta)+' min '+(delta>0?'later':'earlier'))+'.','good');
+  };
+}
 const IMP=(function(){
   // ---- FSL game-times import engine (pure; used by browser + node test) ----
   function parseCSV(text){
@@ -2688,7 +3257,11 @@ const XP=(function(){
   function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
   function escA(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');}
   const dow=d=>({Fri:0,Sat:1,Sun:2}[d]??9);
-  const gsort=(a,b)=>WK.indexOf(a.weekend)-WK.indexOf(b.weekend)||dow(a.day)-dow(b.day)||(a.time||'').localeCompare(b.time||'');
+  // Effective day/time for ordering: real wins, else the hypothetical (planning) time.
+  const _ehS=g=>(g && !g.time && typeof hypoFor==='function')?hypoFor(g):null;
+  const eDayS=g=>{ if(g.day) return g.day; const h=_ehS(g); return h?h.day:''; };
+  const eTimeS=g=>{ if(g.time) return g.time; const h=_ehS(g); return h?h.time:''; };
+  const gsort=(a,b)=>WK.indexOf(a.weekend)-WK.indexOf(b.weekend)||dow(eDayS(a))-dow(eDayS(b))||(eTimeS(a)||'').localeCompare(eTimeS(b)||'');
   // Like gsort, but parking-garage (venue-less / TBD) games always sort to the very end.
   const gsortTbd=(a,b)=>{const pa=!(a&&a.venue&&String(a.venue).trim()),pb=!(b&&b.venue&&String(b.venue).trim());if(pa!==pb)return pa?1:-1;return gsort(a,b);};
   const cityOf=v=>(v.split(' \u2014 ')[0]||v);
@@ -2709,6 +3282,15 @@ const XP=(function(){
   const wkCell=g=>isParkedG(g)?'TBD':(g.weekend||'TBD');
   const dateCell=g=>isParkedG(g)?'TBD':(g.date||WKDATE[g.weekend]||'TBD');
   const timeCell=g=>hasVenue(g)?(g.time?clock12(g.time):'TBD'):'TBD';
+  // Venue/city exports may show HYPOTHETICAL times (planning aid) when a game has no real time and
+  // its pod is unsourced. Marked with a trailing "*". Team/division/itinerary/league/weekend never do.
+  let _hypoUsed=false;
+  const _hyp=g=>{ if(!hasVenue(g)||g.time) return null; try{ return (typeof hypoFor==='function')?hypoFor(g):null; }catch(e){ return null; } };
+  const dayH=g=>{ const h=_hyp(g); if(h){_hypoUsed=true; return h.day||g.day||'';} return g.day||''; };
+  const timeH=g=>{ if(hasVenue(g)&&g.time) return clock12(g.time); const h=_hyp(g); if(h){_hypoUsed=true; return clock12(h.time)+'*';} return 'TBD'; };
+  const endH=g=>{ if(g.endTime) return clock12(g.endTime); const h=_hyp(g); if(h){_hypoUsed=true; return h.end?clock12(h.end)+'*':'';} return ''; };
+  const sheetH=g=>{ if(hasVenue(g)&&g.sheet) return g.sheet; const h=_hyp(g); if(h&&h.sheet){_hypoUsed=true; return h.sheet;} return hasVenue(g)?(g.sheet||''):'TBD'; };
+  const HYPO_NOTE='* = hypothetical planning time for a venue whose ice is not sourced yet. It is not a confirmed time and appears only on venue/arena/city reports \u2014 never on team, division or itinerary reports. Real ice (an uploaded schedule or added slots) overrides it.';
   const FLOOD2=new Set(['12U AAA','14U AA','14U AAA']);
   const FLOOD_NOTE='2-hour games (12U AAA, 14U AA, 14U AAA): flood after the 2nd period and post-game.  All other divisions (16U AA, 16U AAA, 19U AAA): flood after the 1st period, after the 2nd period, and post-game.  Row colour: white = 1-flood games (12U AAA, 14U AA, 14U AAA); yellow = 2-flood games (16U AA, 16U AAA, 19U AAA).';
   const floodFor=div=>FLOOD2.has(div)?'After 2nd, post-game':'After 1st, 2nd, post-game';
@@ -2871,20 +3453,23 @@ const XP=(function(){
       const gs=games.filter(g=>cityOf(g.venue)===key).sort(gsort);
       title=key+' \u2014 Venue (City) Schedule';
       cols=['Weekend','Date','Day','Time','End','Arena','Ice Surface','Division','Home','Away'];
-      rows=gs.map(g=>({c:[wkCell(g),dateCell(g),g.day||'',timeCell(g),(g.endTime?clock12(g.endTime):''),arenaCell(g),sheetCell(g),g.division,g.home,g.away],k:g.division}));
-      color=r=>DIVFILL[r.k]||'#ffffff'; legend='color = division';
+      _hypoUsed=false;
+      rows=gs.map(g=>({c:[wkCell(g),dateCell(g),dayH(g),timeH(g),endH(g),arenaCell(g),sheetH(g),g.division,g.home,g.away],k:g.division}));
+      color=r=>DIVFILL[r.k]||'#ffffff'; legend='color = division'+(_hypoUsed?' \u00b7 * = hypothetical time':''); if(_hypoUsed) note=HYPO_NOTE;
     } else if(kind==='arena'){
       const gs=games.filter(g=>g.venue===key).sort(gsort);
       title=arenaOf(key)+'  ('+cityOf(key)+') \u2014 Arena Schedule';
       cols=['Weekend','Date','Day','Start','Stop','Duration','Floods','Ice Surface','Division','Home','Away'];
-      rows=gs.map(g=>({c:[wkCell(g),dateCell(g),g.day||'',timeCell(g),(g.endTime?clock12(g.endTime):''),dur(g),floodFor(g.division),sheetCell(g),g.division,g.home,g.away],k:g.division}));
-      color=r=>FLOOD2.has(r.k)?'#ffffff':'#FFF2CC'; legend='White = 1-flood games \u00b7 Yellow = 2-flood games'; note=FLOOD_NOTE;
+      _hypoUsed=false;
+      rows=gs.map(g=>({c:[wkCell(g),dateCell(g),dayH(g),timeH(g),endH(g),dur(g),floodFor(g.division),sheetH(g),g.division,g.home,g.away],k:g.division}));
+      color=r=>FLOOD2.has(r.k)?'#ffffff':'#FFF2CC'; legend='White = 1-flood games \u00b7 Yellow = 2-flood games'; note=FLOOD_NOTE+(_hypoUsed?('  '+HYPO_NOTE):'');
     } else if(kind==='arenawknd'){
       const gs=games.filter(g=>g.venue===key&&g.weekend===key2).sort(gsort);
       title=arenaOf(key)+'  ('+cityOf(key)+')  \u2014  '+key2+'  ('+(WKDATE[key2]||'')+')  \u2014 Arena Weekend Sheet';
       cols=['Day','Date','Start','Stop','Duration','Floods','Ice Surface','Division','Home','Away'];
-      rows=gs.map(g=>({c:[g.day||'',dateCell(g),timeCell(g),(g.endTime?clock12(g.endTime):''),dur(g),floodFor(g.division),sheetCell(g),g.division,g.home,g.away],k:g.division}));
-      color=r=>FLOOD2.has(r.k)?'#ffffff':'#FFF2CC'; legend='White = 1-flood games \u00b7 Yellow = 2-flood games'; note=FLOOD_NOTE;
+      _hypoUsed=false;
+      rows=gs.map(g=>({c:[dayH(g),dateCell(g),timeH(g),endH(g),dur(g),floodFor(g.division),sheetH(g),g.division,g.home,g.away],k:g.division}));
+      color=r=>FLOOD2.has(r.k)?'#ffffff':'#FFF2CC'; legend='White = 1-flood games \u00b7 Yellow = 2-flood games'; note=FLOOD_NOTE+(_hypoUsed?('  '+HYPO_NOTE):'');
     }
     return {kind,key,key2,title,cols,rows,color,legend,note};
   }
@@ -3359,7 +3944,7 @@ window.PG=PG;
 /* ============ GLOBAL UNDO ============ */
 var UNDO_STACK=[];
 var SOLVE_REPORT={}; // wk -> last auto-solve result (per-venue day splits, flags, review items)
-const MUTATING=new Set(['iceHave','iceNo','iceHeld','iceDel','iceRestore','iceReset','venueAdd','venueAddDel','impApply','impReset','pgPark','pgParkVenue','pgParkDiv','pgAssign','podSwap','podTime','slotAssign','pgPlaceAt','pgPlaceAll','pgPodMove','pgSelMove','pgRestore','pgRemove','autosolve','toggleLock','toggleVenueLock','pgTbd','timeSet','timeUnlock']);;
+const MUTATING=new Set(['iceHave','iceNo','iceHeld','iceDel','iceRestore','iceReset','venueAdd','venueAddDel','impApply','impReset','pgPark','pgParkVenue','pgParkDiv','pgAssign','podSwap','podTime','slotAssign','pgPlaceAt','pgPlaceAll','pgPodMove','pgSelMove','pgRestore','pgRemove','autosolve','toggleLock','toggleVenueLock','pgTbd','timeSet','timeUnlock','slotAddDel','hypoTime','hypoClear','hypoLock','slotDrop','matchupSet','matchupSwap']);;
 function pushUndo(label){try{UNDO_STACK.push(JSON.stringify({games:games,gid:gid,ice:ICE_DECISIONS,times:GAME_TIMES,parking:PARKING,locked:LOCKED,removed:REMOVED_GAMES,label:label||''}));if(UNDO_STACK.length>40)UNDO_STACK.shift();}catch(e){}}
 function undo(){
   if(!UNDO_STACK.length){showToast('Nothing to undo.','');return;}
@@ -3404,6 +3989,19 @@ const ACTIONS={
   confAckClear:()=>{ if(!confirm('Un-acknowledge all conflicts? They will show in the alert counts again.'))return; CONFLICT_ACK={}; saveConflictAck(); render(); },
   podSwap:d=>{ const a=document.getElementById(d.a), b=document.getElementById(d.b); if(!a||!b){ showToast('Could not read the swap selectors.','warn'); return; } doSwapOpp(a.value,b.value); },
   podTime:d=>{ if(isEffLocked(d.wk,d.venue)){showToast('\uD83D\uDD12 '+(isVenueLocked(d.wk,d.venue)?d.venue.replace(/\s*\(NEW\)/i,''):d.wk)+' is locked \u2014 unlock it to make changes.','warn');return;} const r=solveOneVenue(d.wk,d.venue); showToast(r.msg, r.ok?'good':'warn'); render(); },
+  hypoTime:d=>{ if(!d||!d.wk||!d.venue)return;
+    if(!isUnsourcedPod(d.wk,d.venue)){showToast('This pod has real ice \u2014 hypothetical timing is only for unsourced pods (use \u201C\u2699 Time this pod\u201D instead).','warn');return;}
+    const r=hypoTimePod(d.wk,d.venue); const n=(r&&r.count!=null)?r.count:(r||0); const un=(r&&r.unplaced)||0; const rk=(r&&r.rinks)||1; render();
+    showToast('\u23F1 Built a hypothetical schedule for '+n+' game'+(n===1?'':'s')+(rk>1?(' across '+rk+' rinks'):' on one rink')+' \u2014 Saturday first (ends by 8:30 PM), then Sunday (out before 3 PM), then Friday'+(un?(' \u2014 '+un+" couldn\u2019t fit"):'')+'. Planning only; venue/city exports; overridden by real ice.','good'); },
+  hypoClear:d=>{ if(!d||!d.wk||!d.venue)return; const n=clearHypoPod(d.wk,d.venue); render(); showToast(n?('Cleared hypothetical times for '+n+' game'+(n===1?'':'s')+'.'):'No hypothetical times here.', n?'good':'warn'); },
+  hypoLock:d=>{ if(!d||!d.wk||!d.venue)return;
+    if(isEffLocked(d.wk,d.venue)){showToast('\uD83D\uDD12 That venue/weekend is locked \u2014 unlock it to lock times in as real.','warn');return;}
+    if(!podHasHypo(d.wk,d.venue)){showToast('No hypothetical times here to lock in \u2014 run \u201C\u23F1 Hypothetical times\u201D first.','warn');return;}
+    if(!confirm('Lock these hypothetical times in as REAL, confirmed times for this pod?\n\nThey\u2019ll appear as real times on every export (team, division and itinerary too), and the app won\u2019t change them automatically. You can still edit or unlock each game afterward.'))return;
+    pushUndo('lock hypothetical times in as real');
+    const n=lockHypoPod(d.wk,d.venue); render();
+    showToast(n?('\u2713 Locked in '+n+' hypothetical time'+(n===1?'':'s')+' as real \u2014 they\u2019re now confirmed times on all exports.'):'Nothing to lock in here.', n?'good':'warn'); },
+  hypoEdit:d=>{ if(d&&d.id!=null) openHypoTimeEdit(d.id); },
   toggleLock:d=>{ if(!d||!d.wk)return; if(isLocked(d.wk)) delete LOCKED[d.wk]; else LOCKED[d.wk]=Date.now(); saveLocked(); render(); showToast(isLocked(d.wk)?('\uD83D\uDD12 Locked '+d.wk+' \u2014 no changes will be applied here.'):('\uD83D\uDD13 Unlocked '+d.wk+' \u2014 changes allowed again.'), isLocked(d.wk)?'':'good'); },
   toggleVenueLock:d=>{ if(!d||!d.wk||!d.venue)return; const k=venueLockKey(d.wk,d.venue); if(LOCKED[k]) delete LOCKED[k]; else LOCKED[k]=Date.now(); saveLocked(); render(); const vn=d.venue.replace(/\s*\(NEW\)/i,''); showToast(LOCKED[k]?('\uD83D\uDD12 Locked '+vn+' \u00b7 '+d.wk+' \u2014 held as-is; auto-solve will skip it.'):('\uD83D\uDD13 Unlocked '+vn+' \u00b7 '+d.wk), LOCKED[k]?'':'good'); },
   slotEditToggle:d=>{ const k=d.wk+'|||'+d.venue; SLOT_EDIT=(SLOT_EDIT===k?null:k); render(); },
@@ -3416,7 +4014,105 @@ const ACTIONS={
     const g=games.find(x=>String(x.id)===String(d.id));
     showToast('\uD83D\uDD12 Time set manually'+(g?(' \u2014 '+g.home+' vs '+g.away):'')+'. The app won\u2019t change it.','good');
     render(); },
+  matchupEdit:d=>{ if(!d||!d.id)return;
+    const g=games.find(x=>String(x.id)===String(d.id));
+    if(g && isEffLocked(g.weekend,g.venue)){showToast('\uD83D\uDD12 That venue/weekend is locked \u2014 unlock it to change the matchup.','warn');return;}
+    MATCHUP_EDIT=String(d.id); render(); },
+  matchupEditDone:()=>{ MATCHUP_EDIT=null; render(); },
+  // Set one side (home/away) of a matchup to a team IN THE SAME DIVISION. To keep every team's
+  // game count for the weekend unchanged, the displaced team is put back "in the pile": if the
+  // incoming team is already playing another game this weekend (same division), we SWAP the two
+  // teams between the games — the incoming team takes this slot, the displaced team takes the
+  // incoming team's old slot. Both teams keep the same number of games; only the pairings change.
+  // If the incoming team isn't playing this weekend, a straight swap can't balance counts, so we
+  // ask before doing a plain replacement. Clears affected games' times (pairings changed), persists,
+  // and re-renders — which recomputes the Opponent matrix (derived live from games). Editor stays open.
+  _matchupApply:(id, field, team)=>{
+    const g=games.find(x=>String(x.id)===String(id)); if(!g){ showToast('Could not find that game.','warn'); return false; }
+    if(isEffLocked(g.weekend,g.venue)){ showToast('\uD83D\uDD12 That venue/weekend is locked \u2014 unlock it to change the matchup.','warn'); render(); return false; }
+    field=(field==='away')?'away':'home';
+    if(!teamsByDiv(g.division).includes(team)){ showToast('That team is not in '+g.division+'.','warn'); render(); return false; }
+    const other=(field==='home')?g.away:g.home;            // the team on the OTHER side of this game
+    const displaced=g[field];                              // the team currently in the slot we're filling
+    if(team===other){ showToast('A team can\u2019t play itself \u2014 drop a different opponent.','warn'); render(); return false; }
+    if(displaced===team){ render(); return false; }        // dropped its own team back — no change
+    const clearTime=x=>{ x.day='';x.time='';x.endTime='';x.sheet=''; delete GAME_TIMES[String(x.id)]; };
+    const before=g.home+' vs '+g.away;
+
+    // Find another game this weekend (same division) where the INCOMING team currently plays, so we
+    // can move the displaced team there — keeping both teams' weekend game counts identical. Prefer
+    // a target that won't create a self-play (displaced team already on the other side of that game).
+    const cands=games.filter(x=>String(x.id)!==String(g.id) && x.weekend===g.weekend && x.division===g.division
+        && (x.home===team||x.away===team) && !isEffLocked(x.weekend,x.venue));
+    const pickSlot=x=> x.home===team?'home':'away';        // the incoming team's slot in the other game
+    const g2 = cands.find(x=>{ const os=pickSlot(x)==='home'?x.away:x.home; return os!==displaced; }) || cands[0];
+
+    if(g2){
+      const f2=pickSlot(g2);
+      const g2other = f2==='home'?g2.away:g2.home;
+      if(g2other===displaced){
+        showToast('That swap would make '+displaced+' play itself in the other game \u2014 pick a different team.','warn'); render(); return false;
+      }
+      // Perform the swap: incoming team into this slot, displaced team into the incoming team's old slot.
+      const gBefore={home:g.home,away:g.away}, g2Before={home:g2.home,away:g2.away};
+      g[field]=team; g2[f2]=displaced;
+      logMatchupChange(g.id, gBefore, {home:g.home,away:g.away});
+      logMatchupChange(g2.id, g2Before, {home:g2.home,away:g2.away});
+      let hadTime=!!(g.day||g.time||g.endTime||g2.day||g2.time||g2.endTime);
+      clearTime(g); clearTime(g2);
+      try{saveGameTimes();}catch(e){}
+      render();
+      showToast('\u21C4 Swapped '+team+' \u2194 '+displaced+' \u2014 '+before+' \u2192 '+g.home+' vs '+g.away+'; the other game becomes '+g2.home+' vs '+g2.away+'. Everyone keeps the same number of games'+(hadTime?' \u2014 times cleared, re-time this pod.':'.')+' (logged \u2014 revertible)','good');
+      return true;
+    }
+
+    // Incoming team isn't playing this weekend — there's no game to swap into, so any change would
+    // unbalance weekend game counts. Refuse: only teams already playing this weekend can be swapped in.
+    showToast(team+' isn\u2019t playing this weekend, so there\u2019s no game to swap with. Only teams already playing this weekend can be swapped in \u2014 game counts stay balanced.','warn');
+    render();
+    return false; },
+  // Swap home and away for a game (drag one slot onto the other). No pairing change, so times are kept.
+  matchupSwap:d=>{ const g=games.find(x=>String(x.id)===String(d.id)); if(!g){ return; }
+    if(isEffLocked(g.weekend,g.venue)){ showToast('\uD83D\uDD12 That venue/weekend is locked \u2014 unlock it to change the matchup.','warn'); render(); return; }
+    const gBefore={home:g.home,away:g.away};
+    const h=g.home; g.home=g.away; g.away=h;
+    logMatchupChange(g.id, gBefore, {home:g.home,away:g.away});
+    try{ GAME_TIMES[String(g.id)] && (GAME_TIMES[String(g.id)]={...GAME_TIMES[String(g.id)]}); }catch(e){}
+    render();
+    showToast('\u21C4 Swapped home/away: '+g.home+' vs '+g.away+'. (logged \u2014 revertible)','good'); },
+  // Drop dispatcher used by the drag wiring. If the dragged chip came from the OTHER slot, it's a
+  // home/away swap; otherwise it's a set of `field` to the dragged team.
+  matchupDrop:d=>{ if(!d||!d.id||!d.field||!d.team) return;
+    if(d.from && d.from!==d.field){ if(MUTATING.has('matchupSwap')) pushUndo('matchupSwap'); ACTIONS.matchupSwap({id:d.id}); return; }
+    if(d.from===d.field){ return; } // dropped a slot's team back onto itself — no-op
+    if(MUTATING.has('matchupSet')) pushUndo('matchupSet');
+    ACTIONS._matchupApply(d.id, d.field, d.team); },
+  // Back-compat: the old dropdown path (if ever re-enabled) still works.
+  matchupSet:el=>{ const d=el.dataset; if(MUTATING.has('matchupSet')) pushUndo('matchupSet'); ACTIONS._matchupApply(d.id, d.field, el.value||''); },
+  // Revert ALL logged matchup changes back to their original pairings.
+  matchupRevertAll:()=>{
+    const n0=matchupLogCount(); if(!n0){ showToast('No matchup changes have been logged.','' ); return; }
+    if(!confirm('Revert ALL '+n0+' changed matchup'+(n0>1?'es':'')+' back to their original teams?\n\nThis restores the pairings you started with and clears the change log. Times on those games are cleared so they can be re-timed.')) return;
+    pushUndo('revert all matchups');
+    const n=revertAllMatchups(); render();
+    showToast(n?('\u21A9 Reverted '+n+' matchup'+(n>1?'es':'')+' to original. Change log cleared.'):'Nothing needed reverting.', 'good'); },
+  // Revert a single logged game back to its original matchup.
+  matchupRevertOne:d=>{ if(!d||!d.id)return;
+    const g=games.find(x=>String(x.id)===String(d.id));
+    if(g && isEffLocked(g.weekend,g.venue)){ showToast('\uD83D\uDD12 That venue/weekend is locked \u2014 unlock it to revert.','warn'); return; }
+    pushUndo('revert one matchup');
+    if(revertOneMatchup(d.id)){ render(); showToast('\u21A9 Reverted this game to its original matchup.','good'); }
+    else { showToast('Could not revert that game.','warn'); } },
+  matchupLogClear:()=>{ if(!matchupLogCount()){ showToast('The change log is already empty.',''); return; }
+    if(!confirm('Clear the matchup change log?\n\nThis does NOT change any matchups \u2014 it just forgets the record, so you can no longer one-click revert to the originals.')) return;
+    Object.keys(MATCHUP_LOG).forEach(k=>delete MATCHUP_LOG[k]); saveMatchupLog(); render();
+    showToast('Matchup change log cleared.','good'); },
   slotAssign:el=>{ const d=el.dataset, gid=el.value;
+    ACTIONS._slotMove(gid, d); },
+  // Shared move engine used by both the dropdown (slotAssign) and drag-and-drop (slotDrop).
+  // gid=game id to place into the slot described by d (wk/venue/day/start/end/sheet); empty gid
+  // means "empty this slot". Returns without a render on a locked pod (caller may have rendered).
+  _slotMove:(gid, d)=>{
     if(isEffLocked(d.wk,d.venue)){showToast('\uD83D\uDD12 '+(isVenueLocked(d.wk,d.venue)?'This venue':d.wk)+' is locked \u2014 unlock it to change slots.','warn');render();return;}
     const hhmm=m=>String(Math.floor((m%1440)/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0');
     const start=parseInt(d.start,10), end=(d.end===''||d.end==null)?null:parseInt(d.end,10);
@@ -3432,6 +4128,22 @@ const ACTIONS={
       } }
     else { if(occupying){ clearSlot(occupying); showToast('Slot cleared \u2014 '+occupying.home+' vs '+occupying.away+' returned to no-day.','warn'); } }
     try{saveGameTimes();}catch(e){} render(); },
+  // Drag-and-drop drop onto a slot row (or the unslotted pool). d carries the target slot + the
+  // dragged game id (dragid). Dropping on the pool (dropfree) frees the game from its slot.
+  slotDrop:d=>{
+    if(!d||!d.dragid) return;
+    if(d.dropfree){ // dropped into the unslotted pool → free this game back to "no day"
+      if(isEffLocked(d.wk,d.venue)){showToast('\uD83D\uDD12 That venue/weekend is locked \u2014 unlock it to move games.','warn');return;}
+      const g=games.find(x=>String(x.id)===String(d.dragid)); if(!g) return;
+      if(!g.day && !g.time){ render(); return; } // already unslotted
+      g.day='';g.time='';g.endTime='';g.sheet='';
+      GAME_TIMES[String(g.id)]={date:'',weekend:g.weekend,day:'',time:'',end:'',sheet:'',venue:g.venue};
+      try{saveGameTimes();}catch(e){}
+      showToast('Freed \u2014 '+g.home+' vs '+g.away+' returned to no-day.','warn');
+      render(); return;
+    }
+    ACTIONS._slotMove(String(d.dragid), d);
+  },
   pgRestore:d=>PG.unparkOrig(d),
   pgRemove:d=>PG.removeParked(d),
   xpKind:el=>XP.setKind(el),
@@ -3488,6 +4200,8 @@ const ACTIONS={
       conflictAck:(typeof CONFLICT_ACK!=='undefined'?CONFLICT_ACK:undefined),
       gameTimes:(typeof GAME_TIMES!=='undefined'?GAME_TIMES:undefined),
       manualTimes:(typeof MANUAL_TIMES!=='undefined'?MANUAL_TIMES:undefined),
+      hypoTimes:(typeof HYPO_TIMES!=='undefined'?HYPO_TIMES:undefined),
+      matchupLog:(typeof MATCHUP_LOG!=='undefined'?MATCHUP_LOG:undefined),
       parking:(typeof PARKING!=='undefined'?PARKING:undefined)};
     const blob=new Blob([JSON.stringify(payload,null,1)],{type:'application/json'});
     const a=document.createElement('a');a.href=URL.createObjectURL(blob);
@@ -3558,6 +4272,16 @@ const ACTIONS={
               Object.keys(payloadObj.manualTimes).forEach(k=>{MANUAL_TIMES[k]=payloadObj.manualTimes[k];});
               try{saveManualTimes();}catch(e){}
             }
+            if(payloadObj.hypoTimes && typeof payloadObj.hypoTimes==='object' && typeof HYPO_TIMES!=='undefined'){
+              Object.keys(HYPO_TIMES).forEach(k=>delete HYPO_TIMES[k]);
+              Object.keys(payloadObj.hypoTimes).forEach(k=>{HYPO_TIMES[k]=payloadObj.hypoTimes[k];});
+              try{saveHypoTimes();}catch(e){}
+            }
+            if(payloadObj.matchupLog && typeof payloadObj.matchupLog==='object' && typeof MATCHUP_LOG!=='undefined'){
+              Object.keys(MATCHUP_LOG).forEach(k=>delete MATCHUP_LOG[k]);
+              Object.keys(payloadObj.matchupLog).forEach(k=>{MATCHUP_LOG[k]=payloadObj.matchupLog[k];});
+              try{saveMatchupLog();}catch(e){}
+            }
           }
         }catch(e){}
         try{applyRemovedGames();}catch(e){}  // item 5: keep permanently-removed games out after a reload
@@ -3598,6 +4322,17 @@ const ACTIONS={
     if(!d||!d.wk||!d.venue)return;
     if(isEffLocked(d.wk,d.venue)){showToast('\uD83D\uDD12 That venue/weekend is locked \u2014 unlock it to remove ice.','warn');return;}
     openRemoveSlot(d.wk, d.venue);
+  },
+  slotAddDel:d=>{ // remove one specific added slot from the "Added slots" list
+    if(!d||!d.wk||!d.venue)return;
+    const entry=(typeof SLOT_ADDS!=='undefined'?SLOT_ADDS:[]).find(a=>a.weekend===d.wk&&a.venue===d.venue&&String(a.day||'')===String(d.day||'')&&String(a.start||'')===String(d.start||'')&&String(a.sheet||'')===String(d.sheet||''));
+    if(!entry){showToast('That slot is no longer here.','warn');render();return;}
+    if(isEffLocked(entry.weekend,entry.venue)){showToast('\uD83D\uDD12 That venue/weekend is locked \u2014 unlock it to remove ice.','warn');return;}
+    const occ=games.find(g=>g.weekend===entry.weekend&&g.venue===entry.venue&&g.day===entry.day&&(entry.start?g.time===entry.start:false)&&String(g.sheet||'')===String(entry.sheet||''));
+    if(occ&&window.PG&&PG.parkMany){ PG.parkMany([occ],'',true); }
+    removeSlotEntry(entry);
+    render();
+    showToast('\u2212 Removed added slot'+(occ?' \u2014 its game went to the Unscheduled Showcase':'')+'.','good');
   },
   autosolve:d=>{ // assign days + start times across this weekend's venues per the spec
     if(isLocked(d.wk)){showToast('\uD83D\uDD12 '+d.wk+' is locked \u2014 unlock it to auto-solve.','warn');return;}
