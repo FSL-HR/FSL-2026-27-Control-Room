@@ -1182,10 +1182,21 @@ function totalSourced(){
 // either the user flagged it "Need" (needs sourcing), or it isn't Real ice / has no real inventory.
 // NOTE: this is NOT the same as "del" (a row the user explicitly removed/hid). Aberdeen <18-game
 // weekends are exempt (league flex — no sourcing required), matching the sourcing math elsewhere.
+// Was this venue-weekend added by the user AFTER the original published schedule
+// (via "Add ice")? Such ice is entered as a placeholder that still needs sourcing,
+// so it should behave as "not secured yet" until the user marks it Have.
+function isAddedVenue(wk,venue){
+  try{ if(typeof VENUE_ADDS!=='undefined' && VENUE_ADDS.some(a=>a.weekend===wk&&a.venue===venue)) return true; }catch(e){}
+  try{ const v=DATA.venues.find(x=>x.weekend===wk&&x.venue===venue); if(v&&v.added) return true; }catch(e){}
+  return false;
+}
 function iceDoesNotExist(wk,venue){
   const dec=iceDecision(wk,venue);
   if(dec==='have') return false;              // user asserts they secured it
   if(dec==='no') return true;                 // user flagged it as needing sourcing
+  // A venue you added after the original doc is unsourced by default (needs sourcing)
+  // until you explicitly mark it Have — so the hypothetical-times planning aid is offered.
+  if(isAddedVenue(wk,venue)) return true;
   if(clusterName(venue)==='Aberdeen' && aberdeenExempt(wk)) return false; // league flex
   return realAvailTotal(wk,venue)<=0;         // no real contracted ice
 }
@@ -2858,10 +2869,13 @@ function hypoTimePod(wk,venue){
     const ids=new Set(placed.map(o=>String(o.id)));
     return { placed:placed, left:remaining.filter(g=>!ids.has(String(g.id))) };
   };
-  // Try to fit everyone: prefer fewest rinks, and Saturday starting 10:00 (fall back to 8:00 for room).
+  // Try to fit everyone: prefer fewest rinks (max 2 arenas), and Saturday starting 10:00
+  // (fall back to 8:00 for room). We never assume more than 2 rinks — everything must be
+  // packed into at most two arenas across Sat, then Sun, then Fri.
+  const MAX_RINKS=2;
   let best=null;
   outer:
-  for(let R=1;R<=8;R++){
+  for(let R=1;R<=MAX_RINKS;R++){
     for(const satStart of [10*60, 8*60]){
       let remaining=list.slice(); const out={Fri:[],Sat:[],Sun:[]};
       const rs=placeDay('Sat',satStart,SAT_END,R,remaining); out.Sat=rs.placed; remaining=rs.left;   // 1) Saturday
@@ -4036,7 +4050,11 @@ const ACTIONS={
     const displaced=g[field];                              // the team currently in the slot we're filling
     if(team===other){ showToast('A team can\u2019t play itself \u2014 drop a different opponent.','warn'); render(); return false; }
     if(displaced===team){ render(); return false; }        // dropped its own team back — no change
-    const clearTime=x=>{ x.day='';x.time='';x.endTime='';x.sheet=''; delete GAME_TIMES[String(x.id)]; };
+    const clearTime=x=>{ x.day='';x.time='';x.endTime='';x.sheet=''; delete GAME_TIMES[String(x.id)];
+      // Also drop any HYPOTHETICAL (planning) time on this game. Its day/slot described the OLD
+      // pairing; leaving it would show a stale hypothetical arrangement even though the opponent
+      // matrix (derived live from games) has already updated. Cleared so the pod re-times cleanly.
+      try{ if(typeof HYPO_TIMES!=='undefined' && HYPO_TIMES[String(x.id)]){ delete HYPO_TIMES[String(x.id)]; } }catch(e){} };
     const before=g.home+' vs '+g.away;
 
     // Find another game this weekend (same division) where the INCOMING team currently plays, so we
@@ -4059,10 +4077,21 @@ const ACTIONS={
       logMatchupChange(g.id, gBefore, {home:g.home,away:g.away});
       logMatchupChange(g2.id, g2Before, {home:g2.home,away:g2.away});
       let hadTime=!!(g.day||g.time||g.endTime||g2.day||g2.time||g2.endTime);
+      let hadHypo=false;
+      try{ hadHypo=(typeof podHasHypo==='function') && (podHasHypo(g.weekend,g.venue)||podHasHypo(g2.weekend,g2.venue)); }catch(e){}
       clearTime(g); clearTime(g2);
       try{saveGameTimes();}catch(e){}
+      try{saveHypoTimes();}catch(e){}
+      // If either affected pod is unsourced and was showing hypothetical times, rebuild them so the
+      // planning schedule reflects the new pairings (and every game still fits the 2-arena plan).
+      try{
+        if(hadHypo && typeof hypoTimePod==='function' && typeof isUnsourcedPod==='function'){
+          const pods=new Set([g.weekend+'|||'+g.venue, g2.weekend+'|||'+g2.venue]);
+          pods.forEach(k=>{ const [wk,ven]=k.split('|||'); if(isUnsourcedPod(wk,ven)) hypoTimePod(wk,ven); });
+        }
+      }catch(e){}
       render();
-      showToast('\u21C4 Swapped '+team+' \u2194 '+displaced+' \u2014 '+before+' \u2192 '+g.home+' vs '+g.away+'; the other game becomes '+g2.home+' vs '+g2.away+'. Everyone keeps the same number of games'+(hadTime?' \u2014 times cleared, re-time this pod.':'.')+' (logged \u2014 revertible)','good');
+      showToast('\u21C4 Swapped '+team+' \u2194 '+displaced+' \u2014 '+before+' \u2192 '+g.home+' vs '+g.away+'; the other game becomes '+g2.home+' vs '+g2.away+'. Everyone keeps the same number of games'+(hadHypo?' \u2014 hypothetical times rebuilt for the new pairings.':(hadTime?' \u2014 times cleared, re-time this pod.':'.'))+' (logged \u2014 revertible)','good');
       return true;
     }
 
@@ -4447,6 +4476,113 @@ render();
   function setPill(txt,color){ pill.innerHTML='<span style="width:8px;height:8px;border-radius:50%;background:'+(color||'#8a8a90')+';display:inline-block"></span>'+txt; }
   setPill('Connecting to shared schedule\u2026','#BA7517');
   document.body.appendChild(pill);
+
+  // ---- Firebase config (yours) ----
+  const firebaseConfig = {
+    apiKey: "AIzaSyCaYo_fjuiA4ApMbAyDCwvQ5FVzZeD89C8",
+    authDomain: "fsl-control-room-2026-27-d6d39.firebaseapp.com",
+    projectId: "fsl-control-room-2026-27-d6d39",
+    storageBucket: "fsl-control-room-2026-27-d6d39.firebasestorage.app",
+    messagingSenderId: "373397220179",
+    appId: "1:373397220179:web:98feacc01095b8271ccfa6",
+    measurementId: "G-PE1DX66JWD"
+  };
+
+  const DOC_PATH = ['schedules','fsl-shared'];  // one shared document both people use
+  let db=null, docRef=null, applyingRemote=false, lastLocalWriteStamp=0, saveTimer=null;
+
+  // ---- Load Firebase (modular SDK) then wire everything up ----
+  const boot = `
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getFirestore, doc, onSnapshot, setDoc }
+      from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    const app = initializeApp(${JSON.stringify(firebaseConfig)});
+    const db = getFirestore(app);
+    window.__cloud = {
+      ref: doc(db, ${JSON.stringify(DOC_PATH[0])}, ${JSON.stringify(DOC_PATH[1])}),
+      onSnapshot, setDoc, doc, db
+    };
+    window.dispatchEvent(new Event('cloud-ready'));
+  `;
+  const s=document.createElement('script'); s.type='module'; s.textContent=boot;
+  s.onerror=()=>setPill('Offline \u2014 saving to this device only','#C81E28');
+  document.head.appendChild(s);
+
+  window.addEventListener('cloud-ready', ()=>{
+    const C=window.__cloud;
+
+    // 1) LISTEN: whenever the shared schedule changes (either person), apply it.
+    C.onSnapshot(C.ref, (snap)=>{
+      if(!snap.exists()){ setPill('Shared \u2014 waiting for first save','#BA7517'); return; }
+      const data=snap.data();
+      // Ignore the echo of our own just-written update.
+      if(data.stamp && data.stamp===lastLocalWriteStamp){ setPill('Synced \u2713','#1d9e75'); return; }
+      let payload=null;
+      try{ payload = (typeof data.payload==='string') ? JSON.parse(data.payload) : data.payload; }catch(e){ payload=null; }
+      if(payload){
+        applyingRemote=true;
+        try{ applyPayload(payload); }catch(e){}
+        applyingRemote=false;
+        const who = data.by ? (' by '+data.by) : '';
+        setPill('Updated'+who+' \u2713','#1d9e75');
+        try{ showToast('\u2601 Schedule updated'+who+'.', 'good'); }catch(e){}
+      }
+    }, (err)=>{ setPill('Sync error \u2014 saving locally','#C81E28'); });
+
+    // 2) PUSH: after any local change, save the shared schedule to the cloud.
+    window.__cloudPush = function(){
+      if(applyingRemote) return;                 // don't rebroadcast a change we just received
+      clearTimeout(saveTimer);
+      saveTimer=setTimeout(async ()=>{
+        try{
+          const stamp = Date.now();
+          lastLocalWriteStamp = stamp;
+          setPill('Saving\u2026','#BA7517');
+          await C.setDoc(C.ref, {
+            stamp,
+            by: (window.__cloudUser||''),
+            updated: new Date().toISOString(),
+            payload: JSON.stringify(buildPayload())
+          });
+          setPill('Saved \u2713','#1d9e75');
+        }catch(e){ setPill('Save failed \u2014 kept on this device','#C81E28'); }
+      }, 600);                                    // debounce rapid edits
+    };
+    setPill('Synced \u2713','#1d9e75');
+  });
+
+  // ---- Trigger a cloud push after every state-changing save function ----
+  // We wrap the app's existing save* helpers so ANY change syncs, with zero
+  // changes to the app's own logic. Each still does its normal localStorage save.
+  const savers=['saveLocked','saveVenueAdds','saveSlotAdds','saveIceDecisions',
+    'saveRemovedGames','saveConflictAck','saveGameTimes','saveManualTimes',
+    'saveHypoTimes','saveMatchupLog','saveParking'];
+  savers.forEach(name=>{
+    const fn=window[name];
+    if(typeof fn==='function'){
+      window[name]=function(){ const r=fn.apply(this,arguments); try{ window.__cloudPush&&window.__cloudPush(); }catch(e){} return r; };
+    }
+  });
+  // The games array itself changes via many actions; the dispatcher re-renders
+  // after each, so also push after every user action click.
+  document.addEventListener('click', (e)=>{
+    if(e.target && e.target.closest && e.target.closest('[data-act]')){
+      setTimeout(()=>{ try{ window.__cloudPush&&window.__cloudPush(); }catch(e){} }, 50);
+    }
+  }, true);
+
+  // ---- Ask once for a name, so each person's changes are labelled ----
+  try{
+    let u=localStorage.getItem('fsl_cloud_user_v1');
+    if(!u){ u=(prompt('Your name (so your teammate sees who made a change):','')||'').trim(); if(u) localStorage.setItem('fsl_cloud_user_v1',u); }
+    window.__cloudUser=u||'';
+  }catch(e){ window.__cloudUser=''; }
+})();
+
+</script>
+</body>
+</html>
+
 
   // ---- Firebase config (yours) ----
   const firebaseConfig = {
