@@ -672,6 +672,30 @@ function detectConflicts(scope){
     }
   });
 
+  // HARD RULE: a team may not play in two different regions (AB / SK-MB / BC)
+  // within a single weekend. For each team-weekend, collect the distinct regions
+  // of the buildings it is booked in; more than one region is a violation.
+  const teamWkRegions={};
+  pool.forEach(g=>{
+    const reg=CLUSTER_REGION[clusterName(g.venue)];
+    if(!reg) return; // unknown/placeholder venues (e.g. "To Source") don't trigger the rule
+    [g.home,g.away].forEach(tm=>{
+      const k=g.division+'~'+tm+'~'+g.weekend;
+      (teamWkRegions[k]=teamWkRegions[k]||{})[reg]=(teamWkRegions[k][reg]||[]);
+      // remember one venue per region so the message can name where
+      if(!teamWkRegions[k][reg].includes(g.venue)) teamWkRegions[k][reg].push(g.venue);
+    });
+  });
+  Object.entries(teamWkRegions).forEach(([k,regs])=>{
+    const names=Object.keys(regs);
+    if(names.length>1){
+      const [div,tm,wk]=k.split('~');
+      const where=names.map(r=>`${r} (${regs[r].map(v=>v.replace(/\s*\(NEW\)/i,'')).join(', ')})`).join(' and ');
+      out.push({sev:'hard',rule:'Two regions in a weekend',
+        msg:`${tm} (${div}) is booked across two regions in ${wk}: ${where}. A team may only play in one region per weekend.`,wk});
+    }
+  });
+
   // Item 2: 16U/19U games need 2.25h; flag any sitting on a slot shorter than required (e.g. 2h).
   pool.forEach(g=>{ if(slotTooShort(g)) out.push({sev:'soft',rule:'Slot too short',
     msg:`${g.division}: ${g.home} vs ${g.away} at ${g.venue.replace(/\s*\(NEW\)/i,'')} ${g.day||''} ${g.time?clock12(g.time):''} (${g.weekend}) is on a 2-hour slot but needs ${slotHours(g.division)}h.`,wk:g.weekend}); });
@@ -1321,7 +1345,12 @@ function aberdeenExempt(wk){
 }
 function sourcedFor(wk,venue){
   const dec=iceDecision(wk,venue);
-  if(dec==='del'||dec==='have') return 0;
+  // 'del' (row hidden/removed) contributes nothing. 'have' means the REAL contracted
+  // ice is confirmed — it does NOT mean unlimited ice, so any games placed beyond that
+  // real capacity ("after the fact", or extra games added later) still need sourcing.
+  // Only 'del' short-circuits to 0; 'have' now falls through to the normal used-vs-real
+  // math below (realAvailTotal already reflects CSV-imported / added real ice).
+  if(dec==='del') return 0;
   const used=gamesFor(wk).filter(g=>g.venue===venue).length;
   if(dec!=='no'&&clusterName(venue)==='Aberdeen'&&aberdeenExempt(wk)) return 0;
   const real=(dec==='no')?0:realAvailTotal(wk,venue);
