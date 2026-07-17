@@ -750,6 +750,18 @@ function teamBadge(name){
 function teamWithBadge(name){
   return `<span style="display:inline-flex;align-items:center;gap:5px;vertical-align:middle">${teamBadge(name)}<span>${name}</span></span>`;
 }
+// Large version of the club photo/logo, for the team detail page header. Reuses the
+// same TEAM_LOGOS map (and colored-initials fallback) as the small badge, just bigger.
+function teamPhotoLarge(name){
+  const club=clubKey(name);
+  const logo=TEAM_LOGOS[club];
+  const box='width:84px;height:84px;border-radius:12px;flex:0 0 auto';
+  if(logo){
+    return `<img src="${logo}" alt="${club.replace(/"/g,'')}" title="${club.replace(/"/g,'')}" style="${box};object-fit:contain;background:rgba(255,255,255,.06);padding:6px">`;
+  }
+  const col=_clubColor(club), ini=_clubInitials(club);
+  return `<span title="${club.replace(/"/g,'')}" style="${box};display:inline-flex;align-items:center;justify-content:center;background:${col};color:#fff;font-size:30px;font-weight:800;letter-spacing:.5px">${ini}</span>`;
+}
 function clusterName(vn){
   // venue names are now full arena strings like "Edmonton — Silent Ice Center (Hatch+Hesco)";
   // take the leading city token (before an em/en dash) and map it to its cluster.
@@ -2576,7 +2588,7 @@ function teamView(nm,div){
   const placedWk=[...new Set(placed.map(g=>g.weekend))].length;
   const bcTrips=placed.filter(g=>venueRegion(g.venue)==='BC').map(g=>clusterName(g.venue));
   const cowichan=[...new Set(bcTrips.filter(c=>c==='Cowichan'))].length;
-  return `<div class="wk-head"><h2>${nm} <span style="color:var(--red-l);font-size:16px">— ${div}</span></h2><div class="dt">home: ${t.homeCluster} · ${t.region}${t.inSchool?' · in-school (Thu/Fri/Mon flex)':''}</div></div>
+  return `<div class="wk-head" style="display:flex;align-items:center;gap:18px">${teamPhotoLarge(nm)}<div><h2>${nm} <span style="color:var(--red-l);font-size:16px">— ${div}</span></h2><div class="dt">home: ${t.homeCluster} · ${t.region}${t.inSchool?' · in-school (Thu/Fri/Mon flex)':''}</div></div></div>
     <div class="grid cards4" style="margin-bottom:18px">
       <div class="card"><h3><span class="ic">◆</span>Games</h3><div style="font-size:26px;font-weight:800">${gc}<span style="font-size:14px;color:var(--mut-d)"> / ${tgt}</span></div></div>
       <div class="card"><h3><span class="ic">◆</span>Weekends</h3><div style="font-size:26px;font-weight:800">${placedWk}${parked.length?`<span style="font-size:13px;color:#7a5b00"> · ${parked.length} TBD</span>`:''}</div></div>
@@ -4664,13 +4676,13 @@ render();
 
   // ---- Firebase config (yours) ----
   const firebaseConfig = {
-    apiKey: "AIzaSyCaYo_fjuiA4ApMbAyDCwvQ5FVzZeD89C8",
-    authDomain: "fsl-control-room-2026-27-d6d39.firebaseapp.com",
-    projectId: "fsl-control-room-2026-27-d6d39",
-    storageBucket: "fsl-control-room-2026-27-d6d39.firebasestorage.app",
-    messagingSenderId: "373397220179",
-    appId: "1:373397220179:web:98feacc01095b8271ccfa6",
-    measurementId: "G-PE1DX66JWD"
+    apiKey: "AIzaSyB-nKg7FKvY78D79tPicdHeYYfYuso5X3A",
+    authDomain: "western-canadian-champio-a32ef.firebaseapp.com",
+    projectId: "western-canadian-champio-a32ef",
+    storageBucket: "western-canadian-champio-a32ef.firebasestorage.app",
+    messagingSenderId: "949427036194",
+    appId: "1:949427036194:web:84e2e333d0b65b6c1f2a7b",
+    measurementId: "G-FVMTTV8GLJ"
   };
 
   const DOC_PATH = ['schedules','fsl-shared'];  // one shared document both people use
