@@ -3865,7 +3865,143 @@ const PG=(function(){
     g.weekend=wk; g.venue=ven; g.day='';g.time='';g.sheet='';g.endTime='';g.date='';
     delete PARKING[String(id)]; GAME_TIMES[String(id)]={date:'',weekend:wk,day:'',time:'',end:'',sheet:'',venue:ven};
     saveParking(); try{saveGameTimes();}catch(err){}
+    // When placing onto UNSOURCED ice, let the user also pin a date + ice surface right now.
+    if(typeof isUnsourcedTarget==='function' && isUnsourcedTarget(wk,ven)){
+      render(); openDateSurface(g.id, wk, ven); return;
+    }
     render();showToast('Assigned '+g.home+' vs '+g.away+' \u2192 '+short(ven)+' \u00b7 '+wkDateShort(wk),'good');}
+
+  // Collect the surface (ice sheet) names already used on this venue-weekend, so the picker
+  // offers the arena's real surface names. Falls back to a free-text entry.
+  function surfacesForPod(wk,venue){
+    const out=[];
+    try{ games.filter(x=>x.weekend===wk&&x.venue===venue&&x.sheet).forEach(x=>out.push(String(x.sheet).trim())); }catch(e){}
+    try{ if(typeof realSlotListFor==='function'){ (realSlotListFor(wk,venue)||[]).forEach(s=>{ if(s.sheet) out.push(String(s.sheet).trim()); }); } }catch(e){}
+    try{ if(typeof SLOT_ADDS!=='undefined'){ SLOT_ADDS.forEach(a=>{ if(a.weekend===wk&&a.venue===venue){ if(a.surface) out.push(String(a.surface).trim()); else if(a.sheet) out.push(String(a.sheet).trim()); } }); } }catch(e){}
+    return [...new Set(out.filter(Boolean))];
+  }
+  // Map a Fri/Sat/Sun choice to an ISO date, given the weekend's Friday date in WKDATE.
+  function isoForDay(wk,day){
+    try{
+      const raw=(typeof WKDATE!=='undefined')?WKDATE[wk]:'';
+      const m=/(20\d\d)-(\d{2})-(\d{2})/.exec(raw||'');
+      let base;
+      if(m){ base=new Date(Date.UTC(+m[1],+m[2]-1,+m[3])); }
+      else { const d=new Date(raw); if(isNaN(d)) return ''; base=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())); }
+      const add={Fri:0,Sat:1,Sun:2}[day]||0;
+      base.setUTCDate(base.getUTCDate()+add);
+      const p=n=>String(n).padStart(2,'0');
+      return base.getUTCFullYear()+'-'+p(base.getUTCMonth()+1)+'-'+p(base.getUTCDate());
+    }catch(e){ return ''; }
+  }
+  // Derive Fri/Sat/Sun from an ISO date relative to the weekend's Friday, so `day` stays in sync.
+  function dayForIso(wk,iso){
+    try{
+      const fri=isoForDay(wk,'Fri'); if(!fri||!iso) return '';
+      const a=new Date(iso+'T00:00:00Z').getTime(), b=new Date(fri+'T00:00:00Z').getTime();
+      const diff=Math.round((a-b)/86400000);
+      return ({0:'Fri',1:'Sat',2:'Sun'})[diff] || '';
+    }catch(e){ return ''; }
+  }
+  // Register a REAL, sourced ice slot for a placed game (same effect as "+ Add slot"):
+  // pushes a SLOT_ADDS entry, bumps the venue day cap + realIce inventory, and guards against
+  // double-applying if the user re-saves for the same game. Keyed off the game id so a re-save
+  // updates the existing slot instead of stacking a new one. Returns true if a slot is now sourced.
+  function sourceSlotForGame(id, wk, venue, day, start, end, surface){
+    if(!day || !start) return false;
+    const gm=(typeof GAME_TIMES!=='undefined' && GAME_TIMES[String(id)])||{};
+    const prev=gm._srcSlot;  // {day,start} of a slot this game previously sourced, if any
+    try{ if(typeof pushUndo==='function') pushUndo('source ice (assign)'); }catch(e){}
+    // If this game already sourced a slot, roll that one back first so we don't double-count.
+    if(prev && prev.day){
+      try{
+        const capK={Fri:'capFri',Sat:'capSat',Sun:'capSun'}[prev.day];
+        const vv=(DATA.venues||[]).find(x=>x.weekend===wk&&x.venue===venue);
+        if(vv&&capK) vv[capK]=Math.max(0,(vv[capK]||0)-1);
+        if(DATA.realIce&&DATA.realIce[wk]&&DATA.realIce[wk][venue]){ const ri=DATA.realIce[wk][venue]; ri[prev.day]=Math.max(0,(ri[prev.day]||0)-1); }
+        const gk0=wk+'|||'+venue+'|||'+prev.day; if(typeof _SLOT_ADDS_APPLIED!=='undefined') _SLOT_ADDS_APPLIED[gk0]=Math.max(0,(_SLOT_ADDS_APPLIED[gk0]||0)-1);
+        for(let i=SLOT_ADDS.length-1;i>=0;i--){ const a=SLOT_ADDS[i]; if(a&&a._forGame===String(id)){ SLOT_ADDS.splice(i,1); } }
+      }catch(e){}
+    }
+    // Push the new sourced slot, tagged with the game id so we can find/replace it later.
+    try{
+      SLOT_ADDS.push({weekend:wk,venue:venue,day:day,n:1,start:start,end:end||'',sheet:surface||'',arena:'',surface:surface||'',sourced:true,_forGame:String(id)});
+      saveSlotAdds();
+      const capKey={Fri:'capFri',Sat:'capSat',Sun:'capSun'}[day];
+      const vv=(DATA.venues||[]).find(x=>x.weekend===wk&&x.venue===venue);
+      if(vv&&capKey){ vv[capKey]=(vv[capKey]||0)+1; }
+      DATA.realIce=DATA.realIce||{}; DATA.realIce[wk]=DATA.realIce[wk]||{};
+      const ri=(DATA.realIce[wk][venue]=DATA.realIce[wk][venue]||{Fri:0,Sat:0,Sun:0}); ri[day]=(ri[day]||0)+1;
+      const gk=wk+'|||'+venue+'|||'+day; if(typeof _SLOT_ADDS_APPLIED!=='undefined') _SLOT_ADDS_APPLIED[gk]=(_SLOT_ADDS_APPLIED[gk]||0)+1;
+      try{ IMP.resetVenues&&IMP.resetVenues(); }catch(e){}
+    }catch(e){ return false; }
+    // Remember what this game sourced, so a later edit/removal reconciles cleanly.
+    GAME_TIMES[String(id)]=Object.assign({}, GAME_TIMES[String(id)]||{}, {_srcSlot:{day:day,start:start}});
+    try{ saveGameTimes(); }catch(e){}
+    return true;
+  }
+  // Modal: after assigning a game onto unsourced ice, capture a Date + Ice surface for it.
+  function openDateSurface(id, wk, venue){
+    const g=games.find(x=>String(x.id)===String(id)); if(!g) return;
+    const vShort=String(venue||'').replace(/\s*\(NEW\)/i,'');
+    const surfaces=surfacesForPod(wk,venue);
+    const surfaceOpts=surfaces.map(s=>`<option value="${iceEscA(s)}"></option>`).join('');
+    const friIso=isoForDay(wk,'Fri'), sunIso=isoForDay(wk,'Sun');
+    const defIso=isoForDay(wk,'Sat')||friIso||'';
+    const modal=document.createElement('div');modal.className='modal-bg';modal.id='modalbg';
+    modal.innerHTML=`<div class="modal">
+      <div class="modal-h"><h3>Date &amp; ice surface \u00b7 ${wkDateShort(wk)} \u00b7 ${iceEscA(vShort)}</h3><button class="x" data-close>\u2715</button></div>
+      <div class="modal-b">
+        <div class="dt" style="margin-bottom:10px">${iceEscA(g.home)} vs ${iceEscA(g.away)} was placed on <b>unsourced</b> ice. Pin the date, ice surface, and time. Tick <b>Lock &amp; source ice</b> to register this as a real, sourced ice slot \u2014 the venue-weekend then counts it as secured ice and stops showing as unsourced.</div>
+        <div class="fld-row">
+          <div class="fld"><label>Date</label><input id="ds-date" type="date" value="${iceEscA(defIso)}"${friIso?` min="${iceEscA(friIso)}"`:''}${sunIso?` max="${iceEscA(sunIso)}"`:''}></div>
+          <div class="fld"><label>Ice surface</label><input id="ds-surface" type="text" list="ds-surfacelist" placeholder="${surfaces.length?('e.g. '+iceEscA(surfaces.slice(0,2).join(', '))):'this arena\u2019s surface name'}" value="${iceEscA(g.sheet||'')}"></div>
+        </div>
+        <datalist id="ds-surfacelist">${surfaceOpts}</datalist>
+        <div class="fld-row">
+          <div class="fld"><label>Start time</label><input id="ds-start" type="time" step="300" value="${iceEscA(g.time||'')}"></div>
+          <div class="fld"><label>End time</label><input id="ds-end" type="time" step="300" value="${iceEscA(g.endTime||'')}"></div>
+        </div>
+        <label style="display:flex;align-items:center;gap:8px;margin-top:6px;font-size:12px;font-weight:700;color:#3C3489;cursor:pointer"><input type="checkbox" id="ds-source" checked style="width:16px;height:16px;accent-color:#3C3489;cursor:pointer"> Lock &amp; source ice (register a real sourced slot here)</label>
+        <div class="dt" style="font-size:10.5px;margin-top:6px">Weekend runs ${friIso?wkDateShort(wk):'Fri\u2013Sun'}. The date sets the day (Fri/Sat/Sun) automatically. Sourcing needs a date and a start time.</div>
+        <div class="live-warn" id="ds-warn"></div>
+      </div>
+      <div class="modal-foot"><button class="btn" data-close>Skip</button><button class="btn primary" id="ds-save">Save</button></div>
+    </div>`;
+    document.getElementById('app').appendChild(modal);
+    const close=()=>{modal.remove();};
+    modal.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>{ close(); render(); showToast('Assigned '+g.home+' vs '+g.away+' \u2192 '+short(venue)+' \u00b7 '+wkDateShort(wk),'good'); });
+    modal.onclick=e=>{ if(e.target===modal){ close(); render(); showToast('Assigned '+g.home+' vs '+g.away+' \u2192 '+short(venue)+' \u00b7 '+wkDateShort(wk),'good'); } };
+    modal.querySelector('#ds-save').onclick=()=>{
+      const iso=(modal.querySelector('#ds-date').value||'').trim();
+      const surface=(modal.querySelector('#ds-surface').value||'').trim();
+      const start=(modal.querySelector('#ds-start').value||'').trim();
+      const end=(modal.querySelector('#ds-end').value||'').trim();
+      const doSource=modal.querySelector('#ds-source').checked;
+      const day=iso?dayForIso(wk,iso):'';
+      const warnEl=modal.querySelector('#ds-warn');
+      if(end && start && end<=start){ warnEl.className='live-warn show'; warnEl.textContent='End time must be after the start time.'; return; }
+      if(doSource){
+        if(!iso){ warnEl.className='live-warn show'; warnEl.textContent='Pick a date to source ice for this slot.'; return; }
+        if(!start){ warnEl.className='live-warn show'; warnEl.textContent='Set a start time to source this ice slot.'; return; }
+        if(isEffLocked(wk,venue)){ showToast('\uD83D\uDD12 That venue/weekend is locked \u2014 unlock it to source ice.','warn'); return; }
+      }
+      // Persist date/time/surface onto the game + GAME_TIMES; lock via manual times so the solver won't stomp it.
+      g.date=iso; g.sheet=surface; if(day) g.day=day; g.time=start||''; g.endTime=end||'';
+      GAME_TIMES[String(id)]=Object.assign({}, GAME_TIMES[String(id)]||{}, {date:iso,weekend:wk,day:day||(GAME_TIMES[String(id)]||{}).day||'',time:start||'',end:end||'',sheet:surface,venue:venue});
+      try{ if(typeof setManualTime==='function') setManualTime(id,{day:day||undefined,time:start||undefined,end:end||undefined,sheet:surface}); }catch(e){}
+      try{ saveGameTimes(); }catch(e){}
+      // If requested, register this as REAL sourced ice so the venue-weekend stops reading as unsourced.
+      let sourced=false;
+      if(doSource) sourced=sourceSlotForGame(id, wk, venue, day, start, end, surface);
+      close(); render();
+      const bits=[];
+      if(iso) bits.push(iso+(day?(' ('+day+')'):''));
+      if(start) bits.push(start+(end?('\u2013'+end):''));
+      if(surface) bits.push('surface '+surface);
+      showToast((sourced?'\u2713 Sourced ice \u2014 ':'Assigned ')+g.home+' vs '+g.away+' \u2192 '+short(venue)+' \u00b7 '+wkDateShort(wk)+(bits.length?(' \u00b7 '+bits.join(' \u00b7 ')):''),'good');
+    };
+  }
   function unparkOrig(d){const e=PARKING[String(d.id)],g=games.find(x=>String(x.id)===String(d.id));if(!g||!e||!e.from)return;
     g.venue=e.from;g.day=e.day||'';g.time=e.time||'';g.sheet=e.sheet||'';g.endTime=e.end||'';delete PARKING[String(d.id)];saveParking();render();showToast('\u21A9 Returned to '+short(e.from),'good');}
   function removeParked(d){if(!confirm('Remove this parked game from the schedule entirely?\n\nIt will no longer count for the teams, and it will STAY removed across future schedule reloads / new versions (until you restore it via Undo).'))return;
