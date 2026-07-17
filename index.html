@@ -4484,6 +4484,9 @@ render();
     +'padding:8px 12px;border-radius:20px;background:#161616;color:#fff;box-shadow:0 2px 10px rgba(0,0,0,.3);'
     +'display:flex;align-items:center;gap:7px;cursor:default;user-select:none;transition:.2s';
   function setPill(txt,color){ pill.innerHTML='<span style="width:8px;height:8px;border-radius:50%;background:'+(color||'#8a8a90')+';display:inline-block"></span>'+txt; }
+  pill.style.cursor='pointer';
+  pill.title='Sync status \u2014 click to save now';
+  pill.addEventListener('click', ()=>{ try{ flushCloud(); }catch(e){} });
   setPill('Connecting to shared schedule\u2026','#BA7517');
   document.body.appendChild(pill);
 
@@ -4542,6 +4545,8 @@ render();
     // 2) PUSH: after any local change, save the shared schedule to the cloud.
     window.__cloudPush = function(){
       if(applyingRemote) return;                 // don't rebroadcast a change we just received
+      window.__cloudDirty = true;
+      setPill('Unsaved changes\u2026','#BA7517');
       clearTimeout(saveTimer);
       saveTimer=setTimeout(async ()=>{
         try{
@@ -4554,11 +4559,36 @@ render();
             updated: new Date().toISOString(),
             payload: JSON.stringify(buildPayload())
           });
-          setPill('Saved \u2713','#1d9e75');
-        }catch(e){ setPill('Save failed \u2014 kept on this device','#C81E28'); }
-      }, 600);                                    // debounce rapid edits
+          window.__cloudDirty = false;
+          setPill('All changes saved \u2713','#1d9e75');
+        }catch(e){ window.__cloudDirty = true; setPill('Unsaved \u2014 will retry','#C81E28'); }
+      }, 250);                                    // debounce rapid edits
     };
-    setPill('Synced \u2713','#1d9e75');
+    setPill('All changes saved \u2713','#1d9e75');
+  });
+
+  // Flush a pending debounced save immediately if the tab is being hidden or
+  // closed, so a change made in the last fraction of a second isn't lost.
+  function flushCloud(){
+    try{
+      if(!window.__cloud || applyingRemote || !window.__cloudDirty) return;
+      const C=window.__cloud;
+      clearTimeout(saveTimer);
+      const stamp=Date.now(); lastLocalWriteStamp=stamp;
+      C.setDoc(C.ref, {
+        stamp, by:(window.__cloudUser||''),
+        updated:new Date().toISOString(),
+        payload: JSON.stringify(buildPayload())
+      }).then(()=>{ window.__cloudDirty=false; }).catch(()=>{});
+    }catch(e){}
+  }
+  // If a save failed and we're still dirty, quietly retry every few seconds
+  // until it goes through (e.g. connection came back).
+  setInterval(()=>{ if(window.__cloudDirty && !applyingRemote){ try{ window.__cloudPush&&window.__cloudPush(); }catch(e){} } }, 5000);
+  document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='hidden') flushCloud(); });
+  window.addEventListener('pagehide', flushCloud);
+  window.addEventListener('beforeunload', (e)=>{
+    if(window.__cloudDirty){ flushCloud(); e.preventDefault(); e.returnValue=''; return ''; }
   });
 
   // ---- Trigger a cloud push after every state-changing save function ----
@@ -4681,6 +4711,7 @@ render();
   // changes (plus a few useful non-mutating ones like save/load).
   const ALSO=new Set(['exportj','importj','quickadd','undo','confAck','confUnack','matchupRevertOne','matchupRevertAll','addSlot','removeSlot','timeEdit','hypoEdit']);
   document.addEventListener('click', (e)=>{
+    if(window.__actLogSuppressListeners) return;
     const el=e.target && e.target.closest && e.target.closest('[data-act]');
     if(!el) return;
     const code=el.dataset.act;
@@ -4688,6 +4719,7 @@ render();
     if(isMut || ALSO.has(code)) record(code);
   }, true);
   document.addEventListener('change', (e)=>{
+    if(window.__actLogSuppressListeners) return;
     const el=e.target && e.target.closest && e.target.closest('[data-actchange]');
     if(!el) return;
     const code=el.dataset.actchange;
@@ -4726,6 +4758,33 @@ render();
     body.innerHTML=rows;
   }
   window.__actLogOpen=function(){ const p=ensurePanel(); p.style.display='flex'; renderPanel(); };
+
+  // ---- Record at the dispatch point, not on click ----
+  // The old approach listened for clicks on [data-act], which missed drag-drop
+  // moves (slotDrop, matchup drags) and any action fired programmatically by
+  // another action. Wrapping ACTIONS[code] catches every real dispatch exactly
+  // once. We suppress the legacy click/change listeners so nothing double-logs.
+  window.__actLogSuppressListeners=true;
+  const LOGGABLE=new Set(Object.keys(LABELS));
+  try{
+    if(typeof ACTIONS==='object' && ACTIONS && !ACTIONS.__actLogWrapped){
+      Object.keys(ACTIONS).forEach(code=>{
+        if(typeof ACTIONS[code]!=='function') return;
+        if(!LOGGABLE.has(code)) return;
+        const orig=ACTIONS[code];
+        ACTIONS[code]=function(){
+          try{ record(code); }catch(e){}
+          const r=orig.apply(this, arguments);
+          // Also sync to the cloud after every real action, however it was
+          // triggered (click, change, drag-drop, or fired by another action).
+          // Drag moves bypass click events, so the old click-only push missed them.
+          try{ window.__cloudPush && window.__cloudPush(); }catch(e){}
+          return r;
+        };
+      });
+      Object.defineProperty(ACTIONS,'__actLogWrapped',{value:true,enumerable:false});
+    }
+  }catch(e){}
 
   // ---- Add a "Log" button into the toolbar, next to Save/Load ----
   function injectButton(){
