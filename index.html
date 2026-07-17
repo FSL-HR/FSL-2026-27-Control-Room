@@ -2663,12 +2663,25 @@ function itinerariesView(){
         const gs=byWk[wk];
         const evHere=divEvents.filter(e=>e.after===wk).map(evRowHtml).join('');
         if(!gs) return evHere;
-        const v=gs[0].venue;const cl=clusterName(v);
-        const tt=travelTypeFor(t,cl);
-        const opps=gs.map(g=>{const opp=g.home===nm?g.away:g.home;const meta=[g.day,g.time?clock12(g.time):'',g.sheet].filter(Boolean).join(' \u00b7 ');return opp+(meta?` <span style="color:var(--mut-d);font-size:11px">(${iceEscA(meta)})</span>`:'');});
-        return `<tr><td style="font-weight:700">${wk}</td><td>${v.replace(/\s*\(NEW\)/i,'')}</td>
-          <td><span class="pill" style="${TT_STYLE[tt]}">${TT_LABEL[tt]}</span></td>
-          <td>${gs.length}</td><td style="font-size:11.5px">${opps.join('<br>')}</td></tr>`+evHere;
+        // A team can play more than one building in a single weekend. Group the
+        // weekend's games by venue and emit one row per venue so the venue label
+        // always matches the games/opponents shown beside it (never assume they
+        // all share the first game's building).
+        const byVen={};gs.forEach(g=>{(byVen[g.venue]=byVen[g.venue]||[]).push(g);});
+        const vens=Object.keys(byVen);
+        const venRows=vens.map((v,i)=>{
+          const cl=clusterName(v);
+          const tt=travelTypeFor(t,cl);
+          const vgs=byVen[v];
+          const opps=vgs.map(g=>{const opp=g.home===nm?g.away:g.home;const meta=[g.day,g.time?clock12(g.time):'',g.sheet].filter(Boolean).join(' \u00b7 ');return opp+(meta?` <span style="color:var(--mut-d);font-size:11px">(${iceEscA(meta)})</span>`:'');});
+          // Show the weekend label only on the first venue row; blank on any
+          // additional buildings so the grouping reads as one weekend.
+          const wkCell=i===0?wk:'';
+          return `<tr><td style="font-weight:700">${wkCell}</td><td>${v.replace(/\s*\(NEW\)/i,'')}</td>
+            <td><span class="pill" style="${TT_STYLE[tt]}">${TT_LABEL[tt]}</span></td>
+            <td>${vgs.length}</td><td style="font-size:11.5px">${opps.join('<br>')}</td></tr>`;
+        }).join('');
+        return venRows+evHere;
       }).join('');
       const endEvents=divEvents.filter(e=>!e.after).map(evRowHtml).join('');
       const tbdRows=parked.map(g=>{const opp=g.home===nm?g.away:g.home;
@@ -2676,7 +2689,7 @@ function itinerariesView(){
           <td style="color:var(--mut-d)">Parking garage \u2014 no venue</td>
           <td><span class="pill" style="background:#f4f4f6;color:var(--mut-d)">\u2014</span></td>
           <td>1</td><td style="font-size:11.5px">${iceEscA(opp)}</td></tr>`;}).join('');
-      const flights=[...new Set(Object.keys(byWk).map(wk=>clusterName(byWk[wk][0].venue)))]
+      const flights=[...new Set(Object.values(byWk).flatMap(gs=>gs.map(g=>clusterName(g.venue))))]
         .filter(cl=>travelTypeFor(t,cl)==='FLY').length;
       return `<div class="card" style="margin-bottom:12px;padding:0;overflow:hidden">
         <div style="background:var(--paper);padding:10px 15px;border-bottom:1px solid var(--line-l);display:flex;justify-content:space-between;align-items:center">
