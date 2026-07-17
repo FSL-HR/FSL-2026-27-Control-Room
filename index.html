@@ -1026,7 +1026,7 @@ function iceDecision(wk,venue){return ICE_DECISIONS[iceKey(wk,venue)]||null;}
 // "move this game to a venue" picker. This is what lets you add ice and then shift games onto it.
 var VENUE_ADDS=(function(){try{return JSON.parse(localStorage.getItem('fsl_venue_adds_v1')||'[]')||[];}catch(e){return [];}})();
 function saveVenueAdds(){try{localStorage.setItem('fsl_venue_adds_v1',JSON.stringify(VENUE_ADDS));}catch(e){}}
-function applyVenueAdds(){ VENUE_ADDS.forEach(a=>{ if(!DATA.venues.some(v=>v.weekend===a.weekend&&v.venue===a.venue)) DATA.venues.push(Object.assign({},a,{added:true})); }); }
+function applyVenueAdds(){ VENUE_ADDS.forEach(a=>{ if(!a.uid) a.uid='va_'+Date.now()+'_'+Math.random().toString(36).slice(2,7); if(!DATA.venues.some(v=>v._uid===a.uid)) DATA.venues.push(Object.assign({},a,{added:true,_uid:a.uid})); }); }
 applyVenueAdds();
 /* ===== SLOT_ADDS: extra ice slots added onto an EXISTING venue-weekend (per day).
    Unlike VENUE_ADDS (whole new venues), these just bump the real capacity of a venue that
@@ -4203,16 +4203,20 @@ const ACTIONS={
     if(!name){showToast('Enter a venue name.','warn');return;}
     if(!WK.includes(wk)){showToast('Unknown weekend.','warn');return;}
     if(cf+cs+cu===0){showToast('Enter at least one slot (Fri, Sat, or Sun).','warn');return;}
-    if(DATA.venues.some(v=>v.weekend===wk&&v.venue===name)){showToast('That venue already exists for '+wk+'.','warn');return;}
-    const rec={weekend:wk,venue:name,region:region||'',status:'Real ice (added)',capFri:cf,capSat:cs,capSun:cu,added:true};
-    DATA.venues.push(rec); VENUE_ADDS.push({weekend:wk,venue:name,region:region||'',status:'Real ice (added)',capFri:cf,capSat:cs,capSun:cu}); saveVenueAdds();
+    if(DATA.venues.some(v=>v.weekend===wk&&v.venue===name&&v.added)){showToast('You already added that venue for '+wk+'.','warn');return;}
+    const uid='va_'+Date.now()+'_'+Math.random().toString(36).slice(2,7);
+    const rec={weekend:wk,venue:name,region:region||'',status:'Real ice (added)',capFri:cf,capSat:cs,capSun:cu,added:true,_uid:uid};
+    DATA.venues.push(rec); VENUE_ADDS.push({weekend:wk,venue:name,region:region||'',status:'Real ice (added)',capFri:cf,capSat:cs,capSun:cu,uid:uid}); saveVenueAdds();
     try{IMP.resetVenues&&IMP.resetVenues();}catch(e){}
     render();showToast('\u2713 Added ice: '+name+' \u00b7 '+wk+' ('+cf+'-'+cs+'-'+cu+'). Move games onto it from the schedule or parking garage.','good');},
   venueAddDel:d=>{const wk=d.wk, ven=d.venue;
     const onIt=games.filter(g=>g.weekend===wk&&g.venue===ven).length;
     if(onIt>0){showToast('Move the '+onIt+' game'+(onIt>1?'s':'')+' off '+ven+' first (park or relocate them), then delete.','warn');return;}
-    VENUE_ADDS=VENUE_ADDS.filter(v=>!(v.weekend===wk&&v.venue===ven)); saveVenueAdds();
-    const i=DATA.venues.findIndex(v=>v.weekend===wk&&v.venue===ven&&v.added); if(i>=0)DATA.venues.splice(i,1);
+    const di=DATA.venues.findIndex(v=>v.weekend===wk&&v.venue===ven&&v.added);
+    const duid=di>=0?DATA.venues[di]._uid:null;
+    if(duid){ VENUE_ADDS=VENUE_ADDS.filter(v=>v.uid!==duid); } else { VENUE_ADDS=VENUE_ADDS.filter(v=>!(v.weekend===wk&&v.venue===ven)); }
+    saveVenueAdds();
+    if(di>=0)DATA.venues.splice(di,1);
     try{IMP.resetVenues&&IMP.resetVenues();}catch(e){}
     render();showToast('Deleted added ice: '+ven+' \u00b7 '+wk,'good');},
   togglesb:()=>document.getElementById('sb').classList.toggle('open'),
