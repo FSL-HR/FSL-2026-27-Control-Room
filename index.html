@@ -2802,7 +2802,7 @@ function openAddSlot(wk,venue){
       </div>
       <div class="fld-row">
         <div class="fld"><label>Arena</label><input id="ms-arena" type="text" list="ms-arenalist" value="${iceEscA(vShort)}"></div>
-        <div class="fld"><label>Surface</label><input id="ms-surface" type="text" list="ms-surfacelist" placeholder="${surfaces.length?('e.g. '+iceEscA(surfaces.slice(0,2).join(', '))):'this arena\u2019s surface name'}"></div>
+        <div class="fld"><label>Surface</label><input id="ms-surface" type="text" list="ms-surfacelist" value="${surfaces.length===1?iceEscA(surfaces[0]):''}" placeholder="${surfaces.length?('e.g. '+iceEscA(surfaces.slice(0,2).join(', '))):'this arena\u2019s surface name'}"></div>
       </div>
       <datalist id="ms-arenalist">${arenaOpts}</datalist>
       <datalist id="ms-surfacelist">${surfaceOpts}</datalist>
@@ -3865,11 +3865,8 @@ const PG=(function(){
     g.weekend=wk; g.venue=ven; g.day='';g.time='';g.sheet='';g.endTime='';g.date='';
     delete PARKING[String(id)]; GAME_TIMES[String(id)]={date:'',weekend:wk,day:'',time:'',end:'',sheet:'',venue:ven};
     saveParking(); try{saveGameTimes();}catch(err){}
-    // When placing onto UNSOURCED ice, let the user also pin a date + ice surface right now.
-    if(typeof isUnsourcedTarget==='function' && isUnsourcedTarget(wk,ven)){
-      render(); openDateSurface(g.id, wk, ven); return;
-    }
-    render();showToast('Assigned '+g.home+' vs '+g.away+' \u2192 '+short(ven)+' \u00b7 '+wkDateShort(wk),'good');}
+    // Always let the user pin a date + ice surface (and optionally source ice) right after placing.
+    render(); openDateSurface(g.id, wk, ven); return;}
 
   // Collect the surface (ice sheet) names already used on this venue-weekend, so the picker
   // offers the arena's real surface names. Falls back to a free-text entry.
@@ -4065,7 +4062,7 @@ const PG=(function(){
     g.weekend=wk; g.venue=ven; g.day='';g.time='';g.sheet='';g.endTime='';g.date='';
     delete PARKING[String(g.id)]; GAME_TIMES[String(g.id)]={date:'',weekend:wk,day:'',time:'',end:'',sheet:'',venue:ven}; sugKey=null;
     saveParking(); try{saveGameTimes();}catch(e){}
-    render(); showToast('Placed '+g.home+' vs '+g.away+' \u2192 '+short(ven)+' \u00b7 '+wkDateShort(wk),'good'); }
+    render(); openDateSurface(g.id, wk, ven); }
   function placeAll(d){ const set=allParked().filter(g=>g.weekend===d.wk&&g.division===d.div); if(!set.length||!d.key)return;
     const p=d.key.split('|||'), wk=p[0], ven=p.slice(1).join('|||');
     if(isEffLocked(wk,ven)){showToast('\uD83D\uDD12 That venue/weekend is locked \u2014 pick a different target.','warn');return;}
