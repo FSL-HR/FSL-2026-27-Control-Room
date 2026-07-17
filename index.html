@@ -3857,6 +3857,7 @@ const PG=(function(){
     if(!confirm('Park all '+gs.length+' '+d.div+' games at '+short(d.venue)+' ('+d.wk+') to the garage?\n\nThey keep counting toward team totals but lose their slots. Undo or \u201cReturn\u201d brings them back.'))return;
     parkMany(gs, d.div+' \u00b7 '+short(d.venue)); }
   function assign(el){const id=el.dataset.id,val=el.value;if(!val)return;const g=games.find(x=>String(x.id)===String(id));if(!g)return;
+    if(val==='__UNSOURCED__'){ moveToUnsourced([g]); return; }
     let wk=g.weekend, ven=val;
     if(val.indexOf('|||')>=0){const p=val.split('|||');wk=p[0];ven=p.slice(1).join('|||');}
     if(isEffLocked(wk,ven)){showToast('\uD83D\uDD12 That venue/weekend is locked \u2014 pick a different target.','warn');render();return;}
@@ -4084,12 +4085,65 @@ const PG=(function(){
     return true;
   }
 
+  // ---- Move to a HYPOTHETICAL UNSOURCED weekend ----------------------------
+  // Lets the user relocate a game (or set of games) onto ANY weekend + a typed
+  // arena that isn't on the venue list yet. The arena is registered as an
+  // unsourced venue for that weekend (0 real ice) so it shows up as needing
+  // sourcing, then the game(s) are moved there. An explicit confirm warns the
+  // user that the target weekend is unsourced.
+  function ensureUnsourcedVenue(wk, venue){
+    // Register (once) an added venue with no real ice so it renders + flags as unsourced.
+    if(!DATA.venues.some(v=>v.weekend===wk && v.venue===venue)){
+      const uid='va_'+Date.now()+'_'+Math.random().toString(36).slice(2,7);
+      const rec={weekend:wk,venue:venue,region:'',status:'Unsourced (hypothetical)',capFri:0,capSat:0,capSun:0,added:true,unsourced:true,_uid:uid};
+      DATA.venues.push(rec);
+      try{ VENUE_ADDS.push({weekend:wk,venue:venue,region:'',status:'Unsourced (hypothetical)',capFri:0,capSat:0,capSun:0,unsourced:true,uid:uid}); saveVenueAdds(); }catch(e){}
+      try{IMP.resetVenues&&IMP.resetVenues();}catch(e){}
+    }
+  }
+  function promptUnsourced(){
+    // Ask for weekend, then arena name. Returns {wk,ven} or null if cancelled.
+    const list=WK.map((w,i)=>(i+1)+'. '+w+' ('+(WKDATE[w]||'')+')').join('\n');
+    const raw=prompt('Move to an UNSOURCED weekend.\n\nType the weekend (e.g. "Dec 04") or its number:\n\n'+list);
+    if(raw===null) return null;
+    const t=String(raw).trim(); if(!t){ showToast('No weekend entered.','warn'); return null; }
+    let wk=null;
+    const num=parseInt(t,10);
+    if(String(num)===t && num>=1 && num<=WK.length) wk=WK[num-1];
+    else wk=WK.find(w=>w.toLowerCase()===t.toLowerCase()) || WK.find(w=>w.toLowerCase().indexOf(t.toLowerCase())>=0);
+    if(!wk){ showToast('Couldn\u2019t match "'+t+'" to a weekend.','warn'); return null; }
+    const ven=prompt('Weekend: '+wk+' ('+(WKDATE[wk]||'')+')\n\nType the arena / venue name for this unsourced weekend\n(e.g. "Midway 2 arena"):','');
+    if(ven===null) return null;
+    const name=String(ven).trim(); if(!name){ showToast('No arena name entered.','warn'); return null; }
+    return {wk, ven:name};
+  }
+  function moveToUnsourced(set){
+    if(!set||!set.length){ render(); return false; }
+    const pick=promptUnsourced();
+    if(!pick){ render(); return false; }
+    const {wk, ven}=pick;
+    if(isEffLocked(wk,ven)){showToast('\uD83D\uDD12 That weekend is locked \u2014 pick a different one.','warn');render();return false;}
+    const n=set.length;
+    if(!confirm('\u26A0 You are moving this '+(n>1?(n+' games'):'game')+' to an UNSOURCED weekend.\n\n'
+      +'Target: '+ven+' \u00b7 '+wk+' ('+(WKDATE[wk]||'')+')\n\n'
+      +'This weekend/arena has no real contracted ice \u2014 '+(n>1?(n+' slots'):'a slot')+' will be added to the sourcing list. Proceed?')){
+      render(); return false;
+    }
+    ensureUnsourcedVenue(wk, ven);
+    set.forEach(g=>{ g.weekend=wk; g.venue=ven; g.day='';g.time='';g.sheet='';g.endTime='';g.date='';
+      delete PARKING[String(g.id)]; GAME_TIMES[String(g.id)]={date:'',weekend:wk,day:'',time:'',end:'',sheet:'',venue:ven}; });
+    sugKey=null; SEL.clear(); saveParking(); try{saveGameTimes();}catch(e){}
+    render(); showToast('Moved '+n+' game'+(n>1?'s':'')+' \u2192 '+short(ven)+' \u00b7 '+wkDateShort(wk)+' (unsourced)','good');
+    return true;
+  }
+
   // ---- Feature 1: move a whole division pod from a dropdown ----
   // The dropdown values are "weekend|||venue"; the pod is every parked game of that division on `wk`.
   function podMove(el){
     const val=el.value; if(!val) return;
     const wk0=el.dataset.wk, dv=el.dataset.div;
     const set=allParked().filter(g=>g.weekend===wk0 && g.division===dv && !isTbd(g));
+    if(val==='__UNSOURCED__'){ moveToUnsourced(set); return; }
     const p=val.split('|||'), wk=p[0], ven=p.slice(1).join('|||');
     if(!moveSet(set, wk, ven)){ render(); return; }
     render(); showToast('Placed '+dv+' pod ('+set.length+' game'+(set.length>1?'s':'')+') \u2192 '+short(ven)+' \u00b7 '+wkDateShort(wk),'good');
@@ -4103,6 +4157,7 @@ const PG=(function(){
   function selMove(el){
     const val=el.value; if(!val) return;
     const set=selectedGames(); if(!set.length){ render(); return; }
+    if(val==='__UNSOURCED__'){ moveToUnsourced(set); return; }
     const p=val.split('|||'), wk=p[0], ven=p.slice(1).join('|||');
     if(!moveSet(set, wk, ven)){ render(); return; }
     const n=set.length; SEL.clear();
@@ -4167,7 +4222,7 @@ const PG=(function(){
       const opts=groupOpts([rep]).map(o=>`<option value="${escA(o.key)}">${esc(o.label)}</option>`).join('');
       const suggestBtn = list.length>=2 ? `<button data-act="pgSuggest" data-key="${escA(k)}" title="Suggest ranked spots for the whole ${esc(dv)} pod" style="font-size:11px;padding:3px 10px;border:1px solid ${on?'#3C3489':'#C9C4F0'};border-radius:12px;background:${on?'#EEEDFE':'#fff'};color:#3C3489;cursor:pointer;font-weight:600">\uD83D\uDCA1 Suggest</button>` : '';
       const moveSelName='podmove_'+(wk+'_'+dv).replace(/[^a-zA-Z0-9]/g,'');
-      const moveDropdown = `<select data-actchange="pgPodMove" data-wk="${escA(wk)}" data-div="${escA(dv)}" title="Move the whole ${esc(dv)} pod to a date &amp; venue" style="font-size:11px;padding:3px 6px;border:1px solid #C9C4F0;border-radius:8px;background:#fff;color:#3C3489;font-weight:600;max-width:280px"><option value="">\uD83C\uDD7F Move ${esc(dv)} pod (${list.length}) \u2192 pick date &amp; venue</option>${opts}</select>`;
+      const moveDropdown = `<select data-actchange="pgPodMove" data-wk="${escA(wk)}" data-div="${escA(dv)}" title="Move the whole ${esc(dv)} pod to a date &amp; venue" style="font-size:11px;padding:3px 6px;border:1px solid #C9C4F0;border-radius:8px;background:#fff;color:#3C3489;font-weight:600;max-width:280px"><option value="">\uD83C\uDD7F Move ${esc(dv)} pod (${list.length}) \u2192 pick date &amp; venue</option>${opts}<option value="__UNSOURCED__">\uD83C\uDD7F To a hypothetical unsourced weekend\u2026</option></select>`;
       return `<div style="display:inline-flex;gap:6px;align-items:center;margin:0 8px 6px 0;padding:3px 8px;border:1px dashed #C9C4F0;border-radius:12px;background:#FCFBFF"><span style="font-size:11px;font-weight:800;color:#3C3489">${esc(dv)} \u00b7 ${list.length}</span>${moveDropdown}${suggestBtn}</div>`;
     }).join('');
     const chipBar = chips ? `<div style="margin:2px 0 8px;display:flex;flex-wrap:wrap;align-items:center">${chips}</div>` : '';
@@ -4227,7 +4282,7 @@ const PG=(function(){
     const chk=`<td style="text-align:center"><input type="checkbox" data-actchange="pgSelToggle" data-id="${escA(g.id)}" ${checked?'checked':''} title="Select this game to move with others" style="width:16px;height:16px;cursor:pointer;accent-color:#3C3489"></td>`;
     const prefFlag = pref.length ? ` <span title="${pref.length} preferred venue-weekend${pref.length>1?'s':''} with open ice" style="font-size:10px;font-weight:800;color:#1E7F4F;background:#E7F6ED;border-radius:4px;padding:1px 6px;white-space:nowrap">\u2605 ${pref.length} open</span>` : (prefsSet?` <span title="No preferred spot is open right now" style="font-size:10px;font-weight:700;color:var(--mut-d);white-space:nowrap">\u2605 set</span>`:'');
     return `<tr${checked?' style="background:#F3F1FF"':''}>${chk}<td><span class="pill">${esc(g.division)}</span></td><td class="tm"><span style="display:inline-flex;align-items:center;gap:5px">${teamBadge(g.home)}<span>${esc(g.home)}</span></span></td><td class="tm"><span style="display:inline-flex;align-items:center;gap:5px">${teamBadge(g.away)}<span>${esc(g.away)}${prefFlag}</span></span></td>
-      <td><select data-actchange="pgAssign" data-id="${escA(g.id)}" style="font-size:12px;padding:3px 6px;border:1px solid var(--line-l);border-radius:6px;max-width:340px"><option value="">\u2014 move to a date &amp; venue \u2014</option>${vopts}</select></td>
+      <td><select data-actchange="pgAssign" data-id="${escA(g.id)}" style="font-size:12px;padding:3px 6px;border:1px solid var(--line-l);border-radius:6px;max-width:340px"><option value="">\u2014 move to a date &amp; venue \u2014</option>${vopts}<option value="__UNSOURCED__">\uD83C\uDD7F Move to a hypothetical unsourced weekend\u2026</option></select></td>
       <td style="white-space:nowrap">${prefBtn} ${sug} ${tbd} ${restore} <button data-act="pgRemove" data-id="${escA(g.id)}" style="font-size:11px;padding:2px 8px;border:1px solid var(--line-l);border-radius:5px;background:#fff;color:var(--red);cursor:pointer">\u2715</button></td></tr>${prefPanel(g)}`;
   }
   function sectionForWeekend(wk){
@@ -4260,7 +4315,7 @@ const PG=(function(){
       const divNote = divs.length>1 ? ` <span style="font-weight:600;color:var(--mut-d)">(${divs.length} divisions)</span>` : '';
       selBar=`<div style="position:sticky;top:0;z-index:5;display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:0 0 12px;padding:10px 14px;border:1.5px solid #3C3489;border-radius:10px;background:#EEEDFE">
         <span style="font-weight:800;color:#3C3489;font-size:13px">\u2611 ${sel.length} game${sel.length>1?'s':''} selected${divNote}</span>
-        <select data-actchange="pgSelMove" style="font-size:12px;padding:4px 8px;border:1px solid #3C3489;border-radius:8px;background:#fff;color:#3C3489;font-weight:600;max-width:320px"><option value="">Move selected \u2192 pick a date &amp; venue</option>${opts}</select>
+        <select data-actchange="pgSelMove" style="font-size:12px;padding:4px 8px;border:1px solid #3C3489;border-radius:8px;background:#fff;color:#3C3489;font-weight:600;max-width:320px"><option value="">Move selected \u2192 pick a date &amp; venue</option>${opts}<option value="__UNSOURCED__">\uD83C\uDD7F To a hypothetical unsourced weekend\u2026</option></select>
         <button data-act="pgSelClear" style="font-size:11px;padding:4px 12px;border:1px solid var(--line-l);border-radius:7px;background:#fff;color:var(--mut-d);font-weight:700;cursor:pointer">Clear selection</button>
         <span style="flex-basis:100%;font-size:10.5px;color:var(--mut-d)">Tick the boxes on any rows across the garage, then send them all to one date &amp; venue at once. Options include every real/contracted venue-weekend that fits.</span>
       </div>`;
