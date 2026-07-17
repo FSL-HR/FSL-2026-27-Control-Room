@@ -4207,6 +4207,23 @@ const PG=(function(){
   }
   // Prune stale ids (e.g. after a game leaves the garage) so counts stay honest.
   function pruneSel(){ const live=new Set(allParked().map(g=>String(g.id))); [...SEL].forEach(id=>{ if(!live.has(id)) SEL.delete(id); }); }
+  // Select / deselect every parked game at once (used by the "Select all" toggle in the
+  // action bar). If everything is already selected, this clears the selection instead.
+  function selectAll(){
+    const all=allParked();
+    if(all.length && all.every(g=>SEL.has(String(g.id)))) SEL.clear();
+    else all.forEach(g=>SEL.add(String(g.id)));
+    render();
+  }
+  // Select / deselect just the games in one weekend section (wk===''  ->  the TBD group).
+  function selectGroup(d){
+    const wk=d.wk||'';
+    const grp=(wk==='') ? allTbd() : allParked().filter(g=>g.weekend===wk && !isTbd(g));
+    if(!grp.length) return;
+    if(grp.every(g=>SEL.has(String(g.id)))) grp.forEach(g=>SEL.delete(String(g.id)));
+    else grp.forEach(g=>SEL.add(String(g.id)));
+    render();
+  }
 
   // Target options that work for a SET of games (intersection isn't required — we union each game's
   // own valid targets so any real/added/contracted venue-weekend that fits at least one selected game
@@ -4268,7 +4285,10 @@ const PG=(function(){
       return `<div style="display:inline-flex;gap:6px;align-items:center;margin:0 8px 6px 0;padding:3px 8px;border:1px dashed #C9C4F0;border-radius:12px;background:#FCFBFF"><span style="font-size:11px;font-weight:800;color:#3C3489">${esc(dv)} \u00b7 ${list.length}</span>${moveDropdown}${suggestBtn}</div>`;
     }).join('');
     const chipBar = chips ? `<div style="margin:2px 0 8px;display:flex;flex-wrap:wrap;align-items:center">${chips}</div>` : '';
-    const table=`<table class="tbl"><thead><tr><th style="width:28px"></th><th>Division</th><th>Home</th><th>Away</th><th>Assign to venue</th><th></th></tr></thead><tbody>${ps.map(parkRow).join('')}</tbody></table>`;
+    // Header checkbox = select / deselect every game in THIS section at once.
+    const allChecked = ps.length && ps.every(g=>SEL.has(String(g.id)));
+    const headChk=`<th style="width:28px;text-align:center"><input type="checkbox" data-actchange="pgSelGroup" data-wk="${escA(wk)}" ${allChecked?'checked':''} title="Select / deselect all ${ps.length} game${ps.length>1?'s':''} in this section" style="width:16px;height:16px;cursor:pointer;accent-color:#3C3489"></th>`;
+    const table=`<table class="tbl"><thead><tr>${headChk}<th>Division</th><th>Home</th><th>Away</th><th>Assign to venue</th><th></th></tr></thead><tbody>${ps.map(parkRow).join('')}</tbody></table>`;
     return chipBar + table + sugPanelFor(wk, ps);
   }
   function prefPanel(g){
@@ -4357,15 +4377,17 @@ const PG=(function(){
       const divNote = divs.length>1 ? ` <span style="font-weight:600;color:var(--mut-d)">(${divs.length} divisions)</span>` : '';
       selBar=`<div style="position:sticky;top:0;z-index:5;display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:0 0 12px;padding:10px 14px;border:1.5px solid #3C3489;border-radius:10px;background:#EEEDFE">
         <span style="font-weight:800;color:#3C3489;font-size:13px">\u2611 ${sel.length} game${sel.length>1?'s':''} selected${divNote}</span>
-        <select data-actchange="pgSelMove" style="font-size:12px;padding:4px 8px;border:1px solid #3C3489;border-radius:8px;background:#fff;color:#3C3489;font-weight:600;max-width:320px"><option value="">Move selected \u2192 pick a date &amp; venue</option>${opts}<option value="__UNSOURCED__">\uD83C\uDD7F To a hypothetical unsourced weekend\u2026</option></select>
+        <select data-actchange="pgSelMove" style="font-size:12px;padding:4px 8px;border:1px solid #3C3489;border-radius:8px;background:#fff;color:#3C3489;font-weight:600;max-width:320px"><option value="">Move all selected \u2192 pick a date &amp; venue</option>${opts}<option value="__UNSOURCED__">\uD83C\uDD7F To a hypothetical unsourced weekend\u2026</option></select>
+        <button data-act="pgSelAll" style="font-size:11px;padding:4px 12px;border:1px solid #3C3489;border-radius:7px;background:#fff;color:#3C3489;font-weight:700;cursor:pointer">${sel.length>=ps.length?'Deselect all':'Select all ('+ps.length+')'}</button>
         <button data-act="pgSelClear" style="font-size:11px;padding:4px 12px;border:1px solid var(--line-l);border-radius:7px;background:#fff;color:var(--mut-d);font-weight:700;cursor:pointer">Clear selection</button>
-        <span style="flex-basis:100%;font-size:10.5px;color:var(--mut-d)">Tick the boxes on any rows across the garage, then send them all to one date &amp; venue at once. Options include every real/contracted venue-weekend that fits.</span>
+        <span style="flex-basis:100%;font-size:10.5px;color:var(--mut-d)">Tick rows (or a section\u2019s header box) across the garage, then send them all to one date &amp; venue at once. Options include every real/contracted venue-weekend that fits.</span>
       </div>`;
     }
+    const selAllHint = (!sel.length && ps.length) ? ` <button data-act="pgSelAll" style="font-size:11px;padding:3px 11px;border:1px solid #3C3489;border-radius:7px;background:#fff;color:#3C3489;font-weight:700;cursor:pointer;margin-left:8px;vertical-align:middle">\u2611 Select all (${ps.length}) to move</button>` : '';
     return `<div class="wk-head"><h2>\uD83C\uDD7F Parking garage <span class="pill" style="background:var(--warnbg);color:var(--warn);margin-left:8px">${ps.length} total</span>${tbd.length?` <span class="pill" style="background:#FFF3D6;color:#7a5b00;margin-left:6px">${tbd.length} TBD</span>`:''}</h2>
-      <div class="dt">Every game held without a slot. These still count toward team game totals \u2014 assign a venue when ice opens up, or mark \uD83D\uDCC5 TBD to hold with no fixed date. Tick rows to move several at once, or use a pod dropdown to move a whole division.</div></div>${selBar}${blocks}${tbdBlock}`;
+      <div class="dt">Every game held without a slot. These still count toward team game totals \u2014 assign a venue when ice opens up, or mark \uD83D\uDCC5 TBD to hold with no fixed date. Tick rows (or a section header box) to move several at once, or use a pod dropdown to move a whole division.${selAllHint}</div></div>${selBar}${blocks}${tbdBlock}`;
   }
-  return {overlay,isParked,parkedFor,allParked,park,parkMany,parkVenue,parkDivision,assign,unparkOrig,removeParked,addParked,sectionForWeekend,view,toggleSuggest,toggleTbd,isTbd,placeAt,placeAll,podMove,toggleSel,clearSel,selMove,togglePrefs,setPref,clearPrefs,count:()=>allParked().length};
+  return {overlay,isParked,parkedFor,allParked,park,parkMany,parkVenue,parkDivision,assign,unparkOrig,removeParked,addParked,sectionForWeekend,view,toggleSuggest,toggleTbd,isTbd,placeAt,placeAll,podMove,toggleSel,clearSel,selMove,selectAll,selectGroup,togglePrefs,setPref,clearPrefs,count:()=>allParked().length};
 })();
 window.PG=PG;
 
@@ -4408,6 +4430,8 @@ const ACTIONS={
   pgPodMove:el=>PG.podMove(el),
   pgSelToggle:el=>PG.toggleSel(el.dataset),
   pgSelClear:()=>PG.clearSel(),
+  pgSelAll:()=>PG.selectAll(),
+  pgSelGroup:el=>PG.selectGroup(el.dataset),
   pgSelMove:el=>PG.selMove(el),
   pgTogglePrefs:d=>PG.togglePrefs(d),
   pgSetPref:el=>PG.setPref(el),
