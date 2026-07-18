@@ -719,7 +719,9 @@ function detectConflicts(scope){
     const AAA_DIVS=new Set(['12U AAA','14U AAA','16U AAA']);   // 4-game flight min applies here (19U handled separately)
     const ISLAND=new Set(['Cowichan','Victoria']);              // Vancouver Island clusters
     const HALFWAY=new Set(['Hardisty','Midway']);               // neutral midpoints, not flights
-    const exemptTeam=nm=>/peace country/i.test(nm)||/purcell/i.test(nm);
+    // Purcell buses everywhere (never flies). Peace Country now OBEYS the flight/drive
+    // minimums & rivalry-on-flight (only reciprocal stays waived for them, below).
+    const exemptTeam=nm=>/purcell/i.test(nm);
     const teamObj=(nm,div)=>DATA.teams.find(x=>x.name===nm&&x.division===div);
     const homeClOf=(nm,div)=>{const t=teamObj(nm,div);return t?t.homeCluster:null;};
     const islandMainland=(a,b)=>(ISLAND.has(a)&&b==='Lower Mainland')||(ISLAND.has(b)&&a==='Lower Mainland');
@@ -780,7 +782,7 @@ function detectConflicts(scope){
             if(myVisits[destCl]<2 || destCl===t.homeCluster) return;
             // Reciprocity not required for Peace Country / Purcell (exempt teams) or the
             // Lloydminster<->Edmonton corridor. (Neutral-site games are excluded upstream.)
-            if(exemptTeam(t.name)) return;
+            if(exemptTeam(t.name)||/peace country/i.test(t.name)) return; // reciprocal waived for Purcell & Peace Country
             if((t.homeCluster==='Edmonton'&&destCl==='Lloydminster')||(t.homeCluster==='Lloydminster'&&destCl==='Edmonton')) return;
             const reciprocated=teamsIn.filter(o=>o.homeCluster===destCl)
               .some(o=>((visits[div][o.name]||{})[t.homeCluster]||0)>0);
@@ -802,7 +804,7 @@ function detectConflicts(scope){
              (Hardisty/Midway) and the Island<->Lower-Mainland ferry are not flights. */
   (function(){
     const HALFWAY=new Set(['Hardisty','Midway']);
-    const exemptB=nm=>/peace country/i.test(nm)||/purcell/i.test(nm);
+    const exemptB=nm=>/purcell/i.test(nm); // Peace Country obeys repeat-region flight now (Purcell buses)
     const tObjOf=(nm,div)=>DATA.teams.find(x=>x.name===nm&&x.division===div);
     // Rule A — Lower Mainland at Lloydminster (per game; honours scope via pool)
     pool.forEach(g=>{ if(!g.venue||clusterName(g.venue)!=='Lloydminster') return;
@@ -883,6 +885,17 @@ function detectConflicts(scope){
       const cap = c==='Calgary-area' ? (div==='19U AAA'?3:4) : 2;
       if(midCnt[k]>cap) out.push({sev:'hard',rule:'Venue restriction',
         msg:`${nm} (${div}) plays ${midCnt[k]} games at Midway in ${wk} — max ${cap} there.`,wk}); });
+    // Victoria (16U AA) hosts its rivalry vs Langley-AA at home (Cowichan), max 2 per weekend.
+    const vicWk={};
+    pool.forEach(g=>{ if(g.division!=='16U AA'||!g.venue) return;
+      const riv=(g.home==='Victoria Hockey Academy'&&g.away==='Langley Leafs- AA')||(g.home==='Langley Leafs- AA'&&g.away==='Victoria Hockey Academy');
+      if(!riv) return;
+      if(clusterName(g.venue)!=='Cowichan')
+        out.push({sev:'hard',rule:'Venue restriction',
+          msg:`Victoria vs Langley-AA (16U AA) at ${g.venue.replace(/\s*\(NEW\)/i,'')} (${g.weekend}) — this rivalry must be hosted at Victoria's home.`,wk:g.weekend});
+      vicWk[g.weekend]=(vicWk[g.weekend]||0)+1; });
+    Object.keys(vicWk).forEach(wk=>{ if(vicWk[wk]>2) out.push({sev:'hard',rule:'Venue restriction',
+      msg:`Victoria vs Langley-AA (16U AA) plays ${vicWk[wk]}× in ${wk} — max 2 per weekend.`,wk}); });
   })();
 
   out.forEach(c=>{ c.id=confId(c); c.ack=!!(CONFLICT_ACK&&CONFLICT_ACK[c.id]); });
