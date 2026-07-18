@@ -115,6 +115,43 @@ both vs Sask Phantoms (the only other team at Hardisty that weekend). A 3rd game
 3rd Glaciers–Sask matchup, exceeding the max‑2‑matchups‑per‑weekend rule. To make it 3 games you
 must **bring a third 16U AAA team to Hardisty on Dec 11**. Awaiting your call on which team.
 
+## Proposed solution for the "not approved" trips (2026-07-17)
+
+**Method:** every team is at exactly 32 games (mandatory count), so we don't *add* games — we
+**move an existing same-matchup game into the trip**. The trip reaches 3 games, the team's total
+stays 32, and no new long trip is created (respects the travel-count rules; Cowichan cap
+untouched). Halfway/neutral 2-game trips (Midway, Hardisty) are already accepted per your rule,
+so **Glaciers → Hardisty Dec 11 is resolved** — no action needed.
+
+### ✅ Group A — Langley Leafs + Vancouver Aeros (14U AAA), clean
+They travel together and don't yet play each other on these two trips, so one Langley-vs-Aeros
+game per weekend gives **both** their 3rd game. They play each other 7× this season, so we pull
+from a **home** weekend (Abbotsford — not a trip, so removing it creates no new violation):
+
+- **Oct 16 @ Lloydminster:** move **g649** (Langley vs Aeros, currently Abbotsford Jan 22) here.
+  → Langley & Aeros each 2→3. Jan 22 keeps its other Langley-Aeros game (g709). *Ice: Lloydminster
+  wasn't in the venue-capacity list — likely sourced; needs one confirmed Lloydminster slot.*
+- **Oct 30 @ Cochrane:** move **g138** (Langley vs Aeros, currently Abbotsford Jan 08) here.
+  → both 2→3. *Ice: Cochrane is real ice with open Sat/Sun capacity — fits.*
+
+### ⚠️ Group B — Bow Valley + Glaciers → Lower Mainland (16U AAA, Sep 25, Abbotsford)
+Bow Valley needs +1 (2→3); Glaciers needs +2 (1→3). Abbotsford is real ice with room. The tricky
+part is *where to pull the games from* without creating a new violation:
+- **Glaciers' extra game:** move **g37** (Glaciers vs Vancouver Aeros, currently Calgary Jan 08)
+  → Abbotsford Sep 25. Vancouver is already a Sep 25 Abbotsford host, so no new trip. *Check
+  needed: confirm Vancouver still has ≥3 at Calgary Jan 08 after this (or pick g38's weekend
+  differently).*
+- **Bow Valley's + Glaciers' shared game:** their only mutual games are Kimberley Feb 05 (g731,
+  g732) — but Kimberley is itself a trip, so pulling one risks a new Feb 05 violation. **This one
+  needs a smarter source pick** (a Bow Valley or Glaciers game from a weekend with surplus). Flagged
+  for me to finalize with engine verification.
+
+### Verification status
+- Group A: counts stay exact; sources are home games (no travel-min-3 impact); ice fits at Cochrane
+  (Lloydminster slot to confirm). Solid.
+- Group B: approach is sound but two source picks need an engine re-check so we don't create a new
+  violation on the source weekend. **Not yet fully verified.**
+
 ## Not done
 - No games moved. No engine code changed. This branch holds analysis documents only.
   You are making all schedule changes manually.
