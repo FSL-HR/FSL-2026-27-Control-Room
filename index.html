@@ -700,6 +700,80 @@ function detectConflicts(scope){
   pool.forEach(g=>{ if(slotTooShort(g)) out.push({sev:'soft',rule:'Slot too short',
     msg:`${g.division}: ${g.home} vs ${g.away} at ${g.venue.replace(/\s*\(NEW\)/i,'')} ${g.day||''} ${g.time?clock12(g.time):''} (${g.weekend}) is on a 2-hour slot but needs ${slotHours(g.division)}h.`,wk:g.weekend}); });
 
+  /* ===== FSL 2026-27 travel rules (added on the test-schedule branch) =====
+     Rule 1  12U-16U on a 3h+ drive (Regional) must play >=3 games that trip.
+     Rule 2a a flight must be >=4 games (AAA divisions; AA relaxed for odd team counts).
+     Rule 2b a flight may not include a local-rivalry (same home-cluster) matchup.
+     Rule 4  reciprocal travel (soft): flag a team that visits an opponent's cluster
+             2+ times while no team from that cluster ever visits the team's home cluster.
+     Shared exemptions for Rules 1-2: Peace Country and Purcell teams; the Vancouver
+     Island <-> Lower Mainland ferry hop; and the neutral drive-to-midpoint venues
+     (Hardisty, Midway), which are treated as drives, not flights.
+     (19U "lock all placed games" is handled as a working constraint, not an engine rule.) */
+  (function(){
+    const TRAVEL_DIVS=new Set(['12U AAA','14U AA','14U AAA','16U AA','16U AAA']);
+    const AAA_DIVS=new Set(['12U AAA','14U AAA','16U AAA']);   // 4-game flight min applies here
+    const ISLAND=new Set(['Cowichan','Victoria']);              // Vancouver Island clusters
+    const HALFWAY=new Set(['Hardisty','Midway']);               // neutral midpoints, not flights
+    const exemptTeam=nm=>/peace country/i.test(nm)||/purcell/i.test(nm);
+    const teamObj=(nm,div)=>DATA.teams.find(x=>x.name===nm&&x.division===div);
+    const homeClOf=(nm,div)=>{const t=teamObj(nm,div);return t?t.homeCluster:null;};
+    const islandMainland=(a,b)=>(ISLAND.has(a)&&b==='Lower Mainland')||(ISLAND.has(b)&&a==='Lower Mainland');
+    const SEP='␟';
+
+    // Per-trip rules (Rules 1, 2a, 2b): group the pooled games by division|team|weekend.
+    const trips={};
+    pool.forEach(g=>{ if(!TRAVEL_DIVS.has(g.division)||!g.venue) return;
+      [g.home,g.away].forEach(tm=>{ const k=g.division+SEP+tm+SEP+g.weekend; (trips[k]=trips[k]||[]).push(g); }); });
+    Object.keys(trips).forEach(k=>{
+      const [div,tm,wk]=k.split(SEP); const gs=trips[k];
+      if(exemptTeam(tm)) return;
+      const t=teamObj(tm,div); if(!t) return;
+      const home=t.homeCluster;
+      // Count only games at the trip's destination(s) of each type, not every game that weekend
+      // (a team can't be in two regions in one weekend, but the data may mix clusters).
+      const flightDests=[...new Set(gs.map(g=>clusterName(g.venue)).filter(c=>travelTypeFor(t,c)==='FLY'&&!HALFWAY.has(c)))];
+      const driveDests=[...new Set(gs.map(g=>clusterName(g.venue)).filter(c=>travelTypeFor(t,c)==='REGIONAL'&&!islandMainland(home,c)))];
+      if(flightDests.length){
+        const fg=gs.filter(g=>flightDests.includes(clusterName(g.venue)));
+        if(AAA_DIVS.has(div) && fg.length<4)
+          out.push({sev:'hard',rule:'Flight <4 games',
+            msg:`${tm} (${div}) flies to ${flightDests.join(', ')} for only ${fg.length} game(s) in ${wk} — a flight must be at least 4 games.`,wk});
+        const rivals=[...new Set(fg.map(g=>g.home===tm?g.away:g.home)
+          .filter(o=>{const oc=homeClOf(o,div);return oc&&oc===home&&!exemptTeam(o);}))];
+        if(rivals.length)
+          out.push({sev:'hard',rule:'Local rivalry on flight',
+            msg:`${tm} (${div}) plays local rival(s) ${rivals.join(', ')} on a flight to ${flightDests.join(', ')} (${wk}) — no local rivalries on a fly weekend.`,wk});
+      } else if(driveDests.length){
+        const dg=gs.filter(g=>driveDests.includes(clusterName(g.venue)));
+        if(dg.length<3)
+          out.push({sev:'hard',rule:'Long drive <3 games',
+            msg:`${tm} (${div}) drives 3h+ to ${driveDests.join(', ')} for only ${dg.length} game(s) in ${wk} — a 3h+ trip must be at least 3 games.`,wk});
+      }
+    });
+
+    // Rule 4 (soft, season-wide): only meaningful unscoped, so skip when checking one weekend.
+    if(!(scope&&scope.weekend)){
+      const visits={}; // visits[div][team][destCluster] = away games played in that cluster
+      games.forEach(g=>{ if(!TRAVEL_DIVS.has(g.division)||!g.venue) return;
+        const dc=clusterName(g.venue); if(!dc) return;
+        [g.home,g.away].forEach(tm=>{ const hc=homeClOf(tm,g.division); if(!hc||hc===dc) return;
+          ((visits[g.division]=visits[g.division]||{})[tm]=visits[g.division][tm]||{})[dc]=(visits[g.division][tm][dc]||0)+1; }); });
+      Object.keys(visits).forEach(div=>{
+        const teamsIn=DATA.teams.filter(t=>t.division===div);
+        teamsIn.forEach(t=>{ const myVisits=visits[div][t.name]||{};
+          Object.keys(myVisits).forEach(destCl=>{
+            if(myVisits[destCl]<2 || destCl===t.homeCluster) return;
+            const reciprocated=teamsIn.filter(o=>o.homeCluster===destCl)
+              .some(o=>((visits[div][o.name]||{})[t.homeCluster]||0)>0);
+            if(!reciprocated)
+              out.push({sev:'soft',rule:'Unbalanced travel',
+                msg:`${t.name} (${div}) visits ${destCl} ${myVisits[destCl]}× but no ${destCl} team visits ${t.homeCluster} — travel isn't reciprocal.`,wk:null});
+          }); });
+      });
+    }
+  })();
+
   out.forEach(c=>{ c.id=confId(c); c.ack=!!(CONFLICT_ACK&&CONFLICT_ACK[c.id]); });
   return out;
 }
