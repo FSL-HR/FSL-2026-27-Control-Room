@@ -770,6 +770,9 @@ function detectConflicts(scope){
         teamsIn.forEach(t=>{ const myVisits=visits[div][t.name]||{};
           Object.keys(myVisits).forEach(destCl=>{
             if(myVisits[destCl]<2 || destCl===t.homeCluster) return;
+            // Reciprocity is not required for Peace Country (anywhere) or Lloydminster<->Edmonton.
+            if(/peace country/i.test(t.name)) return;
+            if((t.homeCluster==='Edmonton'&&destCl==='Lloydminster')||(t.homeCluster==='Lloydminster'&&destCl==='Edmonton')) return;
             const reciprocated=teamsIn.filter(o=>o.homeCluster===destCl)
               .some(o=>((visits[div][o.name]||{})[t.homeCluster]||0)>0);
             if(!reciprocated)
