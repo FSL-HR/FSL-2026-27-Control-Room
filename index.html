@@ -835,6 +835,29 @@ function detectConflicts(scope){
     });
   })();
 
+  /* Flight cap per team, by home region (user-set 2026-07-18): Lower Mainland & Vancouver
+     Island = 3, Manitoba (Winnipeg) = 4, Alberta & Saskatchewan = 2. Peace Country & Purcell
+     are exempt (they drive / are travel-exempt). Counts distinct fly *weekends* (trips), and
+     only reports unscoped (it's a season-wide total). Neutral midpoints aren't flights. */
+  (function(){
+    if(scope&&scope.weekend) return;
+    const HALFWAY=new Set(['Hardisty','Midway']);
+    const capFor=t=>{ if(/peace country|purcell/i.test(t.name)) return Infinity;
+      const c=t.homeCluster;
+      if(c==='Lower Mainland'||c==='Cowichan'||c==='Kimberley') return 3;
+      if(c==='Winnipeg') return 4;
+      return 2; };
+    DATA.teams.forEach(t=>{ const cap=capFor(t); if(cap===Infinity) return;
+      const flyWks=new Set();
+      games.forEach(g=>{ if(g.division!==t.division||(g.home!==t.name&&g.away!==t.name)||!g.venue) return;
+        const cl=clusterName(g.venue); if(!cl||HALFWAY.has(cl)) return;
+        if(travelTypeFor(t,cl)==='FLY') flyWks.add(g.weekend); });
+      if(flyWks.size>cap)
+        out.push({sev:'hard',rule:'Too many flights',
+          msg:`${t.name} (${t.division}) takes ${flyWks.size} flight trips this season — its region's max is ${cap}.`,wk:null});
+    });
+  })();
+
   out.forEach(c=>{ c.id=confId(c); c.ack=!!(CONFLICT_ACK&&CONFLICT_ACK[c.id]); });
   return out;
 }
