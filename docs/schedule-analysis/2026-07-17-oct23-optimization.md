@@ -158,6 +158,37 @@ Calgary-area 14U AA clubs are **Bow Valley Nationals** and **Calgary Glaciers**.
 **Suggestion (needs your approval):** include Bow Valley Nationals or Calgary Glaciers as the
 host in that GPRC gathering — subject to who is actually attending that weekend.
 
+## Verified relocation suggestions — three straight weekends (suggestions only)
+
+Engine-checked against the "Three straight weekends" rule by simulating each move in-memory
+and reverting (no data saved). **Every fix relocates Oct 30 games — Oct 23 stays untouched.**
+"Net season" = change in total three-straight conflicts league-wide (negative = improvement,
+and confirms the move creates **no new** three-straight conflicts).
+
+| Team(s) | Div | Suggested move | Games | Clears its Oct 23 conflict | Net season |
+|---------|-----|----------------|:-----:|:--------------------------:|:----------:|
+| Langley Leafs | 12U AAA | Oct 30 → **Oct 02** | 4 | ✅ | −1 |
+| Vancouver Aeros | 12U AAA | Oct 30 → **Oct 02** | 4 | ✅ | −1 |
+| Jr. Rustlers | 14U AAA | Oct 30 → **Sep 18** | 4 | ✅ | −1 |
+| Victoria Hockey Academy | 16U AA | Oct 30 → **Sep 18** | 4 | ✅ | −2 |
+| Angels Pro Hockey **+** Aurora Hockey Club *(same game)* | 16U AAA | Oct 30 → **Nov 27** | 1 | ✅ (each 3→0) | −6 |
+| Bow Valley Nationals | 19U AAA | Oct 30 → **Oct 02** | 2 | ✅ | −2 |
+| Langley Leafs‑ AA | 16U AA | needs 2+ moves (has other season runs) | — | — | — |
+| Tri City Express | 16U AAA | needs 2+ moves (has other season runs) | — | — | — |
+
+**7 of 9 teams** clear their Oct 23 three-straight conflict with a single Oct 30 move, each
+net-negative league-wide (no new three-straight created). The Angels/Aurora item is one shared
+game and clears 6 at once — highest value.
+
+### ⚠️ Critical caveat before any of these are real
+This is verified **only for the three-straight-weekend rule.** Each target weekend still needs
+**available real ice** — moving games onto a weekend without capacity would create new "Ice
+capacity" conflicts. Ice-at-target has **not** been checked yet. That's the required next step
+before any move could actually be applied.
+
+**Langley Leafs‑ AA** and **Tri City Express** have additional consecutive-weekend runs beyond
+the Oct 23 window, so one move isn't enough — they need a deeper look.
+
 ## What I will NOT do without your say-so
 
 - Move, add, or delete any game.
