@@ -842,11 +842,8 @@ function detectConflicts(scope){
   (function(){
     if(scope&&scope.weekend) return;
     const HALFWAY=new Set(['Hardisty','Midway']);
-    const capFor=t=>{ if(/peace country|purcell/i.test(t.name)) return Infinity;
-      const c=t.homeCluster;
-      if(c==='Lower Mainland'||c==='Cowichan'||c==='Kimberley') return 3;
-      if(c==='Winnipeg') return 4;
-      return 2; };
+    // Manitoba 4; everyone else (incl. Peace Country) 3. Purcell buses everywhere so never flies.
+    const capFor=t=> t.homeCluster==='Winnipeg' ? 4 : 3;
     DATA.teams.forEach(t=>{ const cap=capFor(t); if(cap===Infinity) return;
       const flyWks=new Set();
       games.forEach(g=>{ if(g.division!==t.division||(g.home!==t.name&&g.away!==t.name)||!g.venue) return;
@@ -856,6 +853,36 @@ function detectConflicts(scope){
         out.push({sev:'hard',rule:'Too many flights',
           msg:`${t.name} (${t.division}) takes ${flyWks.size} flight trips this season — its region's max is ${cap}.`,wk:null});
     });
+  })();
+
+  /* Neutral-site access (user rules 2026-07-18):
+       Midway   — ONLY Lower Mainland & Purcell (<=2 games each per weekend) and Calgary-area
+                  (<=4, or 3 for 19U). No other team may play there.
+       Hardisty — ONLY Aberdeen (Saskatoon), Calgary-area and Edmonton teams (the SK<->AB midpoint). */
+  (function(){
+    const clOf=(nm,div)=>{ const t=DATA.teams.find(x=>x.name===nm&&x.division===div); return t?t.homeCluster:null; };
+    const isPurcell=nm=>/purcell/i.test(nm);
+    pool.forEach(g=>{ if(!g.venue) return; const cl=clusterName(g.venue);
+      if(cl==='Midway'){
+        [g.home,g.away].forEach(nm=>{ const c=clOf(nm,g.division);
+          if(!(isPurcell(nm)||c==='Lower Mainland'||c==='Calgary-area'))
+            out.push({sev:'hard',rule:'Venue restriction',
+              msg:`${nm} (${g.division}) can’t play at Midway (${g.weekend}) — Midway is for Lower Mainland, Purcell and Calgary teams only.`,wk:g.weekend}); });
+      } else if(cl==='Hardisty'){
+        [g.home,g.away].forEach(nm=>{ const c=clOf(nm,g.division);
+          if(!(c==='Aberdeen'||c==='Calgary-area'||c==='Edmonton'))
+            out.push({sev:'hard',rule:'Venue restriction',
+              msg:`${nm} (${g.division}) can’t play at Hardisty (${g.weekend}) — Hardisty is the Saskatoon↔Calgary/Edmonton midpoint only.`,wk:g.weekend}); });
+      }
+    });
+    // Per-team Midway game caps: Lower Mainland/Purcell 2, Calgary 4 (3 for 19U).
+    const midCnt={};
+    pool.forEach(g=>{ if(!g.venue||clusterName(g.venue)!=='Midway') return;
+      [g.home,g.away].forEach(nm=>{ const k=g.division+'␟'+nm+'␟'+g.weekend; midCnt[k]=(midCnt[k]||0)+1; }); });
+    Object.keys(midCnt).forEach(k=>{ const [div,nm,wk]=k.split('␟'); const c=clOf(nm,div);
+      const cap = c==='Calgary-area' ? (div==='19U AAA'?3:4) : 2;
+      if(midCnt[k]>cap) out.push({sev:'hard',rule:'Venue restriction',
+        msg:`${nm} (${div}) plays ${midCnt[k]} games at Midway in ${wk} — max ${cap} there.`,wk}); });
   })();
 
   out.forEach(c=>{ c.id=confId(c); c.ack=!!(CONFLICT_ACK&&CONFLICT_ACK[c.id]); });
