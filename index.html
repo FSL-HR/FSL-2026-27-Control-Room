@@ -761,8 +761,9 @@ function detectConflicts(scope){
     // Rule 4 (soft, season-wide): only meaningful unscoped, so skip when checking one weekend.
     if(!(scope&&scope.weekend)){
       const visits={}; // visits[div][team][destCluster] = away games played in that cluster
+      // Neutral midpoints (Hardisty/Midway) don't count toward either team's travel balance.
       games.forEach(g=>{ if(!TRAVEL_DIVS.has(g.division)||!g.venue) return;
-        const dc=clusterName(g.venue); if(!dc) return;
+        const dc=clusterName(g.venue); if(!dc||HALFWAY.has(dc)) return;
         [g.home,g.away].forEach(tm=>{ const hc=homeClOf(tm,g.division); if(!hc||hc===dc) return;
           ((visits[g.division]=visits[g.division]||{})[tm]=visits[g.division][tm]||{})[dc]=(visits[g.division][tm][dc]||0)+1; }); });
       Object.keys(visits).forEach(div=>{
@@ -770,8 +771,9 @@ function detectConflicts(scope){
         teamsIn.forEach(t=>{ const myVisits=visits[div][t.name]||{};
           Object.keys(myVisits).forEach(destCl=>{
             if(myVisits[destCl]<2 || destCl===t.homeCluster) return;
-            // Reciprocity is not required for Peace Country (anywhere) or Lloydminster<->Edmonton.
-            if(/peace country/i.test(t.name)) return;
+            // Reciprocity not required for Peace Country / Purcell (exempt teams) or the
+            // Lloydminster<->Edmonton corridor. (Neutral-site games are excluded upstream.)
+            if(exemptTeam(t.name)) return;
             if((t.homeCluster==='Edmonton'&&destCl==='Lloydminster')||(t.homeCluster==='Lloydminster'&&destCl==='Edmonton')) return;
             const reciprocated=teamsIn.filter(o=>o.homeCluster===destCl)
               .some(o=>((visits[div][o.name]||{})[t.homeCluster]||0)>0);
