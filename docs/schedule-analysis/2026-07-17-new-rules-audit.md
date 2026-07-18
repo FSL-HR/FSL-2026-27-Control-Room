@@ -180,10 +180,36 @@ Rustlers at Lloydminster), so they stay — the work is getting each from 2 → 
 non-local opponents, then re-verifying counts/ice/other rules. **To be re-solved after the two
 clarifications below.**
 
-### Open questions
-1. **Local rivalry** = same home cluster (assumed), or same region?
-2. **16U AA / 14U AA caveat:** which part is relaxed for these odd-team divisions — the 4-game
-   minimum, the no-local-rivalry rule, or both?
+### Clarifications received
+- **Local rivalry = same home cluster** (e.g. two Lower Mainland teams; two Calgary-area teams).
+- **16U AA / 14U AA:** the **4-game minimum is relaxed** (odd team counts). The **no-local-rivalry**
+  rule still applies to them.
+
+### Rule 3 season audit
+99 flight trips in scope (12U–16U, excluding Peace Country, Purcell, and the neutral drive points
+Hardisty/Midway). Two problem categories:
+
+**A) Flights under 4 games — 9 (AAA only):**
+- 14U AAA — Langley Leafs @ Lloydminster (Oct 16): 2 · @ Calgary (Oct 30): 2
+- 14U AAA — Vancouver Aeros @ Lloydminster (Oct 16): 2 · @ Calgary (Oct 30): 2
+- 16U AAA — Bow Valley Nationals @ Lower Mainland (Sep 25): 2
+- 16U AAA — Calgary Glaciers @ Lower Mainland (Sep 25): 1
+- 16U AAA — Langley Leafs @ Calgary (Oct 02): 3 *(new)*
+- 16U AAA — Vancouver Aeros @ Calgary (Oct 02): 3 *(new)*
+- 16U AAA — Tri City Express @ Calgary (Oct 02): 2 *(new)*
+
+**B) Local-rivalry matchups on a flight — 6 unique (all divisions):**
+- 12U AAA — Bow Valley vs Calgary Glaciers @ Cowichan (Nov 06)
+- 14U AAA — Bow Valley vs Calgary Glaciers @ Cowichan (Feb 19)
+- 16U AAA — Langley Leafs vs Vancouver Aeros @ Edmonton (Oct 16)
+- 14U AA — Langley Leafs‑AA vs Vancouver Aeros‑AA @ Aberdeen (Oct 02)
+- 14U AA — Langley Leafs‑AA vs Vancouver Aeros‑AA @ Winnipeg (Jan 08)
+- 14U AA — Bow Valley‑AA vs Calgary Glaciers‑AA @ Winnipeg (Oct 09)
+
+**= 15 distinct issues to resolve.** Fixing "under 4 games" means adding non-local opponents
+(matchup cap ≤2) via game relocation to keep counts exact; fixing "local rivalry" means swapping
+that matchup for a non-local one at the same venue/weekend. Awaiting your direction on how to
+proceed (disposition each, or have me attempt a full re-solve).
 
 ## Not done
 - No games moved. No engine code changed. This branch holds analysis documents only.
