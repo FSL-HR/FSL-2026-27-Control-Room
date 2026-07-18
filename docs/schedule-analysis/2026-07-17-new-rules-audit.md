@@ -211,6 +211,47 @@ Hardisty/Midway). Two problem categories:
 that matchup for a non-local one at the same venue/weekend. Awaiting your direction on how to
 proceed (disposition each, or have me attempt a full re-solve).
 
+## Solve: the 9 under-4 flights → build each to 4 games (non-local opponents only)
+
+Per your direction, this covers only the under-4 flights (the 6 local-rivalry matchups are left
+for your separate review). Method as before: **relocate a same-matchup game in** from another
+weekend (teams are capped at 32), so totals stay exact. Every added matchup below is **non-local**
+(different home cluster), satisfying the no-rivalry half of Rule 3. All need an ice slot at the
+destination venue.
+
+### ✅ Cleaner trips (plenty of non-local opponents)
+**Calgary Oct 02 (16U AAA)** — real ice available:
+- Langley Leafs (3→4): + vs Calgary Glaciers
+- Vancouver Aeros (3→4): + vs Bow Valley Nationals
+- Tri City Express (2→4): + vs Calgary Glaciers, + vs Bow Valley Nationals
+
+**Calgary/Cochrane Oct 30 (14U AAA)** — Cochrane real ice, capacity open:
+- Langley Leafs (2→4): + vs Bow Valley Nationals, + vs Calgary Glaciers
+- Vancouver Aeros (2→4): + vs Bow Valley Nationals, + vs Calgary Glaciers
+
+**Abbotsford Sep 25 (16U AAA)** — real ice, room available:
+- Bow Valley Nationals (2→4): + vs Langley Leafs, + vs Vancouver Aeros
+- Calgary Glaciers (1→4): + vs Langley Leafs, + vs Vancouver Aeros, + vs Tri City Express
+  *(Glaciers needs +3 — the heaviest single fix)*
+
+### ⚠️ Tight trip — Lloydminster Oct 16 (14U AAA)
+Only **two** non-local teams are there (Jr. Rustlers, Cowichan Valley Ravens), so bringing both
+Langley and Aeros to 4 games maxes those opponents out:
+- Langley Leafs (2→4): + vs Jr. Rustlers, + vs Cowichan Valley Ravens
+- Vancouver Aeros (2→4): + vs Jr. Rustlers, + vs Cowichan Valley Ravens
+This pushes Jr. Rustlers and Cowichan to 4 games each entirely against the two BC teams, and needs
+**4 new Lloydminster ice slots** (Lloydminster wasn't in the venue-capacity list — likely sourced).
+Worth considering whether this trip should instead **merge with another weekend** rather than pad.
+
+### Reality check
+- ~**17 added matchups** total → ~17 relocations needed to keep every team's count at exactly 32.
+- Each relocation's **source weekend** must be re-checked so it doesn't drop below 4 on another
+  flight or break three-straight/region rules.
+- Ice must exist at each destination (confirmed at Cochrane/Abbotsford/Calgary; **Lloydminster
+  needs sourcing**).
+- This is effectively a partial re-plan of these gathering weekends. Recommend finalizing with
+  engine verification (simulate all moves, re-run the full audit) before you action it.
+
 ## Not done
 - No games moved. No engine code changed. This branch holds analysis documents only.
   You are making all schedule changes manually. Group A/B fixes above are superseded by Rule 3.
