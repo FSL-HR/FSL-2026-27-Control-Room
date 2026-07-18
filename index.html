@@ -2084,6 +2084,23 @@ function suggestSpots(setGames){
   const HA={}; (DATA.homeAway||[]).filter(r=>r.division===div).forEach(r=>{ HA[r.team]={home:r.home,away:r.away}; });
   const curHome={}; games.filter(x=>isPlaced(x)&&x.division===div&&!ids.has(String(x.id))).forEach(x=>{ curHome[x.home]=(curHome[x.home]||0)+1; });
   const teamWks={}; tObj.forEach(t=>{ teamWks[t.name]=games.filter(x=>isPlaced(x)&&x.division===div&&!ids.has(String(x.id))&&(x.home===t.name||x.away===t.name)).map(x=>WK.indexOf(x.weekend)); });
+  // --- Rules engine reuse: score every candidate against the SAME detectConflicts() the ---
+  // --- app uses, so the Suggest button honours all travel/scheduling rules (flight >=4, ---
+  // --- 3h drive >=3, no local rivalry on a flight, one region/weekend, reciprocal travel) ---
+  // --- and never drifts from the checker. For each candidate we place the parked games   ---
+  // --- there, ask what NEW conflicts appear vs a baseline where they're unplaced, undo.   ---
+  const realSet=setGames.map(sg=>games.find(x=>String(x.id)===String(sg.id))).filter(Boolean);
+  const engineOK=realSet.length===setGames.length && typeof detectConflicts==='function';
+  const snap=realSet.map(g=>({g,weekend:g.weekend,venue:g.venue,day:g.day,time:g.time,endTime:g.endTime,sheet:g.sheet}));
+  const restoreSet=()=>snap.forEach(s=>{s.g.weekend=s.weekend;s.g.venue=s.venue;s.g.day=s.day;s.g.time=s.time;s.g.endTime=s.endTime;s.g.sheet=s.sheet;});
+  const placeSet=(wk,venue)=>realSet.forEach(g=>{g.weekend=wk;g.venue=venue;g.day='';g.time='';g.endTime='';g.sheet='';});
+  const uniqRules=cs=>[...new Set(cs.map(c=>c.rule))];
+  // baseline conflict-ids per weekend (parked games unplaced), cached
+  const baseWk={};
+  const baseIdsFor=wk=>{ if(!engineOK) return null; if(baseWk[wk]) return baseWk[wk];
+    placeSet('','' ); const s=new Set(detectConflicts({weekend:wk}).map(c=>c.id)); restoreSet(); return baseWk[wk]=s; };
+  const hypScoped=(wk,venue)=>{ if(!engineOK) return []; const base=baseIdsFor(wk);
+    placeSet(wk,venue); const cs=detectConflicts({weekend:wk}).filter(c=>!base.has(c.id)); restoreSet(); return cs; };
   const out=[];
   cand.forEach(({wk,venue,v})=>{
     if(!wk||!venue) return;
@@ -2153,10 +2170,34 @@ function suggestSpots(setGames){
     score += homeBonus + travelPts;
     if(homeBonus>0) reasons.push('home game for a team that\u2019s owed one');
     if(flyNames.length) warns.push('flight for '+[...new Set(flyNames)].join(' & '));
-    out.push({wk, venue, region, key:wk+'|||'+venue, score, reasons, warns, realRoom, realSlots, present:present.length, host:hosts.length>0, blocked:!!bo||pairOver||overloaded.length>0||cantSource});
+    // Rules-engine verdict for THIS spot: penalise anything the checker would flag as new.
+    let hypHard=false;
+    if(engineOK){
+      const hyp=hypScoped(wk,venue);
+      const hardNew=hyp.filter(c=>c.sev==='hard'), softNew=hyp.filter(c=>c.sev==='soft');
+      if(hardNew.length){ hypHard=true; score-=220*hardNew.length; uniqRules(hardNew).forEach(r=>warns.push('breaks a rule \u2014 '+r)); }
+      if(softNew.length){ score-=45*softNew.length; uniqRules(softNew).forEach(r=>warns.push('caution \u2014 '+r)); }
+      if(!hyp.length){ score+=12; reasons.push('clears every scheduling rule'); }
+    }
+    out.push({wk, venue, region, key:wk+'|||'+venue, score, reasons, warns, realRoom, realSlots, present:present.length, host:hosts.length>0, blocked:!!bo||pairOver||overloaded.length>0||cantSource||hypHard});
   });
   const wi=w=>WK.indexOf(w);
   out.sort((a,b)=> (a.blocked-b.blocked) || (b.score-a.score) || (wi(a.wk)-wi(b.wk)));
+  // Second pass — reciprocal travel is season-wide, so detectConflicts only reports it when
+  // run UNSCOPED. Re-check the leading, unblocked candidates that way and dock any placement
+  // that adds unreciprocated travel (the engine applies the Peace Country / Purcell /
+  // Lloyd<->Edmonton / neutral-midpoint exemptions for us). Then re-sort the leaders.
+  if(engineOK){
+    const baseFull=new Set(detectConflicts().map(c=>c.id));
+    const leaders=out.filter(o=>!o.blocked).slice(0,12);
+    leaders.forEach(o=>{
+      placeSet(o.wk,o.venue);
+      const recip=detectConflicts().filter(c=>!baseFull.has(c.id)&&c.rule==='Unbalanced travel');
+      restoreSet();
+      if(recip.length){ o.score-=30*recip.length; o.warns.push('caution — Unbalanced travel (not reciprocal)'); }
+    });
+    out.sort((a,b)=> (a.blocked-b.blocked) || (b.score-a.score) || (wi(a.wk)-wi(b.wk)));
+  }
   return out;
 }
 function addedSlotsView(){
