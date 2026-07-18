@@ -1,7 +1,7 @@
 {
   "generatedAt": "2026-07-18T12:00:00-06:00",
   "source": "ICE ALLOCATION BIBLE.xlsx",
-  "totalSlots": 710,
+  "totalSlots": 718,
   "weekends": {
     "Oct 02": {
       "Delta — Planet Ice Delta": {
@@ -1163,6 +1163,22 @@
           "14:45",
           "17:00"
         ]
+      },
+      "Grande Prairie — Bonnetts Energy Centre": {
+        "Fri": [
+          "16:30",
+          "18:45"
+        ],
+        "Sat": [
+          "09:00",
+          "11:15",
+          "15:00",
+          "17:15"
+        ],
+        "Sun": [
+          "09:00",
+          "11:15"
+        ]
       }
     },
     "Nov 13": {
@@ -1238,6 +1254,8 @@
     }
   },
   "newThisSync": [],
+  "removedThisSync": [],
+  "contentChanged": true,
   "isBaseline": true,
   "slotKeys": [
     "Dec 11|Edmonton — Morinville Silent Ice Gardens|Sun|08:00",
@@ -1472,6 +1490,14 @@
     "Jan 29|Abbotsford — Rinks at Summit Center|Sun|08:00",
     "Jan 29|Abbotsford — Rinks at Summit Center|Sun|08:15",
     "Jan 29|Abbotsford — Rinks at Summit Center|Sun|10:30",
+    "Jan 29|Grande Prairie — Bonnetts Energy Centre|Fri|16:30",
+    "Jan 29|Grande Prairie — Bonnetts Energy Centre|Fri|18:45",
+    "Jan 29|Grande Prairie — Bonnetts Energy Centre|Sat|09:00",
+    "Jan 29|Grande Prairie — Bonnetts Energy Centre|Sat|11:15",
+    "Jan 29|Grande Prairie — Bonnetts Energy Centre|Sat|15:00",
+    "Jan 29|Grande Prairie — Bonnetts Energy Centre|Sat|17:15",
+    "Jan 29|Grande Prairie — Bonnetts Energy Centre|Sun|09:00",
+    "Jan 29|Grande Prairie — Bonnetts Energy Centre|Sun|11:15",
     "Jan 29|Lloydminster — Archie Miller Arena|Sat|08:00",
     "Jan 29|Lloydminster — Archie Miller Arena|Sat|08:45",
     "Jan 29|Lloydminster — Archie Miller Arena|Sat|11:00",
@@ -1924,7 +1950,9 @@
     "Sep 25|Winnipeg — 7 Oaks Arena|Sun|08:30",
     "Sep 25|Winnipeg — 7 Oaks Arena|Sun|13:00"
   ],
-  "unmappedVenues": [],
+  "unmappedVenues": [
+    "Grande Prairie|Bonnetts Energy Centre"
+  ],
   "outOfSeasonSkipped": 97,
   "badRows": [],
   "assumptions": [

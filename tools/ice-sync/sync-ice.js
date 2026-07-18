@@ -119,6 +119,10 @@ if(fs.existsSync(OUT)){
   try{ const prev=JSON.parse(fs.readFileSync(OUT,'utf8')); if(Array.isArray(prev.slotKeys)){ prevKeys=new Set(prev.slotKeys); isBaseline=false; } }catch(e){}
 }
 const newThisSync = isBaseline ? [] : [...slotKeys].filter(k=>!prevKeys.has(k)).sort();
+const removedThisSync = isBaseline ? [] : [...prevKeys].filter(k=>!slotKeys.has(k)).sort();
+// contentChanged = the ice actually differs from the last sync (added or removed slots), so
+// the automation can commit/push only on real changes (not on every timestamp bump).
+const contentChanged = isBaseline || newThisSync.length>0 || removedThisSync.length>0;
 
 const output={
   generatedAt: STAMP,
@@ -126,6 +130,8 @@ const output={
   totalSlots: placed,
   weekends: alloc,
   newThisSync,
+  removedThisSync,
+  contentChanged,
   isBaseline,
   slotKeys: [...slotKeys].sort(),          // used by the next run's diff
   unmappedVenues: [...unmappedVenues].sort(),
@@ -142,5 +148,6 @@ console.log('Weekends covered     :', Object.keys(alloc).length, '('+Object.keys
 console.log('Distinct venues      :', new Set([].concat(...Object.values(alloc).map(v=>Object.keys(v)))).size);
 console.log('Unmapped venues      :', output.unmappedVenues.length, JSON.stringify(output.unmappedVenues));
 console.log('Out-of-season skipped:', outOfSeasonSkipped, '| bad rows:', badRows.length);
-console.log('Baseline (first run) :', isBaseline, '| new this sync:', newThisSync.length);
+console.log('Baseline (first run) :', isBaseline, '| new:', newThisSync.length, '| removed:', removedThisSync.length);
 console.log('Wrote                :', OUT);
+console.log('CONTENT_CHANGED=' + (contentChanged ? 'yes' : 'no'));   // read by the automation wrapper
