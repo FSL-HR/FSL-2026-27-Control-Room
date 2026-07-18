@@ -127,6 +127,37 @@ with the engine that conflicts drop and none are created:
 4. **Accepted conflicts:** are any of the above already knowingly accepted by the league? If so,
    name them and I'll exclude them.
 
+---
+
+## Follow-up: your direction + specific suggestions (2026-07-17)
+
+**Your ground rule:** do not move/apply any game change without approval. Flag conflicts and
+offer suggestions (including better *real-ice* spots where they exist); you approve before
+anything is applied. This section records the specifics; nothing here is applied yet.
+
+### Three straight weekends (12 hard) — suggestions only
+Relocating a game to a different rink does **not** fix this rule — it's about *which weekends*
+a team plays. The only real fix is moving one weekend of a team's games to a free, non-adjacent
+weekend (candidates listed per team in §1). Highest-value single move: shift the **Oct 30**
+gathering for the three 16U AAA four-in-a-row teams (Angels, Aurora, Tri City) — clears 6 of 12.
+**Status: flagged, awaiting your decision. No move proposed for application.**
+
+### Slot too short (11 soft) — not a safe blanket re-time
+Affected sheets pack games at 2.0h; 16U needs 2.25h. Adding 15 min per game cascades:
+- **Aberdeen Sat** already runs 6 games 08:30→22:00 — extending each pushes past the 22:45
+  day-window cutoff. Can't simply re-time.
+- Lighter sheets (e.g. Aberdeen Sun, Edmonton Sun) have room, but fixing only those is partial.
+
+Options: (a) **accept** the 2.0h slots (soft; appears to be league norm), (b) **source** a
+2.25h sheet / extra ice for the busy days, (c) move a couple of the least-packed 16U games.
+**Recommendation: accept unless you want to pursue sourcing more ice. Awaiting your call.**
+
+### Host present (1 soft) — concrete suggestion
+Flagged: 14U AA gathering at Calgary (GPRC) has no Calgary-area host club.
+Calgary-area 14U AA clubs are **Bow Valley Nationals** and **Calgary Glaciers**.
+**Suggestion (needs your approval):** include Bow Valley Nationals or Calgary Glaciers as the
+host in that GPRC gathering — subject to who is actually attending that weekend.
+
 ## What I will NOT do without your say-so
 
 - Move, add, or delete any game.
