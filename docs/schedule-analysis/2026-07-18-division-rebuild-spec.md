@@ -5,7 +5,7 @@
 ## Start state (known‑good)
 - **Baseline schedule:** `Downloads\FSL_schedule_2026-07-18_FIXED.json` (768 games, 0 parked; parked pods placed, Jan 15 12U data bug fixed, all 19U over‑caps fixed). ~79 open hard conflicts under the full ruleset — those are the structural travel/matrix problems this rebuild targets.
 - **Engine:** every rule is in `index.html` `detectConflicts(scope)`. Do NOT re‑derive rules — trust the engine as the objective function.
-- **Isolated sandbox (never touches live):** `scratchpad/build_test.js <payload.json>` writes `repo/test/index.html` (Firebase OFF, payload embedded, exposes `window.__applyPayload`/`__buildPayload`). Serve with `scratchpad/serve.js` (localhost:8765/test/index.html) and drive via the browser JS tool: `detectConflicts()`, `games`, `clusterName`, `travelTypeFor`, `CLUSTER_REGION`, `perShow`, `DATA.teams`, `DATA.realIce`. **Live schedule is a Firestore doc — never written by any of this.**
+- **Isolated sandbox (never touches live):** `tools/test-sandbox/build_test.js <payload.json>` writes `repo/test/index.html` (Firebase OFF, payload embedded, exposes `window.__applyPayload`/`__buildPayload`). Serve with `tools/test-sandbox/serve.js` (localhost:8765/test/index.html) and drive via the browser JS tool: `detectConflicts()`, `games`, `clusterName`, `travelTypeFor`, `CLUSTER_REGION`, `perShow`, `DATA.teams`, `DATA.realIce`. **Live schedule is a Firestore doc — never written by any of this.**
 
 ## The complete ruleset (all engine‑encoded; rule names as emitted)
 - **Flight cap** (`Too many flights`): distinct fly‑weekends ≤ **3 per team**, **Manitoba (Winnipeg) 4**. Peace Country included. Purcell buses (never flies).
