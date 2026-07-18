@@ -736,9 +736,15 @@ function detectConflicts(scope){
       const driveDests=[...new Set(gs.map(g=>clusterName(g.venue)).filter(c=>travelTypeFor(t,c)==='REGIONAL'&&!islandMainland(home,c)))];
       if(flightDests.length){
         const fg=gs.filter(g=>flightDests.includes(clusterName(g.venue)));
-        if(AAA_DIVS.has(div) && fg.length<4)
-          out.push({sev:'hard',rule:'Flight <4 games',
-            msg:`${tm} (${div}) flies to ${flightDests.join(', ')} for only ${fg.length} game(s) in ${wk} — a flight must be at least 4 games.`,wk});
+        // Flights should be >=4 games. AAA: hard below 4. AA divisions (odd team counts):
+        // exactly 3 is a soft warning (allowed only in extenuating cases); below 3 is hard.
+        if(fg.length<4){
+          const sev=AAA_DIVS.has(div)?'hard':(fg.length>=3?'soft':'hard');
+          const note=AAA_DIVS.has(div)?'a flight must be at least 4 games'
+                                       :'a flight should be 4 games (3 allowed only in extenuating cases)';
+          out.push({sev,rule:'Flight <4 games',
+            msg:`${tm} (${div}) flies to ${flightDests.join(', ')} for only ${fg.length} game(s) in ${wk} — ${note}.`,wk});
+        }
         const rivals=[...new Set(fg.map(g=>g.home===tm?g.away:g.home)
           .filter(o=>{const oc=homeClOf(o,div);return oc&&oc===home&&!exemptTeam(o);}))];
         if(rivals.length)
