@@ -78,5 +78,43 @@ unaffected.
   (Jr. Rustlers → Evansburg tagged Regional; the Calgary/Sask → Hardisty trips tagged Fly). If
   any of those are really under 3h for you, tell me and I'll drop them from the list.
 
+## Your dispositions on the 13 violations (2026-07-17)
+
+**✅ Accepted as-is (5)** — trip is fine at 2 games; treat as approved exceptions:
+- Jr. Rustlers (14U AAA) — Oct 02 @ Evansburg
+- Jr. Ooks (16U AAA) — Nov 27 @ Hardisty
+- Jr. Rustlers (16U AAA) — Nov 27 @ Hardisty
+- Sask Phantoms (16U AAA) — Dec 11 @ Hardisty
+- Vancouver Aeros (16U AAA) — Nov 27 @ Midway *(halfway point between opponents)*
+
+**❌ Not approved — must be resolved (6)** — current 2-game trip is not acceptable; needs a 3rd
+game added or the trip cut. Decision on which is still open:
+- Langley Leafs (14U AAA) — Oct 16 @ Lloydminster
+- Langley Leafs (14U AAA) — Oct 30 @ Calgary
+- Vancouver Aeros (14U AAA) — Oct 16 @ Lloydminster
+- Vancouver Aeros (14U AAA) — Oct 30 @ Calgary
+- Bow Valley Nationals (16U AAA) — Sep 25 @ Lower Mainland
+- Calgary Glaciers (16U AAA) — Sep 25 @ Lower Mainland
+
+**🔧 Pull Calgary 16U AA games off the Feb 05 Cowichan weekend** — remove these **6** games
+(you asked for *all* Calgary 16U AA, incl. Glaciers‑AA which had 4 there and wasn't itself a
+violation):
+- `g322` Langley Leafs‑AA vs **Calgary Glaciers‑AA**
+- `g684` Langley Leafs‑AA vs **Calgary Glaciers‑AA**
+- `g686` Langley Leafs‑AA vs **Calgary Phoenix**
+- `779` Victoria Hockey Academy vs **Calgary Glaciers‑AA**
+- `780` Victoria Hockey Academy vs **Calgary Glaciers‑AA**
+- `782` Victoria Hockey Academy vs **Calgary Phoenix**
+
+Ripple to handle manually: Glaciers‑AA (−4) and Phoenix (−2) lose games toward their targets;
+Cowichan hosts (Langley Leafs‑AA, Victoria HA) lose opponents. `g381` (Langley Leafs‑AA vs
+Victoria HA) does **not** involve a Calgary team and stays.
+
+**🔧 Glaciers → Hardisty (Dec 11) — add a game: blocked as-is.** Glaciers plays 2 games there,
+both vs Sask Phantoms (the only other team at Hardisty that weekend). A 3rd game would be a
+3rd Glaciers–Sask matchup, exceeding the max‑2‑matchups‑per‑weekend rule. To make it 3 games you
+must **bring a third 16U AAA team to Hardisty on Dec 11**. Awaiting your call on which team.
+
 ## Not done
 - No games moved. No engine code changed. This branch holds analysis documents only.
+  You are making all schedule changes manually.
