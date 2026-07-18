@@ -700,6 +700,91 @@ function detectConflicts(scope){
   pool.forEach(g=>{ if(slotTooShort(g)) out.push({sev:'soft',rule:'Slot too short',
     msg:`${g.division}: ${g.home} vs ${g.away} at ${g.venue.replace(/\s*\(NEW\)/i,'')} ${g.day||''} ${g.time?clock12(g.time):''} (${g.weekend}) is on a 2-hour slot but needs ${slotHours(g.division)}h.`,wk:g.weekend}); });
 
+  /* ===== FSL 2026-27 travel rules (added on the test-schedule branch) =====
+     Rule 1  12U-16U on a 3h+ drive (Regional) must play >=3 games that trip.
+     Rule 2a a flight must be >=4 games (AAA divisions; AA relaxed for odd team counts).
+     Rule 2b a flight may not include a local-rivalry (same home-cluster) matchup.
+     Rule 4  reciprocal travel (soft): flag a team that visits an opponent's cluster
+             2+ times while no team from that cluster ever visits the team's home cluster.
+     Shared exemptions for Rules 1-2: Peace Country and Purcell teams; the Vancouver
+     Island <-> Lower Mainland ferry hop; and the neutral drive-to-midpoint venues
+     (Hardisty, Midway), which are treated as drives, not flights.
+     (19U "lock all placed games" is handled as a working constraint, not an engine rule.) */
+  (function(){
+    const TRAVEL_DIVS=new Set(['12U AAA','14U AA','14U AAA','16U AA','16U AAA']);
+    const AAA_DIVS=new Set(['12U AAA','14U AAA','16U AAA']);   // 4-game flight min applies here
+    const ISLAND=new Set(['Cowichan','Victoria']);              // Vancouver Island clusters
+    const HALFWAY=new Set(['Hardisty','Midway']);               // neutral midpoints, not flights
+    const exemptTeam=nm=>/peace country/i.test(nm)||/purcell/i.test(nm);
+    const teamObj=(nm,div)=>DATA.teams.find(x=>x.name===nm&&x.division===div);
+    const homeClOf=(nm,div)=>{const t=teamObj(nm,div);return t?t.homeCluster:null;};
+    const islandMainland=(a,b)=>(ISLAND.has(a)&&b==='Lower Mainland')||(ISLAND.has(b)&&a==='Lower Mainland');
+    const SEP='␟';
+
+    // Per-trip rules (Rules 1, 2a, 2b): group the pooled games by division|team|weekend.
+    const trips={};
+    pool.forEach(g=>{ if(!TRAVEL_DIVS.has(g.division)||!g.venue) return;
+      [g.home,g.away].forEach(tm=>{ const k=g.division+SEP+tm+SEP+g.weekend; (trips[k]=trips[k]||[]).push(g); }); });
+    Object.keys(trips).forEach(k=>{
+      const [div,tm,wk]=k.split(SEP); const gs=trips[k];
+      if(exemptTeam(tm)) return;
+      const t=teamObj(tm,div); if(!t) return;
+      const home=t.homeCluster;
+      // Count only games at the trip's destination(s) of each type, not every game that weekend
+      // (a team can't be in two regions in one weekend, but the data may mix clusters).
+      const flightDests=[...new Set(gs.map(g=>clusterName(g.venue)).filter(c=>travelTypeFor(t,c)==='FLY'&&!HALFWAY.has(c)))];
+      const driveDests=[...new Set(gs.map(g=>clusterName(g.venue)).filter(c=>travelTypeFor(t,c)==='REGIONAL'&&!islandMainland(home,c)))];
+      if(flightDests.length){
+        const fg=gs.filter(g=>flightDests.includes(clusterName(g.venue)));
+        // Flights should be >=4 games. AAA: hard below 4. AA divisions (odd team counts):
+        // exactly 3 is a soft warning (allowed only in extenuating cases); below 3 is hard.
+        if(fg.length<4){
+          const sev=AAA_DIVS.has(div)?'hard':(fg.length>=3?'soft':'hard');
+          const note=AAA_DIVS.has(div)?'a flight must be at least 4 games'
+                                       :'a flight should be 4 games (3 allowed only in extenuating cases)';
+          out.push({sev,rule:'Flight <4 games',
+            msg:`${tm} (${div}) flies to ${flightDests.join(', ')} for only ${fg.length} game(s) in ${wk} — ${note}.`,wk});
+        }
+        const rivals=[...new Set(fg.map(g=>g.home===tm?g.away:g.home)
+          .filter(o=>{const oc=homeClOf(o,div);return oc&&oc===home&&!exemptTeam(o);}))];
+        if(rivals.length)
+          out.push({sev:'hard',rule:'Local rivalry on flight',
+            msg:`${tm} (${div}) plays local rival(s) ${rivals.join(', ')} on a flight to ${flightDests.join(', ')} (${wk}) — no local rivalries on a fly weekend.`,wk});
+      } else if(driveDests.length){
+        const dg=gs.filter(g=>driveDests.includes(clusterName(g.venue)));
+        if(dg.length<3)
+          out.push({sev:'hard',rule:'Long drive <3 games',
+            msg:`${tm} (${div}) drives 3h+ to ${driveDests.join(', ')} for only ${dg.length} game(s) in ${wk} — a 3h+ trip must be at least 3 games.`,wk});
+      }
+    });
+
+    // Rule 4 (soft, season-wide): only meaningful unscoped, so skip when checking one weekend.
+    if(!(scope&&scope.weekend)){
+      const visits={}; // visits[div][team][destCluster] = away games played in that cluster
+      // Neutral midpoints (Hardisty/Midway) don't count toward either team's travel balance.
+      games.forEach(g=>{ if(!TRAVEL_DIVS.has(g.division)||!g.venue) return;
+        const dc=clusterName(g.venue); if(!dc||HALFWAY.has(dc)) return;
+        [g.home,g.away].forEach(tm=>{ const hc=homeClOf(tm,g.division); if(!hc||hc===dc) return;
+          ((visits[g.division]=visits[g.division]||{})[tm]=visits[g.division][tm]||{})[dc]=(visits[g.division][tm][dc]||0)+1; }); });
+      Object.keys(visits).forEach(div=>{
+        const teamsIn=DATA.teams.filter(t=>t.division===div);
+        teamsIn.forEach(t=>{ const myVisits=visits[div][t.name]||{};
+          Object.keys(myVisits).forEach(destCl=>{
+            if(myVisits[destCl]<2 || destCl===t.homeCluster) return;
+            // Reciprocity not required for Peace Country / Purcell (exempt teams) or the
+            // Lloydminster<->Edmonton corridor. (Neutral-site games are excluded upstream.)
+            if(exemptTeam(t.name)) return;
+            if((t.homeCluster==='Edmonton'&&destCl==='Lloydminster')||(t.homeCluster==='Lloydminster'&&destCl==='Edmonton')) return;
+            const reciprocated=teamsIn.filter(o=>o.homeCluster===destCl)
+              .some(o=>((visits[div][o.name]||{})[t.homeCluster]||0)>0);
+            if(!reciprocated)
+              out.push({sev:'soft',rule:'Unbalanced travel',
+                msg:`${t.name} (${div}) visits ${destCl} ${myVisits[destCl]}× but no ${destCl} team visits ${t.homeCluster} — travel isn't reciprocal.`,wk:null});
+          }); });
+      });
+    }
+  })();
+
   out.forEach(c=>{ c.id=confId(c); c.ack=!!(CONFLICT_ACK&&CONFLICT_ACK[c.id]); });
   return out;
 }
@@ -1527,6 +1612,7 @@ function iceView(){
     });
   });
   const newCount=rows.filter(r=>r.isNew).length;
+  const syncedNewCount=rows.filter(r=>r.v.syncedNew).length;   // ice newly pulled from the Bible sync
   const grandCap=rows.reduce((s,r)=>s+r.capTot,0);
   const grandUsed=rows.reduce((s,r)=>s+r.usedTot,0);
   const visRows=rows.filter(r=>iceDecision(r.wk,r.v.venue)!=='del');
@@ -1541,7 +1627,7 @@ function iceView(){
     const freeTxt = r.isNew ? `${r.usedTot} to source` : `${r.free} free`;
     const freeColor = r.free<0?'var(--red)':(r.free===0?'var(--warn)':'var(--ok)');
     return `<tr><td><b>${r.wk}</b></td>
-      <td class="tm">${r.v.venue.replace(/\s*\(NEW\)/i,'')} ${r.isNew?'<span class="pill" style="background:var(--warnbg);color:var(--warn)">NEW</span>':''}${r.v.added?'<span class="pill" style="background:#e8f6ee;color:var(--ok)">added</span>':''}${overBadge}</td>
+      <td class="tm">${r.v.venue.replace(/\s*\(NEW\)/i,'')} ${r.isNew?'<span class="pill" style="background:var(--warnbg);color:var(--warn)">NEW</span>':''}${r.v.added?'<span class="pill" style="background:#e8f6ee;color:var(--ok)">added</span>':''}${r.v.syncedNew?'<span class="pill" style="background:#eef4ff;color:#2b5fd0" title="Newly synced from the ICE ALLOCATION BIBLE">↻ synced</span>':''}${overBadge}</td>
       <td><span class="pill ${regClass(r.v.region)}">${r.v.region}</span></td>
       <td><div class="slots">${cell('Fri')}${cell('Sat')}${cell('Sun')}${ua}</div></td>
       <td><div class="slot ${tcls}"><div class="v">${r.usedTot}/${r.capTot||'—'}</div></div></td>
@@ -1550,6 +1636,10 @@ function iceView(){
   }).join('');
   return `<div class="wk-head"><h2>🏒 Ice Allocation</h2>
     <div class="dt">Every venue and its per-day slot capacity. "n/a" = games placed at the venue with no day assigned yet; these still consume slots. The Used and Free columns count all games at the venue regardless of day.</div></div>
+  ${(()=>{ const s=window.__iceSync; if(!s) return '';
+    const when=s.at?(' · last synced '+String(s.at).replace('T',' ').slice(0,16)):'';
+    if(syncedNewCount>0) return `<div style="background:#eef4ff;border:1px solid #cfe0ff;border-radius:9px;padding:11px 15px;margin-bottom:16px;color:#2b5fd0;font-weight:600">↻ ${syncedNewCount} newly-synced ice slot${syncedNewCount===1?'':'s'} from the ICE ALLOCATION BIBLE${when} — marked “↻ synced” below.</div>`;
+    return `<div style="font-size:11px;color:var(--mut-d);margin-bottom:12px">↻ Ice synced from the ICE ALLOCATION BIBLE${when}</div>`; })()}
   <div class="grid cards4" style="margin-bottom:18px">
     <div class="card"><h3><span class="ic">◆</span>Total slots</h3><div style="font-size:26px;font-weight:800">${grandCap}</div></div>
     <div class="card"><h3><span class="ic">◆</span>Slots used</h3><div style="font-size:26px;font-weight:800">${grandUsed}</div></div>
@@ -5252,6 +5342,52 @@ render();
   setTimeout(()=>{ try{ injectButton(); }catch(e){} }, 400);
   // Show the most recent entry's note on the pill at startup.
   setTimeout(()=>{ if(LOG.length) updatePillNote(LOG[LOG.length-1]); }, 800);
+})();
+
+/* ===== Ice-allocation sync overlay (Phase 2) =====
+   Fetches ice-allocation.json (written by tools/ice-sync from the ICE ALLOCATION BIBLE) and
+   overlays the held ice into DATA.venues. Because realAvailTotal()/sourcedFor() and the weekend
+   views all read DATA.venues, the Ice Allocation tab AND the weekend views recompute from the
+   synced ice together — including the "to source" (games − real ice) gaps. Newly-synced
+   venue-weekends are marked `.syncedNew` for a "↻ synced" badge. Fails silently (e.g. opened as a
+   file:// with no server) so the app still works from its baked-in data. */
+(function(){
+  function guessRegion(venue){
+    const city=String(venue).split(/\s[—-]\s/)[0].trim();
+    if(['Edmonton','Calgary','Cochrane','Canmore','Banff','Lloydminster','Morinville','Spruce Grove','Grand Prairie','Hardisty','Evansburg','Red Deer','Brooks'].includes(city)) return 'AB';
+    if(['Delta','Abbotsford','Kimberley','Cowichan','Victoria','Vancouver','Langley','Midway'].includes(city)) return 'BC';
+    if(['Aberdeen','Winnipeg','Saskatoon'].includes(city)) return 'SK/MB';
+    return '';
+  }
+  function overlaySyncedIce(j){
+    // weekend|venue combos that are newly synced this run (from the sync's diff)
+    const newVW=new Set((j.newThisSync||[]).map(k=>{ const p=String(k).split('|'); return p[0]+'|'+p[1]; }));
+    let updated=0, added=0;
+    for(const wk in j.weekends){
+      const vmap=j.weekends[wk];
+      for(const venue in vmap){
+        const d=vmap[venue];
+        const capFri=(d.Fri||[]).length, capSat=(d.Sat||[]).length, capSun=(d.Sun||[]).length;
+        let rec=DATA.venues.find(v=>v.weekend===wk && v.venue===venue);
+        if(rec){
+          rec.capFri=capFri; rec.capSat=capSat; rec.capSun=capSun;
+          rec.realImport=true; if(!/^Real ice/.test(rec.status||'')) rec.status='Real ice';
+          updated++;
+        } else {
+          rec={weekend:wk, venue:venue, capFri, capSat, capSun, realImport:true, status:'Real ice', region:guessRegion(venue)};
+          DATA.venues.push(rec); added++;
+        }
+        if(newVW.has(wk+'|'+venue)) rec.syncedNew=true; else if(rec.syncedNew) delete rec.syncedNew;
+      }
+    }
+    window.__iceSync={at:j.generatedAt, updated, added, newCount:(j.newThisSync||[]).length};
+    return window.__iceSync;
+  }
+  window.__overlaySyncedIce=overlaySyncedIce;  // exposed for tests
+  fetch('ice-allocation.json',{cache:'no-store'})
+    .then(r=> r.ok ? r.json() : null)
+    .then(j=>{ if(!j||!j.weekends) return; overlaySyncedIce(j); if(typeof render==='function') render(); })
+    .catch(()=>{});
 })();
 
 </script>

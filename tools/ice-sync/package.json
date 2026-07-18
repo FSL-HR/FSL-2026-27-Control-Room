@@ -1,0 +1,10 @@
+{
+  "name": "fsl-ice-sync",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Sync the ICE ALLOCATION BIBLE (SharePoint Excel) into ice-allocation.json for the Control Room.",
+  "bin": { "fsl-ice-sync": "sync-ice.js" },
+  "dependencies": {
+    "xlsx": "^0.18.5"
+  }
+}
