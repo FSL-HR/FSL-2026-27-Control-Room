@@ -252,6 +252,39 @@ Worth considering whether this trip should instead **merge with another weekend*
 - This is effectively a partial re-plan of these gathering weekends. Recommend finalizing with
   engine verification (simulate all moves, re-run the full audit) before you action it.
 
+## Rule 4 — Reciprocal play / balanced travel (added 2026-07-17)
+
+**Your rule:** travel must be **balanced across the division as evenly as possible** — a blend of
+home/away balance, per-matchup reciprocity, and regional reciprocity. Example: Calgary Glaciers
+shouldn't visit the Lower Mainland twice while Lower Mainland never comes to Calgary; if Glaciers
+go to Cowichan to play the Lower Mainland teams, then those teams should come to Calgary rather
+than Glaciers also travelling to the Lower Mainland. No team over-travels to a region that doesn't
+reciprocate.
+
+### Current imbalance (16U AAA, trips by destination)
+| Team | → Calgary | → Lower Mainland |
+|------|:--:|:--:|
+| Langley Leafs (LM) | 7 | hosts |
+| Vancouver Aeros (LM) | 7 | hosts |
+| Tri City (LM) | 6 | hosts |
+| Bow Valley (Calgary) | hosts | 2 |
+| Calgary Glaciers (Calgary) | hosts | 1 |
+
+Lower Mainland teams travel to Calgary 6–7 games each; Calgary teams come west only 1–2. **This is
+already unbalanced** — LM is over-travelling to Calgary.
+
+### Does the build-to-4 plan follow Rule 4? No.
+- **Oct 02 Calgary additions worsen it** — they add *more* LM→Calgary games.
+- **Sep 25 Abbotsford additions help it** — Calgary teams coming to LM.
+- Tension to resolve: Rule 3 forces 4 games per flight (more travel to the host), while Rule 4
+  wants balance. The resolution is **rebalancing which region hosts** the cross-region 4-game
+  gatherings — flip some Calgary gatherings to Lower Mainland ones so Calgary flies west a
+  reciprocal number of times, instead of padding the Calgary trips.
+
+**Consequence:** the build-to-4 plan above must be reworked as a **reciprocity-aware re-plan**
+(rebalance hosting across the division), not simple padding. Superseded pending that rework.
+
 ## Not done
 - No games moved. No engine code changed. This branch holds analysis documents only.
-  You are making all schedule changes manually. Group A/B fixes above are superseded by Rule 3.
+  You are making all schedule changes manually. Group A/B fixes above are superseded by Rule 3;
+  the build-to-4 plan is superseded by Rule 4 (needs a reciprocity-aware re-plan).
