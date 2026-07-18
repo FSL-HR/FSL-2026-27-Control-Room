@@ -152,6 +152,39 @@ part is *where to pull the games from* without creating a new violation:
 - Group B: approach is sound but two source picks need an engine re-check so we don't create a new
   violation on the source weekend. **Not yet fully verified.**
 
+## Rule 3 — Flights: 4 games, no local rivalries (added 2026-07-17)
+
+**Your rule:** if a **flight** is involved, the team must play **at least 4 games** on that trip,
+and **no local-rivalry matchups** may be played there.
+**Caveat:** **16U AA** and **14U AA** are treated differently because each has an odd number of
+teams (exact relaxation to be confirmed).
+
+Notes / interpretation (pending your confirmation):
+- "Flight" = a genuine long-haul air trip (BC coast/island ↔ prairies, etc.), **not** the app's
+  imperfect `FLY` tag. Halfway/neutral drive-to-midpoint venues you've already accepted —
+  **Hardisty, Midway** — are not treated as flights.
+- "Local rivalry" assumed = two teams from the **same home cluster** (e.g. two Lower Mainland
+  teams, or two Calgary-area teams). Confirm if you mean same region instead.
+
+### Impact — supersedes the Group A / Group B solution above
+The relocate-in fixes proposed earlier are now **invalid**:
+- Group A used **Langley Leafs vs Vancouver Aeros** (both Lower Mainland) — a local rivalry on a
+  flight. Not allowed.
+- Group B used **Bow Valley vs Glaciers** (both Calgary-area) — local rivalry on a flight. Not
+  allowed.
+- All 6 "not approved" trips are flights, so each now needs **4 games**, built only from
+  **non-local** opponents present that weekend (respecting the max-2-per-matchup cap).
+
+The current games on those trips are already non-local (e.g. Langley plays Cowichan + Jr.
+Rustlers at Lloydminster), so they stay — the work is getting each from 2 → 4 games using
+non-local opponents, then re-verifying counts/ice/other rules. **To be re-solved after the two
+clarifications below.**
+
+### Open questions
+1. **Local rivalry** = same home cluster (assumed), or same region?
+2. **16U AA / 14U AA caveat:** which part is relaxed for these odd-team divisions — the 4-game
+   minimum, the no-local-rivalry rule, or both?
+
 ## Not done
 - No games moved. No engine code changed. This branch holds analysis documents only.
-  You are making all schedule changes manually.
+  You are making all schedule changes manually. Group A/B fixes above are superseded by Rule 3.
