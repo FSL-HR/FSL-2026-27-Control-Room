@@ -548,7 +548,8 @@ function detectConflicts(scope){
   });
   Object.entries(byTeamWkDay).forEach(([k,gs])=>{
     const [div,tm,wk,day]=k.split('~');
-    const lim=maxDay(div);
+    // 19U is 1 game/day, EXCEPT Langley Leafs (19U) who play four-game weekends and so may play 2/day.
+    const lim=(div==='19U AAA'&&tm==='Langley Leafs')?2:maxDay(div);
     if(gs.length>lim) out.push({sev:'hard',rule:'Max games/day',
       msg:`${tm} (${div}) has ${gs.length} games on ${day} ${wk} — limit is ${lim}.`,wk});
     // rest between same-team games (only matters when 2 same day)
@@ -564,7 +565,8 @@ function detectConflicts(scope){
   });
   Object.entries(byTeamWk).forEach(([k,gs])=>{
     const [div,tm,wk]=k.split('~');
-    const lim=perShow(div);
+    // Per-weekend game cap: 19U is 3, EXCEPT Langley Leafs (19U) who play four-game weekends.
+    const lim=(div==='19U AAA'&&tm==='Langley Leafs')?4:perShow(div);
     if(gs.length>lim) out.push({sev:'hard',rule:'Games/showcase',
       msg:`${tm} (${div}) has ${gs.length} games in ${wk} — showcase max is ${lim}.`,wk});
   });
@@ -711,8 +713,10 @@ function detectConflicts(scope){
      (Hardisty, Midway), which are treated as drives, not flights.
      (19U "lock all placed games" is handled as a working constraint, not an engine rule.) */
   (function(){
-    const TRAVEL_DIVS=new Set(['12U AAA','14U AA','14U AAA','16U AA','16U AAA']);
-    const AAA_DIVS=new Set(['12U AAA','14U AAA','16U AAA']);   // 4-game flight min applies here
+    // 19U follows the same travel rules as the others, but its game minimums are ONE LESS
+    // (flight >=3 not 4, long drive >=2 not 3) since 19U plays 3-game weekends / a 24-game season.
+    const TRAVEL_DIVS=new Set(['12U AAA','14U AA','14U AAA','16U AA','16U AAA','19U AAA']);
+    const AAA_DIVS=new Set(['12U AAA','14U AAA','16U AAA']);   // 4-game flight min applies here (19U handled separately)
     const ISLAND=new Set(['Cowichan','Victoria']);              // Vancouver Island clusters
     const HALFWAY=new Set(['Hardisty','Midway']);               // neutral midpoints, not flights
     const exemptTeam=nm=>/peace country/i.test(nm)||/purcell/i.test(nm);
@@ -738,10 +742,12 @@ function detectConflicts(scope){
         const fg=gs.filter(g=>flightDests.includes(clusterName(g.venue)));
         // Flights should be >=4 games. AAA: hard below 4. AA divisions (odd team counts):
         // exactly 3 is a soft warning (allowed only in extenuating cases); below 3 is hard.
-        if(fg.length<4){
-          const sev=AAA_DIVS.has(div)?'hard':(fg.length>=3?'soft':'hard');
-          const note=AAA_DIVS.has(div)?'a flight must be at least 4 games'
-                                       :'a flight should be 4 games (3 allowed only in extenuating cases)';
+        const flightMin=(div==='19U AAA')?3:4;
+        if(fg.length<flightMin){
+          let sev,note;
+          if(div==='19U AAA'){ sev='hard'; note='a 19U flight must be at least 3 games'; }
+          else if(AAA_DIVS.has(div)){ sev='hard'; note='a flight must be at least 4 games'; }
+          else { sev=(fg.length>=3?'soft':'hard'); note='a flight should be 4 games (3 allowed only in extenuating cases)'; }
           out.push({sev,rule:'Flight <4 games',
             msg:`${tm} (${div}) flies to ${flightDests.join(', ')} for only ${fg.length} game(s) in ${wk} — ${note}.`,wk});
         }
@@ -752,9 +758,10 @@ function detectConflicts(scope){
             msg:`${tm} (${div}) plays local rival(s) ${rivals.join(', ')} on a flight to ${flightDests.join(', ')} (${wk}) — no local rivalries on a fly weekend.`,wk});
       } else if(driveDests.length){
         const dg=gs.filter(g=>driveDests.includes(clusterName(g.venue)));
-        if(dg.length<3)
+        const driveMin=(div==='19U AAA')?2:3;
+        if(dg.length<driveMin)
           out.push({sev:'hard',rule:'Long drive <3 games',
-            msg:`${tm} (${div}) drives 3h+ to ${driveDests.join(', ')} for only ${dg.length} game(s) in ${wk} — a 3h+ trip must be at least 3 games.`,wk});
+            msg:`${tm} (${div}) drives 3h+ to ${driveDests.join(', ')} for only ${dg.length} game(s) in ${wk} — a 3h+ trip must be at least ${driveMin} games.`,wk});
       }
     });
 
