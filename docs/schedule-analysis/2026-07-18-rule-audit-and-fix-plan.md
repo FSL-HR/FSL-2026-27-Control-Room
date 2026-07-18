@@ -66,3 +66,13 @@ Fix: move one of the two weekends' games to break the back‑to‑back (or to a 
 5. Then the flight<4 / long‑drive / local‑rivalry‑on‑flight items, each of which needs a game relocated into the trip (your ice).
 
 I've deliberately left the structural calls to you rather than guess — but point me at any item and I'll do the verified relocation.
+
+---
+
+## 7. Update — 19U rules encoded (later 2026‑07‑18)
+
+You unlocked 19U and gave its rules. Now in the engine (live):
+- **Langley Leafs (19U) play four‑game weekends** — showcase cap 4 and 2 games/day for Leafs; **all other 19U teams stay at 3/weekend, 1/day.** This cleared the Leafs Dec 04 "5‑game" flag automatically.
+- **19U travel = other divisions minus 1 game:** flight ≥ **3** (not 4), long drive ≥ **2** (not 3); rivalry‑on‑flight / reciprocal / Lloyd / repeat‑region all apply to 19U too. Verified: **no new 19U travel violations** — current 19U flights/drives already meet the relaxed minimums.
+
+**Automated relocation attempt (safe, monotonic):** I ran a pass that, for each over‑cap showcase, tries moving one of the team's games to another held‑ice weekend at the same venue, keeping only moves that strictly reduce total hard conflicts. It applied **0 moves** — every candidate either left the venue with no held ice that weekend, or traded the showcase flag for a new conflict (three‑straight, or pushing the opponent over cap). Conclusion: the remaining over‑cap showcases can't be safely auto‑relocated one game at a time. The **8 non‑Leafs 19U over‑caps** (Purcell Gold/Green, Jr. Ooks, Aurora) each need a chosen target weekend from you (which weekend to shift each extra game to), and the **12U AAA Jan 15 trio (8 games each)** should be checked as a data/import error first. Point me at any one and I'll do the verified move.
