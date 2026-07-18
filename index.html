@@ -785,6 +785,49 @@ function detectConflicts(scope){
     }
   })();
 
+  /* ===== FSL additional hard rules (user-confirmed 2026-07-18) =====
+     Rule A  a Lower Mainland team may not play at a Lloydminster venue (no airport there;
+             Lower Mainland can only reach it by flying to Edmonton + a long bus).
+     Rule B  a team may not FLY to the same coarse region (AB / SK/MB / BC) on two
+             consecutive calendar weekends (dates <=8 days apart, so the Christmas gap and any
+             bye weekend reset it — same date logic as the three-straight-weekends check).
+             Peace Country & Purcell are exempt, like the other travel rules. Neutral midpoints
+             (Hardisty/Midway) and the Island<->Lower-Mainland ferry are not flights. */
+  (function(){
+    const HALFWAY=new Set(['Hardisty','Midway']);
+    const exemptB=nm=>/peace country/i.test(nm)||/purcell/i.test(nm);
+    const tObjOf=(nm,div)=>DATA.teams.find(x=>x.name===nm&&x.division===div);
+    // Rule A — Lower Mainland at Lloydminster (per game; honours scope via pool)
+    pool.forEach(g=>{ if(!g.venue||clusterName(g.venue)!=='Lloydminster') return;
+      [g.home,g.away].forEach(nm=>{ const t=tObjOf(nm,g.division);
+        if(t&&t.homeCluster==='Lower Mainland')
+          out.push({sev:'hard',rule:'Lower Mainland at Lloydminster',
+            msg:`${nm} (${g.division}) is a Lower Mainland team booked at Lloydminster (${g.weekend}) — Lower Mainland teams can’t play in Lloydminster.`,wk:g.weekend});
+      });
+    });
+    // Rule B — no flight to the same region on two consecutive weekends
+    const WKD={'Sep 11':'2026-09-11','Sep 18':'2026-09-18','Sep 25':'2026-09-25','Oct 02':'2026-10-02','Oct 09':'2026-10-09','Oct 16':'2026-10-16','Oct 23':'2026-10-23','Oct 30':'2026-10-30','Nov 06':'2026-11-06','Nov 13':'2026-11-13','Nov 20':'2026-11-20','Nov 27':'2026-11-27','Dec 04':'2026-12-04','Dec 11':'2026-12-11','Jan 02':'2027-01-02','Jan 08':'2027-01-08','Jan 15':'2027-01-15','Jan 22':'2027-01-22','Jan 23':'2027-01-22','Jan 29':'2027-01-29','Feb 05':'2027-02-05','Feb 12':'2027-02-12','Feb 19':'2027-02-19'};
+    const dnum=w=>{const d=WKD[w];return d?Math.round(new Date(d+'T00:00:00Z').getTime()/86400000):null;};
+    DATA.teams.forEach(t=>{
+      if(exemptB(t.name)) return;
+      const flyReg={};
+      games.forEach(g=>{ if(g.division!==t.division||(g.home!==t.name&&g.away!==t.name)) return;
+        if(!g.venue||!WKD[g.weekend]) return;
+        const cl=clusterName(g.venue); if(!cl||HALFWAY.has(cl)) return;
+        if(travelTypeFor(t,cl)==='FLY'){ (flyReg[g.weekend]=flyReg[g.weekend]||new Set()).add(CLUSTER_REGION[cl]); }
+      });
+      const wks=Object.keys(flyReg).sort((a,b)=>dnum(a)-dnum(b));
+      for(let i=1;i<wks.length;i++){
+        if(dnum(wks[i])-dnum(wks[i-1])>8) continue;   // bye weekend / holiday gap resets
+        [...flyReg[wks[i-1]]].filter(r=>flyReg[wks[i]].has(r)).forEach(r=>{
+          if(!scope||!scope.weekend||scope.weekend===wks[i]||scope.weekend===wks[i-1])
+            out.push({sev:'hard',rule:'Repeat-region flight',
+              msg:`${t.name} (${t.division}) flies to ${r} on ${wks[i-1]} and again on ${wks[i]} — no flying to the same region two weekends in a row.`,wk:wks[i]});
+        });
+      }
+    });
+  })();
+
   out.forEach(c=>{ c.id=confId(c); c.ack=!!(CONFLICT_ACK&&CONFLICT_ACK[c.id]); });
   return out;
 }
