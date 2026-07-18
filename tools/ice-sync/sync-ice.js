@@ -90,15 +90,16 @@ const rows = XLSX.utils.sheet_to_json(ws, {header:1, raw:true, defval:''}).slice
 const alloc={};              // weekend -> venue -> {Fri:[],Sat:[],Sun:[]}
 const slotKeys=new Set();    // "weekend|venue|day|time" for diffing
 const unmappedVenues=new Set();
-const unmatchedDates=[];
+const badRows=[];              // genuinely unparseable rows — surfaced as a safety net
+let outOfSeasonSkipped=0;      // ice outside the season (Alpine Cup Dec 17-20, after Feb 21) — dropped, not listed
 let placed=0;
 
 for(const r of rows){
   const [dateVal, city, arena, iceSurface, startVal] = r;
   const dUTC=parseDate(dateVal);
-  if(!dUTC){ unmatchedDates.push('(bad date) '+JSON.stringify(r.slice(0,4))); continue; }
+  if(!dUTC){ badRows.push('(bad date) '+JSON.stringify(r.slice(0,4))); continue; }
   const wd=weekendFor(dUTC);
-  if(!wd){ unmatchedDates.push(dUTC.toISOString().slice(0,10)+' '+city+' '+arena); continue; }
+  if(!wd){ outOfSeasonSkipped++; continue; }   // not on any FSL weekend -> out of season, drop silently
   const vk=city+'|'+arena;
   let venue=VENUE_MAP[vk];
   if(!venue){ venue=city+' — '+arena; unmappedVenues.add(vk); }
@@ -128,7 +129,8 @@ const output={
   isBaseline,
   slotKeys: [...slotKeys].sort(),          // used by the next run's diff
   unmappedVenues: [...unmappedVenues].sort(),
-  unmatchedDates,
+  outOfSeasonSkipped,
+  badRows,
   assumptions: ASSUMPTIONS
 };
 fs.writeFileSync(OUT, JSON.stringify(output,null,2));
@@ -139,6 +141,6 @@ console.log('Slots placed         :', placed);
 console.log('Weekends covered     :', Object.keys(alloc).length, '('+Object.keys(alloc).join(', ')+')');
 console.log('Distinct venues      :', new Set([].concat(...Object.values(alloc).map(v=>Object.keys(v)))).size);
 console.log('Unmapped venues      :', output.unmappedVenues.length, JSON.stringify(output.unmappedVenues));
-console.log('Unmatched dates      :', unmatchedDates.length, unmatchedDates.slice(0,5));
+console.log('Out-of-season skipped:', outOfSeasonSkipped, '| bad rows:', badRows.length);
 console.log('Baseline (first run) :', isBaseline, '| new this sync:', newThisSync.length);
 console.log('Wrote                :', OUT);

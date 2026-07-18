@@ -10,8 +10,9 @@ that file so the Ice Allocation tab and weekend views reflect the ice you hold �
 - Maps each `City / Arena` to the app's canonical venue name (`City — Arena`).
 - Buckets each slot into its FSL weekend (Fri/Sat/Sun) and records the start times.
 - Diffs against the previous run to flag **newly-synced** ice (`newThisSync`).
-- Reports ice that falls outside the season weekend structure (`unmatchedDates`) — e.g. the
-  Alpine Cup (Dec 17–20) and post-season (Feb 26–28).
+- **Silently drops** ice outside the FSL season (the Alpine Cup Dec 17–20 and anything after
+  Feb 21) — only a count is kept (`outOfSeasonSkipped`). Genuinely unparseable rows are surfaced
+  in `badRows` as a safety net.
 
 ## Run it
 ```bash
