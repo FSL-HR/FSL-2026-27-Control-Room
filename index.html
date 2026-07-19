@@ -3986,7 +3986,10 @@ const XP=(function(){
       const DOW={Fri:0,Sat:1,Sun:2};
       // asks[wk][cluster][city] = { 'Sat|2h|EVE': count, ... }
       const asks={}; let totalAsks=0;
-      const bump=(wk,venue,key)=>{const cl=clusterName(venue),ct=cityOf(venue);
+      // Export-only column mapping on top of clusterName: generic "BC" placeholder venues
+      // belong in the Lower Mainland ask, and "Midway Arena 2" is the same location as Midway.
+      const clusterCol=v=>{const c=clusterName(v);if(c==='BC')return 'Lower Mainland';if(/^Midway\b/i.test(c))return 'Midway';return c;};
+      const bump=(wk,venue,key)=>{const cl=clusterCol(venue),ct=cityOf(venue);
         ((((asks[wk]=asks[wk]||{})[cl]=asks[wk][cl]||{})[ct]=asks[wk][cl][ct]||{})[key]=(asks[wk][cl][ct][key]||0)+1);totalAsks++;};
       sourceNeededRows().forEach(r=>{
         const pod=games.filter(g=>g.weekend===r.wk&&g.venue===r.venue);
