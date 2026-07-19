@@ -3999,7 +3999,7 @@ const XP=(function(){
       // TBD_NEEDS day+window overflow tags, and a bare-count fallback for anything not yet run
       // through "Time entire season".
       const winOf=t=>{const m=/^(\d{1,2}):(\d{2})$/.exec(String(t||''));if(!m)return 'ANY';const mm=(+m[1])*60+(+m[2]);return mm<720?'AM':(mm<1020?'PM':'EVE');};
-      const lenOf=d=>{const h=(((CFG.slotHours||{})[d])||2);return (h%1===0?String(h):h.toFixed(1)).replace(/\.0$/,'')+'h';};
+      const lenOf=d=>{const h=(((CFG.slotHours||{})[d])||2);const mins=Math.round(h*60);return mins%60===0?(mins/60)+'h':Math.floor(mins/60)+'h '+(mins%60)+'m';};
       const DOW={Fri:0,Sat:1,Sun:2};
       // asks[wk][cluster][city] = { 'Sat|2h|EVE': count, ... }
       const asks={}; let totalAsks=0;
@@ -4024,8 +4024,24 @@ const XP=(function(){
       });
       const clusters=[...new Set([].concat(...Object.values(asks).map(o=>Object.keys(o))))]
         .sort((a,b)=>a.localeCompare(b));
-      title='FSL \u2014 Ice To Source \u2014 what to ask each location for';
+      title='FSL \u2014 Ice Rental Requests by Location \u2014 2026-27 Season';
       cols=['Weekend','Date'].concat(clusters);
+      // Plain-English ask lines a rink manager can act on without any FSL context.
+      const MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      const MON={}; MONTHS.forEach((m,i)=>MON[m]=i);
+      const dayDate=(wk,day)=>{ try{
+        const m=/^(\w{3}) (\d{2})$/.exec(String(wk)); if(!m) return day;
+        const y=(typeof wkYear==='function')?wkYear(wk):2026;
+        const d=new Date(y,MON[m[1]],+m[2]); d.setDate(d.getDate()+({Fri:0,Sat:1,Sun:2}[day]||0));
+        return {Fri:'Friday',Sat:'Saturday',Sun:'Sunday'}[day]+' '+MONTHS[d.getMonth()]+' '+d.getDate();
+      }catch(e){ return day; } };
+      const winText=(win,day)=>{
+        if(day==='Sun') return win==='AM'?'morning ice (8:00 AM\u201312:00 PM)':'any time before 3:00 PM (Sunday ice must end by 3:00 PM)';
+        return {AM:'morning ice (start between 8:00 AM and 12:00 PM)',
+                PM:'afternoon ice (start between 12:00 and 5:00 PM)',
+                EVE:'evening ice (start between 5:00 PM and 8:30 PM, game done by 10:45 PM)',
+                ANY:'any time of day (8:00 AM\u20138:30 PM start)'}[win]||'any time of day';
+      };
       const cellFor=(wk,cl)=>{
         const byCity=(asks[wk]||{})[cl]; if(!byCity)return '';
         const cities=Object.keys(byCity).sort();
@@ -4033,14 +4049,16 @@ const XP=(function(){
           const parts=Object.keys(byCity[ct])
             .sort((a,b)=>{const A=a.split('|'),B=b.split('|');const da=(DOW[A[0]]!=null?DOW[A[0]]:9),db=(DOW[B[0]]!=null?DOW[B[0]]:9);return da-db||a.localeCompare(b);})
             .map(k=>{const kk=k.split('|'),q=kk[0],len=kk[1],win=kk[2],n=byCity[ct][k];
-              return (q==='?'?'? day':q)+': '+n+'\u00d7'+(len==='?'?('slot'+(n>1?'s':'')):len)+' '+(TBD_WIN_LABEL[win]||'any');});
-          return (cities.length>1?ct+' \u2014 ':'')+parts.join('\n');
-        }).join('\n');
+              const slots=n+' \u00d7 '+(len==='?'?'game slot'+(n>1?'s':''):len+' slot'+(n>1?'s':''));
+              if(q==='?') return '\u2022 Any day that weekend: '+slots+', day and time flexible';
+              return '\u2022 '+dayDate(wk,q)+': '+slots+', '+winText(win,q);});
+          return (cities.length>1?ct.toUpperCase()+':\n':'')+parts.join('\n');
+        }).join('\n\n');
       };
       rows=WK.filter(wk=>asks[wk]).map(wk=>({c:[wk,(WKDATE[wk]||'')].concat(clusters.map(cl=>cellFor(wk,cl))),k:'src'}));
       color=()=>'#ffffff';
-      legend=totalAsks?(totalAsks+' slot'+(totalAsks===1?'':'s')+' to source \u00b7 each cell = the ask for that location that weekend (day: count \u00D7 length \u00b7 time of day)'):'nothing to source \u2014 all games sit on real ice';
-      note='Run \u201C\u23F1 Time entire season\u201D first for precise day + time-of-day asks; \u201C? day\u201D entries are needs not yet planned. Windows: morning = 8\u2013noon start, afternoon = noon\u20135, evening = 5+, any = whole day works. Sundays: teams are out before 3 PM. Aberdeen under-18 weekends are league flex (no sourcing).';
+      legend=totalAsks?(totalAsks+' slot'+(totalAsks===1?'':'s')+' requested across the season \u00b7 each column is a location \u2014 read one column top to bottom for that area\u2019s full season of requests'):'nothing to source \u2014 all games sit on real ice';
+      note='HOW TO READ THIS SHEET: each column is a location (area); each row is a weekend. A cell lists exactly what the Female Super League would like to rent from rinks in that area that weekend \u2014 number of slots, slot length, and time of day. Example: \u201C\u2022 Saturday Oct 24: 2 \u00D7 2h slots, evening ice (start between 5:00 PM and 8:30 PM)\u201D means we need to book two 2-hour ice slots that Saturday evening. \u201CAny day that weekend\u201D lines are flexible on both day and time. All requests are for full-ice, game-ready slots. Contact: hrunnalls@femalesuperleague.com.';
     } else if(kind==='unused'){
       const rs=unusedIceRows();
       const tot=rs.reduce((s,r)=>s+r.free,0);
