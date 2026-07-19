@@ -3326,10 +3326,10 @@ function hypoTimePod(wk,venue){
     const ids=new Set(placed.map(o=>String(o.id)));
     return { placed:placed, left:remaining.filter(g=>!ids.has(String(g.id))) };
   };
-  // Try to fit everyone: prefer fewest rinks (max 2 arenas), and Saturday starting 10:00
-  // (fall back to 8:00 for room). We never assume more than 2 rinks — everything must be
-  // packed into at most two arenas across Sat, then Sun, then Fri.
-  const MAX_RINKS=2;
+  // ONE RINK ALWAYS (league rule): never assume a second sheet exists. Saturday starting
+  // 10:00 (fall back to 8:00 for room), then Sunday, then Friday. Games that don't fit on
+  // the single sheet are returned in `remaining` and become day+window sourcing asks.
+  const MAX_RINKS=1;
   let best=null;
   outer:
   for(let R=1;R<=MAX_RINKS;R++){
@@ -4705,7 +4705,7 @@ const ACTIONS={
   hypoTime:d=>{ if(!d||!d.wk||!d.venue)return;
     if(!isUnsourcedPod(d.wk,d.venue)){showToast('This pod has real ice \u2014 hypothetical timing is only for unsourced pods (use \u201C\u2699 Time this pod\u201D instead).','warn');return;}
     const r=hypoTimePod(d.wk,d.venue); const n=(r&&r.count!=null)?r.count:(r||0); const un=(r&&r.unplaced)||0; const rk=(r&&r.rinks)||1; render();
-    showToast('\u23F1 Built a hypothetical schedule for '+n+' game'+(n===1?'':'s')+(rk>1?(' across '+rk+' rinks'):' on one rink')+' \u2014 Saturday first (ends by 8:30 PM), then Sunday (out before 3 PM), then Friday'+(un?(' \u2014 '+un+" couldn\u2019t fit"):'')+'. Planning only; venue/city exports; overridden by real ice.','good'); },
+    showToast('\u23F1 Built a hypothetical schedule for '+n+' game'+(n===1?'':'s')+' on one rink \u2014 Saturday first (ends by 8:30 PM), then Sunday (out before 3 PM), then Friday'+(un?(' \u2014 '+un+" couldn\u2019t fit"):'')+'. Planning only; venue/city exports; overridden by real ice.','good'); },
   hypoClear:d=>{ if(!d||!d.wk||!d.venue)return; const n=clearHypoPod(d.wk,d.venue); render(); showToast(n?('Cleared hypothetical times for '+n+' game'+(n===1?'':'s')+'.'):'No hypothetical times here.', n?'good':'warn'); },
   hypoLock:d=>{ if(!d||!d.wk||!d.venue)return;
     if(isEffLocked(d.wk,d.venue)){showToast('\uD83D\uDD12 That venue/weekend is locked \u2014 unlock it to lock times in as real.','warn');return;}
