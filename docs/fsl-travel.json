@@ -1,0 +1,362 @@
+{
+  "meta": {
+    "name": "FSL Team Travel",
+    "season": "2026-27",
+    "description": "Home clusters, home venues, and how each cluster reaches every other cluster.",
+    "codes": {
+      "HOME": "Same home cluster, no meaningful travel",
+      "RDRV": "Regional drive (short/medium; same province or confirmed local cross-line pair)",
+      "LDRV": "Long drive (ground trip crossing regions)",
+      "FLY": "Flight (BC coastal/Island programs; prairie/AB clusters to the BC coast; plus confirmed air routes)"
+    },
+    "generated": "2026-07-19"
+  },
+  "clusters": [
+    {
+      "key": "Edmonton",
+      "region": "AB",
+      "flying": false,
+      "homeVenues": [
+        "Silent Ice Center (Hesco / Hatch)",
+        "WEM Ice Palace",
+        "Morinville Arena",
+        "Evansburg Arena"
+      ],
+      "teams": [
+        "Angels Pro Hockey",
+        "Jr. Ooks",
+        "Aurora Hockey Club",
+        "Peace Country Northstars"
+      ],
+      "travelTo": {
+        "Calgary-area": {
+          "code": "RDRV",
+          "label": "Regional drive"
+        },
+        "Lloydminster": {
+          "code": "RDRV",
+          "label": "Regional drive"
+        },
+        "Aberdeen (Sask)": {
+          "code": "LDRV",
+          "label": "Long drive"
+        },
+        "Winnipeg": {
+          "code": "FLY",
+          "label": "Fly"
+        },
+        "Lower Mainland": {
+          "code": "FLY",
+          "label": "Fly"
+        },
+        "Cowichan / Island": {
+          "code": "FLY",
+          "label": "Fly"
+        },
+        "Kimberley": {
+          "code": "LDRV",
+          "label": "Long drive"
+        }
+      }
+    },
+    {
+      "key": "Calgary-area",
+      "region": "AB",
+      "flying": false,
+      "homeVenues": [
+        "GPRC",
+        "Seven Chiefs Sportsplex",
+        "Cochrane — SLS Center",
+        "Canmore Arena",
+        "Banff — Fenlands Arena"
+      ],
+      "teams": [
+        "Bow Valley Nationals",
+        "Calgary Glaciers",
+        "Calgary Phoenix"
+      ],
+      "travelTo": {
+        "Edmonton": {
+          "code": "RDRV",
+          "label": "Regional drive"
+        },
+        "Lloydminster": {
+          "code": "RDRV",
+          "label": "Regional drive"
+        },
+        "Aberdeen (Sask)": {
+          "code": "LDRV",
+          "label": "Long drive"
+        },
+        "Winnipeg": {
+          "code": "FLY",
+          "label": "Fly"
+        },
+        "Lower Mainland": {
+          "code": "FLY",
+          "label": "Fly"
+        },
+        "Cowichan / Island": {
+          "code": "FLY",
+          "label": "Fly"
+        },
+        "Kimberley": {
+          "code": "RDRV",
+          "label": "Regional drive"
+        }
+      }
+    },
+    {
+      "key": "Lloydminster",
+      "region": "AB",
+      "flying": false,
+      "homeVenues": [
+        "Servus Sports Center",
+        "Hardisty Arena"
+      ],
+      "teams": [
+        "Jr. Rustlers"
+      ],
+      "travelTo": {
+        "Edmonton": {
+          "code": "RDRV",
+          "label": "Regional drive"
+        },
+        "Calgary-area": {
+          "code": "RDRV",
+          "label": "Regional drive"
+        },
+        "Aberdeen (Sask)": {
+          "code": "RDRV",
+          "label": "Regional drive"
+        },
+        "Winnipeg": {
+          "code": "LDRV",
+          "label": "Long drive"
+        },
+        "Lower Mainland": {
+          "code": "FLY",
+          "label": "Fly"
+        },
+        "Cowichan / Island": {
+          "code": "FLY",
+          "label": "Fly"
+        },
+        "Kimberley": {
+          "code": "LDRV",
+          "label": "Long drive"
+        }
+      }
+    },
+    {
+      "key": "Aberdeen (Sask)",
+      "region": "SK/MB",
+      "flying": false,
+      "homeVenues": [
+        "Aberdeen Rec Center"
+      ],
+      "teams": [
+        "Sask Phantoms"
+      ],
+      "travelTo": {
+        "Edmonton": {
+          "code": "LDRV",
+          "label": "Long drive"
+        },
+        "Calgary-area": {
+          "code": "LDRV",
+          "label": "Long drive"
+        },
+        "Lloydminster": {
+          "code": "RDRV",
+          "label": "Regional drive"
+        },
+        "Winnipeg": {
+          "code": "LDRV",
+          "label": "Long drive"
+        },
+        "Lower Mainland": {
+          "code": "FLY",
+          "label": "Fly"
+        },
+        "Cowichan / Island": {
+          "code": "FLY",
+          "label": "Fly"
+        },
+        "Kimberley": {
+          "code": "LDRV",
+          "label": "Long drive"
+        }
+      }
+    },
+    {
+      "key": "Winnipeg",
+      "region": "SK/MB",
+      "flying": false,
+      "homeVenues": [
+        "7 Oaks Arena"
+      ],
+      "teams": [
+        "Manitoba Mavericks"
+      ],
+      "travelTo": {
+        "Edmonton": {
+          "code": "LDRV",
+          "label": "Long drive"
+        },
+        "Calgary-area": {
+          "code": "LDRV",
+          "label": "Long drive"
+        },
+        "Lloydminster": {
+          "code": "LDRV",
+          "label": "Long drive"
+        },
+        "Aberdeen (Sask)": {
+          "code": "LDRV",
+          "label": "Long drive"
+        },
+        "Lower Mainland": {
+          "code": "FLY",
+          "label": "Fly"
+        },
+        "Cowichan / Island": {
+          "code": "FLY",
+          "label": "Fly"
+        },
+        "Kimberley": {
+          "code": "FLY",
+          "label": "Fly"
+        }
+      }
+    },
+    {
+      "key": "Lower Mainland",
+      "region": "BC",
+      "flying": true,
+      "homeVenues": [
+        "Abbotsford — Rinks at Summit Center",
+        "Delta — Planet Ice Delta",
+        "Langley"
+      ],
+      "teams": [
+        "Langley Leafs",
+        "Vancouver Aeros",
+        "Tri City Express"
+      ],
+      "travelTo": {
+        "Edmonton": {
+          "code": "FLY",
+          "label": "Fly"
+        },
+        "Calgary-area": {
+          "code": "FLY",
+          "label": "Fly"
+        },
+        "Lloydminster": {
+          "code": "FLY",
+          "label": "Fly"
+        },
+        "Aberdeen (Sask)": {
+          "code": "FLY",
+          "label": "Fly"
+        },
+        "Winnipeg": {
+          "code": "FLY",
+          "label": "Fly"
+        },
+        "Cowichan / Island": {
+          "code": "RDRV",
+          "label": "Regional drive"
+        },
+        "Kimberley": {
+          "code": "LDRV",
+          "label": "Long drive"
+        }
+      }
+    },
+    {
+      "key": "Cowichan / Island",
+      "region": "BC",
+      "flying": true,
+      "homeVenues": [
+        "Shawnigan Lake Arena"
+      ],
+      "teams": [
+        "Cowichan Valley Ravens",
+        "Victoria Hockey Academy"
+      ],
+      "travelTo": {
+        "Edmonton": {
+          "code": "FLY",
+          "label": "Fly"
+        },
+        "Calgary-area": {
+          "code": "FLY",
+          "label": "Fly"
+        },
+        "Lloydminster": {
+          "code": "FLY",
+          "label": "Fly"
+        },
+        "Aberdeen (Sask)": {
+          "code": "FLY",
+          "label": "Fly"
+        },
+        "Winnipeg": {
+          "code": "FLY",
+          "label": "Fly"
+        },
+        "Lower Mainland": {
+          "code": "RDRV",
+          "label": "Regional drive"
+        },
+        "Kimberley": {
+          "code": "LDRV",
+          "label": "Long drive"
+        }
+      }
+    },
+    {
+      "key": "Kimberley",
+      "region": "BC",
+      "flying": false,
+      "homeVenues": [
+        "Kimberley Civic Centre"
+      ],
+      "teams": [
+        "Purcell Collegiate"
+      ],
+      "travelTo": {
+        "Edmonton": {
+          "code": "LDRV",
+          "label": "Long drive"
+        },
+        "Calgary-area": {
+          "code": "RDRV",
+          "label": "Regional drive"
+        },
+        "Lloydminster": {
+          "code": "LDRV",
+          "label": "Long drive"
+        },
+        "Aberdeen (Sask)": {
+          "code": "LDRV",
+          "label": "Long drive"
+        },
+        "Winnipeg": {
+          "code": "FLY",
+          "label": "Fly"
+        },
+        "Lower Mainland": {
+          "code": "LDRV",
+          "label": "Long drive"
+        },
+        "Cowichan / Island": {
+          "code": "LDRV",
+          "label": "Long drive"
+        }
+      }
+    }
+  ]
+}
