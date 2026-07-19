@@ -2000,6 +2000,7 @@ function solveWeekend(wk){
       if(gg.day!==nd||gg.time!==nt||gg.endTime!==ne) changed++;
       gg.day=nd; gg.time=nt; gg.endTime=ne; gg.sheet=nsheet;
       GAME_TIMES[String(gg.id)]={date:o.date||'',day:nd,time:nt,end:ne,sheet:nsheet,venue:venue};
+      try{ clearTbdNeed(gg.id); }catch(e){}   // placed on real ice — sourcing ask satisfied
     });});
     unplaced.forEach(id=>{ const gg=list.find(x=>String(x.id)===String(id)); if(gg){ if(gg.day||gg.time||gg.endTime) changed++; gg.day='';gg.time='';gg.endTime='';gg.sheet=''; delete GAME_TIMES[String(gg.id)]; } });
     report.venues.push({venue:venue, n:list.length, unplaced:unplaced.length, errs:v.errs, warns:v.warns, flags:flags, repairs:repairs,
@@ -2120,6 +2121,7 @@ function solveOneVenue(wk, venue){
     const gg=list.find(x=>String(x.id)===String(o.id)); if(!gg) return;
     gg.day=dd; gg.time=hhmm(o.start); gg.endTime=hhmm(o.end); gg.sheet=o.sheet||'';
     GAME_TIMES[String(gg.id)]={date:o.date||'',day:dd,time:gg.time,end:gg.endTime,sheet:o.sheet||'',venue:venue};
+    try{ clearTbdNeed(gg.id); }catch(e){}   // placed on real ice — sourcing ask satisfied
   });});
   unplaced.forEach(id=>{ const gg=list.find(x=>String(x.id)===String(id)); if(gg){ gg.day='';gg.time='';gg.endTime='';gg.sheet=''; delete GAME_TIMES[String(gg.id)]; } });
   try{saveGameTimes();}catch(e){}
@@ -3226,6 +3228,7 @@ function applyManualTimes(){
 }
 function setManualTime(id, patch){
   const gg=games.find(x=>String(x.id)===String(id)); if(!gg) return false;
+  try{ clearTbdNeed(id); }catch(e){}   // a manually-set real time supersedes the sourcing ask
   const cur=MANUAL_TIMES[String(id)]||{day:gg.day||'',time:gg.time||'',end:gg.endTime||'',sheet:gg.sheet||''};
   const next=Object.assign({}, cur, patch);
   MANUAL_TIMES[String(id)]=next;
@@ -3358,6 +3361,73 @@ function clearHypoPod(wk,venue){
   if(n) saveHypoTimes(); return n;
 }
 function podHasHypo(wk,venue){ return games.some(g=>g.weekend===wk&&g.venue===venue&&HYPO_TIMES[String(g.id)]); }
+/* ===== Overflow → day + window ("what to ask the rinks for") =============================
+   A game that fits on NO held slot stays on its weekend+venue and gets: a day (Sat→Sun→Fri
+   preference) where both teams still fit under the rules, and a time-of-day window computed
+   from when both teams are actually free that day. Windows: AM = start 8:00–11:59,
+   PM = 12:00–16:59, EVE = 17:00+ (Fri/Sat end by 8:30 PM; Sun out before 3 PM → no EVE).
+   Whole day free → ANY. Stored in TBD_NEEDS; day is written as the game's real day, time
+   stays blank so every view shows "Sat · TBD (evening)". */
+function tbdNeedFor(g){
+  if(!g||g.time) return null;                 // real time wins
+  return TBD_NEEDS[String(g.id)]||null;
+}
+function assignTbdNeed(g){
+  const wk=g.weekend, block=_SLV.block(g.division), REST=165;
+  const is19=String(g.division).indexOf('19U')===0;
+  const capDay=d=> d==='Sun' ? 1 : (is19?1:2);
+  const DAY_END={Fri:20*60+30,Sat:20*60+30,Sun:15*60};
+  // Effective busy intervals + day-counts for one team on one day (real, hypo, or TBD day)
+  const busy=(team,day)=>{
+    const iv=[]; let cnt=0;
+    games.forEach(o=>{
+      if(o.weekend!==wk||String(o.id)===String(g.id))return;
+      if(o.home!==team&&o.away!==team)return;
+      const h=(!o.time&&HYPO_TIMES[String(o.id)])?HYPO_TIMES[String(o.id)]:null;
+      const t=TBD_NEEDS[String(o.id)];
+      const d=o.time?o.day:(h?h.day:(t?t.day:o.day||''));
+      if(d!==day)return;
+      cnt++;
+      const hm=s=>{const m=/^(\d{1,2}):(\d{2})$/.exec(String(s||''));return m?(+m[1])*60+(+m[2]):null;};
+      const st=o.time?hm(o.time):(h?hm(h.time):null);
+      if(st!=null){ const en=(o.time&&o.endTime?hm(o.endTime):null); iv.push({start:st,end:en!=null?en:st+_SLV.block(o.division)}); }
+    });
+    return {iv:iv,cnt:cnt};
+  };
+  const winsFor=(day)=>{
+    const bh=busy(g.home,day), ba=busy(g.away,day);
+    if(bh.cnt>=capDay(day)||ba.cnt>=capDay(day)) return null;          // day cap hit
+    const iv=bh.iv.concat(ba.iv);
+    const lastStart=DAY_END[day]-block; if(lastStart<8*60) return null;
+    const free=t=>{ const en=t+block;
+      for(const x of iv){ if(t<x.end&&en>x.start) return false;
+        const gap=t>=x.end?t-x.end:x.start-en; if(gap<REST) return false; }
+      return true; };
+    const ranges={AM:[8*60,12*60],PM:[12*60,17*60],EVE:[17*60,24*60]};
+    const ok=[];
+    ['AM','PM','EVE'].forEach(w=>{
+      if(day==='Sun'&&w==='EVE')return;
+      const lo=ranges[w][0], hi=Math.min(ranges[w][1]-1,lastStart);
+      for(let t=lo;t<=hi;t+=15){ if(free(t)){ ok.push(w); break; } }
+    });
+    return ok.length?ok:null;
+  };
+  let pick=null;
+  for(const day of ['Sat','Sun','Fri']){
+    const ok=winsFor(day);
+    if(ok){ pick={day:day, win: ok.length>=2 ? 'ANY' : ok[0]}; break; }
+  }
+  if(!pick){
+    // nothing fits cleanly — least-loaded day, window ANY (flagged in the export)
+    let best='Sat',bestN=1e9;
+    ['Sat','Sun','Fri'].forEach(d=>{const n=busy(g.home,d).cnt+busy(g.away,d).cnt;if(n<bestN){bestN=n;best=d;}});
+    pick={day:best,win:'ANY'};
+  }
+  g.day=pick.day; g.time=''; g.endTime=''; g.sheet='';
+  delete GAME_TIMES[String(g.id)];
+  TBD_NEEDS[String(g.id)]=pick; saveTbdNeeds();
+  return pick;
+}
 // Promote a pod's HYPOTHETICAL times to REAL, locked times. Each game's hypo {day,time,end,sheet}
 // is written onto the game as a real manual time (setManualTime -> games + GAME_TIMES + MANUAL_TIMES,
 // persisted and shown on every export like any other confirmed time). The hypo entries are then
@@ -4753,7 +4823,8 @@ const ACTIONS={
       // Also drop any HYPOTHETICAL (planning) time on this game. Its day/slot described the OLD
       // pairing; leaving it would show a stale hypothetical arrangement even though the opponent
       // matrix (derived live from games) has already updated. Cleared so the pod re-times cleanly.
-      try{ if(typeof HYPO_TIMES!=='undefined' && HYPO_TIMES[String(x.id)]){ delete HYPO_TIMES[String(x.id)]; } }catch(e){} };
+      try{ if(typeof HYPO_TIMES!=='undefined' && HYPO_TIMES[String(x.id)]){ delete HYPO_TIMES[String(x.id)]; } }catch(e){}
+      try{ clearTbdNeed(x.id); }catch(e){} };
     const before=g.home+' vs '+g.away;
 
     // Find another game this weekend (same division) where the INCOMING team currently plays, so we
@@ -5008,6 +5079,7 @@ const ACTIONS={
               Object.keys(HYPO_TIMES).forEach(k=>delete HYPO_TIMES[k]);
               Object.keys(payloadObj.hypoTimes).forEach(k=>{HYPO_TIMES[k]=payloadObj.hypoTimes[k];});
               try{saveHypoTimes();}catch(e){}
+              try{ TBD_NEEDS={}; saveTbdNeeds(); }catch(e){}   // imported state: stale sourcing asks are re-derivable
             }
             if(payloadObj.matchupLog && typeof payloadObj.matchupLog==='object' && typeof MATCHUP_LOG!=='undefined'){
               Object.keys(MATCHUP_LOG).forEach(k=>delete MATCHUP_LOG[k]);
@@ -5148,6 +5220,7 @@ render();
       if(o.hypoTimes && typeof o.hypoTimes==='object' && typeof HYPO_TIMES!=='undefined'){
         Object.keys(HYPO_TIMES).forEach(k=>delete HYPO_TIMES[k]);
         Object.keys(o.hypoTimes).forEach(k=>{HYPO_TIMES[k]=o.hypoTimes[k];}); try{saveHypoTimes();}catch(e){}
+        try{ TBD_NEEDS={}; saveTbdNeeds(); }catch(e){}   // imported state: stale sourcing asks are re-derivable
       }
       if(o.matchupLog && typeof o.matchupLog==='object' && typeof MATCHUP_LOG!=='undefined'){
         Object.keys(MATCHUP_LOG).forEach(k=>delete MATCHUP_LOG[k]);
