@@ -3244,6 +3244,14 @@ function clearManualTime(id){ delete MANUAL_TIMES[String(id)]; saveManualTimes()
    the venue view, and vanish once a pod is sourced. Keyed by game id: {day,time,end,sheet}. */
 var HYPO_TIMES=(function(){try{return JSON.parse(localStorage.getItem('fsl_hypo_times_v1')||'{}')||{};}catch(e){return {};}})();
 function saveHypoTimes(){try{localStorage.setItem('fsl_hypo_times_v1',JSON.stringify(HYPO_TIMES));}catch(e){}}
+/* ===== TBD_NEEDS: overflow games that need sourced ice — day + time-of-day window ask.
+   Keyed by game id -> {day:'Fri'|'Sat'|'Sun', win:'AM'|'PM'|'EVE'|'ANY'}. Planning data only:
+   cleared when the game gets a real time, moves, is parked, or its matchup changes. */
+var TBD_NEEDS={};
+try{ TBD_NEEDS=JSON.parse(localStorage.getItem('fsl_tbd_needs_v1')||'{}')||{}; }catch(e){ TBD_NEEDS={}; }
+function saveTbdNeeds(){try{localStorage.setItem('fsl_tbd_needs_v1',JSON.stringify(TBD_NEEDS));}catch(e){}}
+function clearTbdNeed(id){ if(TBD_NEEDS[String(id)]){ delete TBD_NEEDS[String(id)]; saveTbdNeeds(); return true; } return false; }
+const TBD_WIN_LABEL={AM:'morning',PM:'afternoon',EVE:'evening',ANY:'any'};
 /* ===== MATCHUP_LOG: a persistent record of every matchup change the user makes (via the drag
    editor / swap). Keyed by game id -> { orig:{home,away}, changes:[{from,away...},...] }. `orig` is
    captured the FIRST time a game is edited, so "revert to original" always restores the pre-edit
@@ -4646,7 +4654,7 @@ window.PG=PG;
 var UNDO_STACK=[];
 var SOLVE_REPORT={}; // wk -> last auto-solve result (per-venue day splits, flags, review items)
 const MUTATING=new Set(['iceHave','iceNo','iceHeld','iceDel','iceRestore','iceReset','venueAdd','venueAddDel','impApply','impReset','pgPark','pgParkVenue','pgParkDiv','pgAssign','podSwap','podTime','slotAssign','pgPlaceAt','pgPlaceAll','pgPodMove','pgSelMove','pgRestore','pgRemove','autosolve','toggleLock','toggleVenueLock','pgTbd','timeSet','timeUnlock','slotAddDel','hypoTime','hypoClear','hypoLock','slotDrop','matchupSet','matchupSwap']);;
-function pushUndo(label){try{UNDO_STACK.push(JSON.stringify({games:games,gid:gid,ice:ICE_DECISIONS,times:GAME_TIMES,parking:PARKING,locked:LOCKED,removed:REMOVED_GAMES,label:label||''}));if(UNDO_STACK.length>40)UNDO_STACK.shift();}catch(e){}}
+function pushUndo(label){try{UNDO_STACK.push(JSON.stringify({games:games,gid:gid,ice:ICE_DECISIONS,times:GAME_TIMES,parking:PARKING,locked:LOCKED,removed:REMOVED_GAMES,hypo:HYPO_TIMES,tbd:TBD_NEEDS,label:label||''}));if(UNDO_STACK.length>40)UNDO_STACK.shift();}catch(e){}}
 function undo(){
   if(!UNDO_STACK.length){showToast('Nothing to undo.','');return;}
   const s=JSON.parse(UNDO_STACK.pop());
@@ -4656,6 +4664,8 @@ function undo(){
   PARKING=s.parking||{};saveParking();
   if(s.locked){LOCKED=s.locked;saveLocked();}
   if(s.removed){REMOVED_GAMES=s.removed;saveRemovedGames();}
+  if(s.hypo){Object.keys(HYPO_TIMES).forEach(k=>delete HYPO_TIMES[k]);Object.assign(HYPO_TIMES,s.hypo);saveHypoTimes();}
+  if(s.tbd){TBD_NEEDS=s.tbd;saveTbdNeeds();}
   SOLVE_REPORT={};
   render();showToast('\u21B6 Undone'+(s.label?': '+s.label:''),'good');
 }
