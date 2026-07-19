@@ -3977,14 +3977,50 @@ const XP=(function(){
         injectEvents(dr,dgs,cols,dv);rows=rows.concat(dr);});
       color=r=>r.k==='EVENT'?'#FFF2CC':(DIVFILL[r.k]||'#ffffff'); legend='color = division \u00b7 Alpine Cup & playoffs = gold (day/time TBD) \u00b7 every game in the league (unscheduled games show TBD)';
     } else if(kind==='sourced'){
-      const rs=sourceNeededRows();
-      const tot=rs.reduce((s,r)=>s+r.need,0);
-      title='FSL \u2014 Ice To Source (needed slots, incl. over-capacity)';
-      cols=['Weekend','Date','City','Arena','Region','Division(s)','Games booked','Real slots','Slots to source','Reason'];
-      rows=rs.map(r=>({c:[r.wk,(WKDATE[r.wk]||''),cityOf(r.venue),arenaOf(r.venue),r.region,(r.divs.join(', ')||'\u2014'),r.used,r.real,r.need,sourceReason(r)],k:(r.real<=0?'none':'over')}));
-      color=r=>r.k==='none'?'#F8CBAD':'#FCE4D6';
-      legend=rs.length?(tot+' slot'+(tot===1?'':'s')+' to source across '+rs.length+' venue-weekend'+(rs.length===1?'':'s')+' \u00b7 orange = over-capacity real ice, deeper orange = no contracted ice'):'nothing to source \u2014 all games sit on real ice';
-      note='\u201CSlots to source\u201D = games booked minus real contracted slots. It already includes over-booked real venues (more games than contracted ice) and venues you flagged NOT secured. Aberdeen under-18 weekends are treated as league flex (no sourcing).';
+      // Weekend \u00d7 location matrix of sourcing asks. Each cell: per-day count \u00d7 length \u00d7 window.
+      // Sources: unsourced pods (every hypothetical slot is an ask; window from its planned time),
+      // TBD_NEEDS day+window overflow tags, and a bare-count fallback for anything not yet run
+      // through "Time entire season".
+      const winOf=t=>{const m=/^(\d{1,2}):(\d{2})$/.exec(String(t||''));if(!m)return 'ANY';const mm=(+m[1])*60+(+m[2]);return mm<720?'AM':(mm<1020?'PM':'EVE');};
+      const lenOf=d=>{const h=(((CFG.slotHours||{})[d])||2);return (h%1===0?String(h):h.toFixed(1)).replace(/\.0$/,'')+'h';};
+      const DOW={Fri:0,Sat:1,Sun:2};
+      // asks[wk][cluster][city] = { 'Sat|2h|EVE': count, ... }
+      const asks={}; let totalAsks=0;
+      const bump=(wk,venue,key)=>{const cl=clusterName(venue),ct=cityOf(venue);
+        ((((asks[wk]=asks[wk]||{})[cl]=asks[wk][cl]||{})[ct]=asks[wk][cl][ct]||{})[key]=(asks[wk][cl][ct][key]||0)+1);totalAsks++;};
+      sourceNeededRows().forEach(r=>{
+        const pod=games.filter(g=>g.weekend===r.wk&&g.venue===r.venue);
+        let counted=0;
+        pod.forEach(g=>{
+          if(g.time&&isTimeLocked(g))return;                       // locked real time: not an ask
+          const h=(!g.time&&HYPO_TIMES[String(g.id)]&&isUnsourcedPod(r.wk,r.venue))?HYPO_TIMES[String(g.id)]:null;
+          const t=(!g.time)?TBD_NEEDS[String(g.id)]:null;
+          if(h){bump(r.wk,r.venue,h.day+'|'+lenOf(g.division)+'|'+winOf(h.time));counted++;}
+          else if(t){bump(r.wk,r.venue,t.day+'|'+lenOf(g.division)+'|'+t.win);counted++;}
+          else if(!g.time&&isUnsourcedPod(r.wk,r.venue)){bump(r.wk,r.venue,'?|'+lenOf(g.division)+'|ANY');counted++;}
+        });
+        const rest=r.need-counted;
+        for(let i=0;i<rest;i++){bump(r.wk,r.venue,'?|?|ANY');}
+      });
+      const clusters=[...new Set([].concat(...Object.values(asks).map(o=>Object.keys(o))))]
+        .sort((a,b)=>a.localeCompare(b));
+      title='FSL \u2014 Ice To Source \u2014 what to ask each location for';
+      cols=['Weekend','Date'].concat(clusters);
+      const cellFor=(wk,cl)=>{
+        const byCity=(asks[wk]||{})[cl]; if(!byCity)return '';
+        const cities=Object.keys(byCity).sort();
+        return cities.map(ct=>{
+          const parts=Object.keys(byCity[ct])
+            .sort((a,b)=>{const A=a.split('|'),B=b.split('|');const da=(DOW[A[0]]!=null?DOW[A[0]]:9),db=(DOW[B[0]]!=null?DOW[B[0]]:9);return da-db||a.localeCompare(b);})
+            .map(k=>{const kk=k.split('|'),q=kk[0],len=kk[1],win=kk[2],n=byCity[ct][k];
+              return (q==='?'?'? day':q)+': '+n+'\u00d7'+(len==='?'?('slot'+(n>1?'s':'')):len)+' '+(TBD_WIN_LABEL[win]||'any');});
+          return (cities.length>1?ct+' \u2014 ':'')+parts.join('\n');
+        }).join('\n');
+      };
+      rows=WK.filter(wk=>asks[wk]).map(wk=>({c:[wk,(WKDATE[wk]||'')].concat(clusters.map(cl=>cellFor(wk,cl))),k:'src'}));
+      color=()=>'#ffffff';
+      legend=totalAsks?(totalAsks+' slot'+(totalAsks===1?'':'s')+' to source \u00b7 each cell = the ask for that location that weekend (day: count \u00D7 length \u00b7 time of day)'):'nothing to source \u2014 all games sit on real ice';
+      note='Run \u201C\u23F1 Time entire season\u201D first for precise day + time-of-day asks; \u201C? day\u201D entries are needs not yet planned. Windows: morning = 8\u2013noon start, afternoon = noon\u20135, evening = 5+, any = whole day works. Sundays: teams are out before 3 PM. Aberdeen under-18 weekends are league flex (no sourcing).';
     } else if(kind==='unused'){
       const rs=unusedIceRows();
       const tot=rs.reduce((s,r)=>s+r.free,0);
@@ -4047,7 +4083,7 @@ const XP=(function(){
   function renderTable(sp){
     if(!sp.rows.length)return '<div class="dt">'+(sp.kind==='sourced'?'\u2713 Nothing needs sourcing \u2014 every game sits on real ice.':sp.kind==='unused'?'No spare ice \u2014 every real slot is in use.':'No games for this selection.')+'</div>';
     const head=sp.cols.map(c=>`<th style="background:#2f3b5c;color:#fff;padding:5px 8px;border:1px solid #556;font-size:11px;text-align:left;position:sticky;top:0">${esc(c)}</th>`).join('');
-    const body=sp.rows.map(r=>`<tr>${r.c.map(x=>`<td style="background:${sp.color(r)};padding:3px 8px;border:1px solid #d9d9e3;font-size:12px;white-space:nowrap">${esc(x)}</td>`).join('')}</tr>`).join('');
+    const body=sp.rows.map(r=>`<tr>${r.c.map(x=>`<td style="background:${sp.color(r)};padding:3px 8px;border:1px solid #d9d9e3;font-size:12px;white-space:${sp.kind==='sourced'?'normal':'nowrap'};vertical-align:top">${esc(x).replace(/\n/g,'<br>')}</td>`).join('')}</tr>`).join('');
     return (sp.note?`<div style="background:#FFF8E1;border:1px solid #E0A743;border-radius:9px;padding:9px 13px;margin-bottom:11px;font-size:12px;color:#7a5b00"><b>${(sp.kind==='arena'||sp.kind==='arenawknd')?'\u2744 Flood requirements:':'\u2139 Note:'}</b> ${esc(sp.note)}</div>`:'')+`<div style="max-height:62vh;overflow:auto;border:1px solid var(--line-l);border-radius:8px"><table style="border-collapse:collapse;min-width:100%">${'<tr>'+head+'</tr>'}${body}</table></div>`;
   }
   function xlsHtml(sp){
@@ -4056,7 +4092,7 @@ const XP=(function(){
     h+=`<tr><td colspan="${sp.cols.length}" style="background:#1f2a44;color:#ffffff;font-weight:bold;font-size:14pt;padding:6px">${esc(sp.title)}</td></tr>`;
     if(sp.note)h+=`<tr><td colspan="${sp.cols.length}" style="background:#FFF8E1;color:#6b4e00;font-weight:bold;padding:6px;border:1px solid #E0A743">${(sp.kind==='arena'||sp.kind==='arenawknd')?'Flood requirements:':'Note:'} ${esc(sp.note)}</td></tr>`;
     h+='<tr>'+sp.cols.map(c=>`<th style="background:#2f3b5c;color:#ffffff;padding:5px;border:1px solid #999999;text-align:left">${esc(c)}</th>`).join('')+'</tr>';
-    sp.rows.forEach(r=>{h+='<tr>'+r.c.map(x=>`<td style="background:${sp.color(r)};padding:4px;border:1px solid #cccccc;mso-number-format:'\\@'">${esc(x)}</td>`).join('')+'</tr>';});
+    sp.rows.forEach(r=>{h+='<tr>'+r.c.map(x=>`<td style="background:${sp.color(r)};padding:4px;border:1px solid #cccccc;vertical-align:top;mso-number-format:'\\@'">${esc(x).replace(/\n/g,'<br style="mso-data-placement:same-cell">')}</td>`).join('')+'</tr>';});
     return h+'</table></body></html>';
   }
   function toXls(sp){
