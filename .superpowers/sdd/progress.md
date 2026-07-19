@@ -30,3 +30,11 @@ Task 5: complete (live run: 411 real / 120 hypo / 137 tbd, invariants hold, undo
 Task 6: complete (matrix verified live: 11 location columns, per-day count x length x window cells)
 Task 7: complete (all views render, 768 games constant, undo restores conflicts+times exactly, all 10 export kinds build, existing solvers regression-clean)
 All tasks complete on feature/time-entire-season. Awaiting user try-out + merge decision.
+
+# Rebuild continuation run — 2026-07-19
+Baseline (rebuilt payload, current engine): 169 hard = 164 one-location + 5 accepted residuals.
+Harness: tools/make-test-build.js -> test/index.html (cloud off, isolated storage, payload applied).
+Solver: test/solve.js + runtime locality gradient (70/extra cluster) + regroup move + DRIVE async driver.
+Lock: Langley Leafs- AA|Vancouver Aeros-AA -> Lower Mainland (9 games, by design).
+Order: 12U AAA first (31 hard baseline).
+Rebuild continuation COMPLETE: 204→1 hard (Victoria showcase, accepted). Deliverable FSL_schedule_2026-07-19_CONTINUATION.json verified on fresh load: 0 multi-location, 0 rivalry violations, counts exact, 768/0 parked. User loads via Save→Load.
