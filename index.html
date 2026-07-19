@@ -569,6 +569,16 @@ function detectConflicts(scope){
     const lim=(div==='19U AAA'&&tm==='Langley Leafs')?4:perShow(div);
     if(gs.length>lim) out.push({sev:'hard',rule:'Games/showcase',
       msg:`${tm} (${div}) has ${gs.length} games in ${wk} — showcase max is ${lim}.`,wk});
+    // ONE LOCATION PER WEEKEND: a team's placed games in a weekend must all be in a single
+    // location cluster (Calgary-area = Calgary/Banff/Canmore/Cochrane, Lloyd = Lloyd/Lashburn,
+    // etc.). A team cannot be in two places in one weekend — any split is a hard conflict.
+    const placed=gs.filter(g=>g.venue&&String(g.venue).trim());
+    const cls=[...new Set(placed.map(g=>clusterName(g.venue)))];
+    if(cls.length>1){
+      const per=cls.map(c=>c+' ('+placed.filter(g=>clusterName(g.venue)===c).length+')').join(', ');
+      out.push({sev:'hard',rule:'One location/weekend',
+        msg:`${tm} (${div}) is scheduled in ${cls.length} different locations in ${wk}: ${per} — a team must stay in one location per weekend.`,wk});
+    }
   });
 
   // matchup repeated >2 in a weekend
