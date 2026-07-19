@@ -590,6 +590,23 @@ function detectConflicts(scope){
     }
   });
 
+  // LOCAL RIVALRIES STAY HOME: a matchup between two teams of the SAME home cluster exists to
+  // fill local ice. It may never be placed at a neutral site (Midway/Hardisty — no region) or
+  // outside the pair's home region (never on a flight). Same-region away venues are allowed
+  // (e.g. both rivals already visiting Edmonton on a shared weekend).
+  const hcOf={}; DATA.teams.forEach(t=>{hcOf[t.division+'|'+t.name]=t.homeCluster;});
+  pool.forEach(g=>{
+    if(!g.venue||!String(g.venue).trim())return;
+    const h=hcOf[g.division+'|'+g.home], a=hcOf[g.division+'|'+g.away];
+    if(!h||h!==a) return;
+    const vc=clusterName(g.venue);
+    if(vc===h) return;
+    if(CLUSTER_REGION[vc]!==CLUSTER_REGION[h]){
+      out.push({sev:'hard',rule:'Rivalry stays home',
+        msg:`${g.home} vs ${g.away} (${g.division}) is a ${h} local rivalry but is placed at ${vc}${CLUSTER_REGION[vc]?'':' (neutral site)'} in ${g.weekend} — same-cluster games must stay in their home region, never at a neutral site or on a flight.`,wk:g.weekend});
+    }
+  });
+
   // matchup repeated >2 in a weekend
   const pairWk={};
   pool.forEach(g=>{
