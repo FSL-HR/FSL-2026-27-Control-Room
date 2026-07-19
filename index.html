@@ -742,14 +742,12 @@ function detectConflicts(scope){
       const driveDests=[...new Set(gs.map(g=>clusterName(g.venue)).filter(c=>travelTypeFor(t,c)==='REGIONAL'&&!islandMainland(home,c)))];
       if(flightDests.length){
         const fg=gs.filter(g=>flightDests.includes(clusterName(g.venue)));
-        // Flights should be >=4 games. AAA: hard below 4. AA divisions (odd team counts):
-        // exactly 3 is a soft warning (allowed only in extenuating cases); below 3 is hard.
-        const flightMin=(div==='19U AAA')?3:4;
-        if(fg.length<flightMin){
+        // Flights should be >=4 games, but 3 is allowed (soft) for all divisions (user-set 2026-07-18,
+        // relaxes the former AAA hard-at-4 given the 3-BC-team packing). Below 3 is hard; 19U min is 3.
+        if(fg.length<4){
           let sev,note;
-          if(div==='19U AAA'){ sev='hard'; note='a 19U flight must be at least 3 games'; }
-          else if(AAA_DIVS.has(div)){ sev='hard'; note='a flight must be at least 4 games'; }
-          else { sev=(fg.length>=3?'soft':'hard'); note='a flight should be 4 games (3 allowed only in extenuating cases)'; }
+          if(fg.length>=3){ sev='soft'; note='a flight should be 4 games (3 allowed)'; }
+          else { sev='hard'; note=(div==='19U AAA')?'a 19U flight must be at least 3 games':'a flight must be at least 3 games'; }
           out.push({sev,rule:'Flight <4 games',
             msg:`${tm} (${div}) flies to ${flightDests.join(', ')} for only ${fg.length} game(s) in ${wk} — ${note}.`,wk});
         }
@@ -837,23 +835,32 @@ function detectConflicts(scope){
     });
   })();
 
-  /* Flight cap per team, by home region (user-set 2026-07-18): Lower Mainland & Vancouver
-     Island = 3, Manitoba (Winnipeg) = 4, Alberta & Saskatchewan = 2. Peace Country & Purcell
-     are exempt (they drive / are travel-exempt). Counts distinct fly *weekends* (trips), and
-     only reports unscoped (it's a season-wide total). Neutral midpoints aren't flights. */
+  /* Flight cap per team, by home region: Lower Mainland & Vancouver Island = 3; Alberta &
+     Saskatchewan = 3. Winnipeg (user-set 2026-07-18): may fly to BC (Lower Mainland/Cowichan)
+     at most ONCE per season; flights to Alberta are UNLIMITED (short prairie hops). Purcell buses
+     everywhere so never flies; Peace Country obeys the 3 cap. Counts distinct fly *weekends*
+     (trips); only reports unscoped (season-wide total). Neutral midpoints aren't flights. */
   (function(){
     if(scope&&scope.weekend) return;
     const HALFWAY=new Set(['Hardisty','Midway']);
-    // Manitoba 4; everyone else (incl. Peace Country) 3. Purcell buses everywhere so never flies.
-    const capFor=t=> t.homeCluster==='Winnipeg' ? 4 : 3;
-    DATA.teams.forEach(t=>{ const cap=capFor(t); if(cap===Infinity) return;
-      const flyWks=new Set();
+    DATA.teams.forEach(t=>{
+      const flyWks=new Set(), bcFlyWks=new Set();
       games.forEach(g=>{ if(g.division!==t.division||(g.home!==t.name&&g.away!==t.name)||!g.venue) return;
         const cl=clusterName(g.venue); if(!cl||HALFWAY.has(cl)) return;
-        if(travelTypeFor(t,cl)==='FLY') flyWks.add(g.weekend); });
-      if(flyWks.size>cap)
-        out.push({sev:'hard',rule:'Too many flights',
-          msg:`${t.name} (${t.division}) takes ${flyWks.size} flight trips this season — its region's max is ${cap}.`,wk:null});
+        if(travelTypeFor(t,cl)==='FLY'){ flyWks.add(g.weekend); if(CLUSTER_REGION[cl]==='BC') bcFlyWks.add(g.weekend); } });
+      if(t.homeCluster==='Winnipeg'){
+        // Winnipeg: one BC trip max; Alberta flights unlimited.
+        if(bcFlyWks.size>1)
+          out.push({sev:'hard',rule:'Too many flights',
+            msg:`${t.name} (${t.division}) flies to BC ${bcFlyWks.size}× this season — Winnipeg teams may make only one BC trip.`,wk:null});
+      } else {
+        // BC coast/island AND Alberta teams may fly 4×/season (user-set 2026-07-18); Saskatchewan 3.
+        const reg=CLUSTER_REGION[t.homeCluster];
+        const cap = (reg==='BC'||reg==='AB') ? 4 : 3;
+        if(flyWks.size>cap)
+          out.push({sev:'hard',rule:'Too many flights',
+            msg:`${t.name} (${t.division}) takes ${flyWks.size} flight trips this season — its region's max is ${cap}.`,wk:null});
+      }
     });
   })();
 
