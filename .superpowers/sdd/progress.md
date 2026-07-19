@@ -39,3 +39,16 @@ Lock: Langley Leafs- AA|Vancouver Aeros-AA -> Lower Mainland (9 games, by design
 Order: 12U AAA first (31 hard baseline).
 Rebuild continuation COMPLETE: 204→1 hard (Victoria showcase, accepted). Deliverable FSL_schedule_2026-07-19_CONTINUATION.json verified on fresh load: 0 multi-location, 0 rivalry violations, counts exact, 768/0 parked. User loads via Save→Load.
 V2 (2026-07-19 evening): universal 4-game cap + travel doc in engine; schedule re-solved to 0 HARD on fresh load. Deliverable FSL_schedule_2026-07-19_CONTINUATION_v2.json (repo + Downloads).
+
+# Ice-budget pass — 2026-07-19 midday
+User: total sourcing ask must be ≤150 slots ALL-IN (incl. Hardisty/Midway neutrals — confirmed via question).
+Progress: v2 was 411 → parallel+seq packers 312 → deterministic packers 281. Single-hop moves exhausted (12 accepts then converged).
+Split at 281: 37 contracted-but-timeless, 68 neutral meets, 119 Calgary+LM, 57 other.
+Deep tunnel/restore fleet launched (DEFW=45, HARDW 250↔5000 graduated, 24 cycles × 6 divisions) from combined 281 state.
+
+# PAUSE 2026-07-19 ~13:45 (user offline from 13:54)
+Ice-budget pass IN PROGRESS: 411→312→281→257→246→233 (target ≤150 ALL-IN incl neutrals, user-confirmed).
+SAVED: FSL_pause_snapshot_2026-07-19_1330.json (repo root, committed) = games-only state at toSource=233.
+RESUME RECIPE: (1) node tools/make-test-build.js — but snapshot is games-only, NOT a full payload; instead rebuild test from FSL_schedule_2026-07-19_CONTINUATION_v2.json, open /test/, then apply snapshot games via __applyPayload? NO — apply by looping snapshot.games onto games[] (id-match, set weekend/venue/home/away/day, blank times). (2) Re-run deep fleet rounds (WORKER_SRC_DEEP pattern in transcript) + sequential reconciliation until totalSourced()≤150. (3) Fix residual cross-division Ice-capacity hards (deterministic packer v4 pattern). (4) Day-fill + cleanupIceFull + assignTimes per division. (5) Fresh-load verify: 0 hard AND totalSourced≤150 BOTH required. (6) Payload v3 via __buildPayload (empty gameTimes/manualTimes/hypoTimes) → deliver.
+Known at pause: ~28 cross-division ice-capacity hards outstanding in live page state (expected; step 3 clears). Residual division hards 12U:1-2, 19U:1-2 to re-verify.
+Round-2 seq was mid-flight at pause (16U AAA, 19U AAA possibly unfinished — snapshot may predate their last gains; acceptable).
