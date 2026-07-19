@@ -1229,6 +1229,10 @@ function sidebar(){
       <span class="big">📥</span>
       <span><span class="l1">Import times</span><br><span class="l2">Apply CSV to games</span></span>
     </button>
+    <button class="ice-btn" data-act="timeAll" style="margin-top:8px" title="Time every unlocked game in the season: real contracted slots where you have them, a one-rink hypothetical plan where you don't, and a day + time-of-day sourcing ask for anything that fits nowhere. One click of Undo reverts the whole run.">
+      <span class="big">⏱</span>
+      <span><span class="l1">Time entire season</span><br><span class="l2">Real slots + 1-rink hypo</span></span>
+    </button>
     <button class="ice-btn" data-nav="exports" style="margin-top:8px">
       <span class="big">📤</span>
       <span><span class="l1">Schedule exports</span><br><span class="l2">Color-coded Excel</span></span>
@@ -2134,6 +2138,32 @@ function solveOneVenue(wk, venue){
   const msg=issues ? ('Timed '+list.length+' games at '+vshort+src+' \u2014 '+issues+' item(s) to review below.')
                    : ('Timed '+list.length+' games at '+vshort+src+' \u2014 all rules satisfied.');
   return {ok:issues===0, msg:msg};
+}
+/* ===== TIME ENTIRE SEASON: every weekend × venue pod in one pass. Sourced pods → real
+   slots (solveOneVenue). Unsourced pods → one-rink hypothetical (hypoTimePod). Anything
+   that fits nowhere stays put and becomes a day+window sourcing ask (assignTbdNeed).
+   Skips locked weekends/venues, manual time locks, parked games. One undo step. */
+function timeEverything(){
+  let timedReal=0,timedHypo=0,tbd=0,podsReal=0,podsHypo=0,skippedPods=0,skippedWks=0;
+  WK.forEach(wk=>{
+    if(isLocked(wk)){skippedWks++;return;}
+    const names=[...new Set(gamesFor(wk).filter(g=>g.venue&&String(g.venue).trim()).map(g=>g.venue))];
+    names.forEach(venue=>{
+      if(isVenueLocked(wk,venue)){skippedPods++;return;}
+      const pod=()=>games.filter(g=>g.weekend===wk&&g.venue===venue);
+      if(isUnsourcedPod(wk,venue)){
+        const r=hypoTimePod(wk,venue); podsHypo++; timedHypo+=(r.count||0);
+        pod().filter(g=>!g.time&&!HYPO_TIMES[String(g.id)]&&!isTimeLocked(g)).forEach(g=>{assignTbdNeed(g);tbd++;});
+      } else {
+        solveOneVenue(wk,venue); podsReal++;
+        pod().forEach(g=>{ if(isTimeLocked(g))return;
+          if(g.time){timedReal++;}
+          else {assignTbdNeed(g);tbd++;}
+        });
+      }
+    });
+  });
+  return {timedReal:timedReal,timedHypo:timedHypo,tbd:tbd,podsReal:podsReal,podsHypo:podsHypo,skippedPods:skippedPods,skippedWks:skippedWks};
 }
 // Swap one team-slot between two games (same division). Every team stays in exactly one game,
 // so all game counts are preserved by construction — the counts can never go over/under.
@@ -4723,7 +4753,7 @@ window.PG=PG;
 /* ============ GLOBAL UNDO ============ */
 var UNDO_STACK=[];
 var SOLVE_REPORT={}; // wk -> last auto-solve result (per-venue day splits, flags, review items)
-const MUTATING=new Set(['iceHave','iceNo','iceHeld','iceDel','iceRestore','iceReset','venueAdd','venueAddDel','impApply','impReset','pgPark','pgParkVenue','pgParkDiv','pgAssign','podSwap','podTime','slotAssign','pgPlaceAt','pgPlaceAll','pgPodMove','pgSelMove','pgRestore','pgRemove','autosolve','toggleLock','toggleVenueLock','pgTbd','timeSet','timeUnlock','slotAddDel','hypoTime','hypoClear','hypoLock','slotDrop','matchupSet','matchupSwap']);;
+const MUTATING=new Set(['iceHave','iceNo','iceHeld','iceDel','iceRestore','iceReset','venueAdd','venueAddDel','impApply','impReset','pgPark','pgParkVenue','pgParkDiv','pgAssign','podSwap','podTime','slotAssign','pgPlaceAt','pgPlaceAll','pgPodMove','pgSelMove','pgRestore','pgRemove','autosolve','toggleLock','toggleVenueLock','pgTbd','timeSet','timeUnlock','slotAddDel','hypoTime','hypoClear','hypoLock','slotDrop','matchupSet','matchupSwap','timeAll']);;
 function pushUndo(label){try{UNDO_STACK.push(JSON.stringify({games:games,gid:gid,ice:ICE_DECISIONS,times:GAME_TIMES,parking:PARKING,locked:LOCKED,removed:REMOVED_GAMES,hypo:HYPO_TIMES,tbd:TBD_NEEDS,label:label||''}));if(UNDO_STACK.length>40)UNDO_STACK.shift();}catch(e){}}
 function undo(){
   if(!UNDO_STACK.length){showToast('Nothing to undo.','');return;}
@@ -4771,6 +4801,9 @@ const ACTIONS={
   confUnack:d=>{ if(d&&d.id){ delete CONFLICT_ACK[d.id]; saveConflictAck(); render(); } },
   confAckClear:()=>{ if(!confirm('Un-acknowledge all conflicts? They will show in the alert counts again.'))return; CONFLICT_ACK={}; saveConflictAck(); render(); },
   podSwap:d=>{ const a=document.getElementById(d.a), b=document.getElementById(d.b); if(!a||!b){ showToast('Could not read the swap selectors.','warn'); return; } doSwapOpp(a.value,b.value); },
+  timeAll:()=>{ if(!confirm('Time the ENTIRE season?\n\nEvery unlocked game gets re-timed: real contracted slots where they exist, a one-rink hypothetical plan on unsourced ice, and a day + time-of-day sourcing ask for anything that fits nowhere.\n\nLocked weekends, locked venues and manually-locked times are untouched. One click of Undo reverts everything.')){UNDO_STACK.pop();return;}
+    const r=timeEverything(); render();
+    showToast('⏱ Season timed — '+r.timedReal+' on real ice · '+r.timedHypo+' hypothetical (1 rink) · '+r.tbd+' need sourcing (day + window — see the Ice to source export)'+((r.skippedWks||r.skippedPods)?(' · skipped '+(r.skippedWks?r.skippedWks+' locked weekend'+(r.skippedWks===1?'':'s'):'')+(r.skippedWks&&r.skippedPods?' + ':'')+(r.skippedPods?r.skippedPods+' locked venue'+(r.skippedPods===1?'':'s'):'')):''),'good'); },
   podTime:d=>{ if(isEffLocked(d.wk,d.venue)){showToast('\uD83D\uDD12 '+(isVenueLocked(d.wk,d.venue)?d.venue.replace(/\s*\(NEW\)/i,''):d.wk)+' is locked \u2014 unlock it to make changes.','warn');return;} const r=solveOneVenue(d.wk,d.venue); showToast(r.msg, r.ok?'good':'warn'); render(); },
   hypoTime:d=>{ if(!d||!d.wk||!d.venue)return;
     if(!isUnsourcedPod(d.wk,d.venue)){showToast('This pod has real ice \u2014 hypothetical timing is only for unsourced pods (use \u201C\u2699 Time this pod\u201D instead).','warn');return;}
@@ -5422,7 +5455,7 @@ render();
     pgAssign:'moved a parked game', pgPlaceAt:'placed a game', pgPlaceAll:'placed all games in a pod',
     pgPodMove:'moved a whole pod', pgSelMove:'moved selected games', pgRestore:'returned a game',
     pgRemove:'removed a game', pgTbd:'toggled a game to TBD',
-    autosolve:'ran auto weekend solve', toggleLock:'locked/unlocked a weekend',
+    autosolve:'ran auto weekend solve', timeAll:'timed the entire season', toggleLock:'locked/unlocked a weekend',
     toggleVenueLock:'locked/unlocked a venue',
     timeSet:'set a game time', timeUnlock:'unlocked a game time', timeEdit:'edited a game time',
     hypoTime:'added hypothetical times', hypoClear:'cleared hypothetical times',
