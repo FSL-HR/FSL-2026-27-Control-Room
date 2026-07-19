@@ -38,3 +38,4 @@ Solver: test/solve.js + runtime locality gradient (70/extra cluster) + regroup m
 Lock: Langley Leafs- AA|Vancouver Aeros-AA -> Lower Mainland (9 games, by design).
 Order: 12U AAA first (31 hard baseline).
 Rebuild continuation COMPLETE: 204→1 hard (Victoria showcase, accepted). Deliverable FSL_schedule_2026-07-19_CONTINUATION.json verified on fresh load: 0 multi-location, 0 rivalry violations, counts exact, 768/0 parked. User loads via Save→Load.
+V2 (2026-07-19 evening): universal 4-game cap + travel doc in engine; schedule re-solved to 0 HARD on fresh load. Deliverable FSL_schedule_2026-07-19_CONTINUATION_v2.json (repo + Downloads).
