@@ -566,7 +566,9 @@ function detectConflicts(scope){
   Object.entries(byTeamWk).forEach(([k,gs])=>{
     const [div,tm,wk]=k.split('~');
     // Per-weekend game cap: 19U is 3, EXCEPT Langley Leafs (19U) who play four-game weekends.
-    const lim=(div==='19U AAA'&&tm==='Langley Leafs')?4:perShow(div);
+    // ABSOLUTE CAP (league rule, 2026-07-19): no team may EVER exceed 4 games in a weekend —
+    // no showcase exception, no acknowledgement. Division caps below 4 (e.g. 19U = 3) still apply.
+    const lim=Math.min(4,(div==='19U AAA'&&tm==='Langley Leafs')?4:perShow(div));
     if(gs.length>lim) out.push({sev:'hard',rule:'Games/showcase',
       msg:`${tm} (${div}) has ${gs.length} games in ${wk} — showcase max is ${lim}.`,wk});
     // ONE LOCATION PER WEEKEND: a team's placed games in a weekend must all be in a single
@@ -1037,37 +1039,40 @@ const LOCAL_DRIVE={ // within ~3h drive of each other
   'Lloydminster':['Edmonton','Calgary-area','Aberdeen'],'Aberdeen':['Lloydminster'],
   'Lower Mainland':['Cowichan'],'Cowichan':['Lower Mainland'],'Kimberley':['Calgary-area'],'Winnipeg':[]
 };
+// AUTHORITATIVE cluster→cluster travel matrix — mirrors docs/fsl-travel.json (2026-07-19) exactly.
+// Directional (home→destination). Doc codes map to engine types: RDRV (regional drive) → LOCAL tier,
+// LDRV (long drive) → REGIONAL tier, FLY → FLY. LM↔Cowichan is the ferry crossing (doc: RDRV) —
+// typed FERRY, same non-flight tier as a regional drive.
+const TRAVEL_MATRIX={
+ 'Edmonton':      {'Calgary-area':'LOCAL','Lloydminster':'LOCAL','Aberdeen':'REGIONAL','Winnipeg':'FLY','Lower Mainland':'FLY','Cowichan':'FLY','Kimberley':'REGIONAL'},
+ 'Calgary-area':  {'Edmonton':'LOCAL','Lloydminster':'LOCAL','Aberdeen':'REGIONAL','Winnipeg':'FLY','Lower Mainland':'FLY','Cowichan':'FLY','Kimberley':'LOCAL'},
+ 'Lloydminster':  {'Edmonton':'LOCAL','Calgary-area':'LOCAL','Aberdeen':'LOCAL','Winnipeg':'REGIONAL','Lower Mainland':'FLY','Cowichan':'FLY','Kimberley':'REGIONAL'},
+ 'Aberdeen':      {'Edmonton':'REGIONAL','Calgary-area':'REGIONAL','Lloydminster':'LOCAL','Winnipeg':'REGIONAL','Lower Mainland':'FLY','Cowichan':'FLY','Kimberley':'REGIONAL'},
+ 'Winnipeg':      {'Edmonton':'REGIONAL','Calgary-area':'REGIONAL','Lloydminster':'REGIONAL','Aberdeen':'REGIONAL','Lower Mainland':'FLY','Cowichan':'FLY','Kimberley':'FLY'},
+ 'Lower Mainland':{'Edmonton':'FLY','Calgary-area':'FLY','Lloydminster':'FLY','Aberdeen':'FLY','Winnipeg':'FLY','Cowichan':'FERRY','Kimberley':'REGIONAL'},
+ 'Cowichan':      {'Edmonton':'FLY','Calgary-area':'FLY','Lloydminster':'FLY','Aberdeen':'FLY','Winnipeg':'FLY','Lower Mainland':'FERRY','Kimberley':'REGIONAL'},
+ 'Kimberley':     {'Edmonton':'REGIONAL','Calgary-area':'LOCAL','Lloydminster':'REGIONAL','Aberdeen':'REGIONAL','Winnipeg':'FLY','Lower Mainland':'REGIONAL','Cowichan':'REGIONAL'}
+};
 // classify travel from a team's home cluster to a destination cluster
 function travelType(homeCl,destCl){
   if(homeCl===destCl) return 'HOME';
-  // Lower Mainland <-> Cowichan is a short sailing, not a flight or a long drive.
+  const m=TRAVEL_MATRIX[homeCl]&&TRAVEL_MATRIX[homeCl][destCl];
+  if(m) return m;
+  // Fallbacks for clusters outside the doc's matrix (Grande Prairie, Evansburg, placeholders):
   if((homeCl==='Lower Mainland'&&destCl==='Cowichan')||(homeCl==='Cowichan'&&destCl==='Lower Mainland')) return 'FERRY';
-  // Kimberley drives everywhere
-  if(homeCl==='Kimberley'||destCl==='Kimberley'){
-    return (CLUSTER_REGION[homeCl]===CLUSTER_REGION[destCl]||
-            (LOCAL_DRIVE[homeCl]||[]).includes(destCl)||(LOCAL_DRIVE[destCl]||[]).includes(homeCl))
-            ?'LOCAL':'REGIONAL';
-  }
-  // Winnipeg drives only to Aberdeen (Saskatoon) and Lloydminster; flies elsewhere
-  const wpgDrive=['Aberdeen','Lloydminster'];
-  if(homeCl==='Winnipeg') return wpgDrive.includes(destCl)?'REGIONAL':'FLY';
-  if(destCl==='Winnipeg') return wpgDrive.includes(homeCl)?'REGIONAL':'FLY';
   const hr=CLUSTER_REGION[homeCl], dr=CLUSTER_REGION[destCl];
-  // BC coast/island <-> non-BC = fly
   const bcCoast=c=>c==='Lower Mainland'||c==='Cowichan';
   if((bcCoast(homeCl)&&dr!=='BC')||(bcCoast(destCl)&&hr!=='BC')) return 'FLY';
   if((LOCAL_DRIVE[homeCl]||[]).includes(destCl)) return 'LOCAL';
-  // AB prairie clusters drive to Aberdeen and vice versa
-  const abCl=c=>CLUSTER_REGION[c]==='AB';
-  if((abCl(homeCl)&&destCl==='Aberdeen')||(abCl(destCl)&&homeCl==='Aberdeen')) return 'REGIONAL';
   if(hr===dr) return 'REGIONAL';
+  if(hr&&dr) return 'REGIONAL';
   return 'FLY';
 }
 const TT_STYLE={HOME:'background:var(--okbg);color:#0f6e56',LOCAL:'background:#eef;color:#3338a0',
   REGIONAL:'background:var(--warnbg);color:var(--warn)',FLY:'background:var(--dangerbg);color:var(--red-d)',
   FERRY:'background:#e0f2fe;color:#0369a1'};
-const TT_LABEL={HOME:'Home',LOCAL:'Local drive',REGIONAL:'Regional drive',FLY:'Fly',FERRY:'Local ferry'};
-const TT_SHORT={HOME:'★',LOCAL:'Local',REGIONAL:'Reg',FLY:'Fly',FERRY:'Ferry'};
+const TT_LABEL={HOME:'Home',LOCAL:'Regional drive',REGIONAL:'Long drive',FLY:'Fly',FERRY:'Ferry'};   // vocabulary matches docs/fsl-travel.json (RDRV/LDRV)
+const TT_SHORT={HOME:'★',LOCAL:'RDrv',REGIONAL:'LDrv',FLY:'Fly',FERRY:'Ferry'};
 // Overrides on top of the generic cluster logic. byTeam is directional (that team → destination
 // cluster); byHomeCluster is symmetric (either direction between the two clusters). Destination
 // clusters come from clusterName(venue) — e.g. Lashburn resolves to 'Lloydminster'.
@@ -1079,7 +1084,8 @@ const TRAVEL_OVERRIDES={
     'Angels Pro Hockey':{'Hardisty':'LOCAL'}
   },
   byHomeCluster:{
-    'Calgary-area':{'Lloydminster':'REGIONAL','Grande Prairie':'REGIONAL'},
+    // Calgary↔Lloydminster override removed 2026-07-19: fsl-travel.json says RDRV (regional drive).
+    'Calgary-area':{'Grande Prairie':'REGIONAL'},
     'Edmonton':{'Grande Prairie':'REGIONAL'}
   }
 };
