@@ -906,11 +906,13 @@ function detectConflicts(scope){
           if(!(isPurcell(nm)||c==='Lower Mainland'||c==='Calgary-area'))
             out.push({sev:'hard',rule:'Venue restriction',
               msg:`${nm} (${g.division}) can’t play at Midway (${g.weekend}) — Midway is for Lower Mainland, Purcell and Calgary teams only.`,wk:g.weekend}); });
-      } else if(cl==='Hardisty'){
+      } else if(String(g.venue).split(/\s*[—–-]\s*/)[0].trim()==='Hardisty'){
+        // Hardisty is a Lloydminster-cluster home venue (fsl-travel.json, 2026-07-20) — Lloyd teams
+        // play there freely; drive-in access stays limited to the Aberdeen/Calgary/Edmonton midpoint users.
         [g.home,g.away].forEach(nm=>{ const c=clOf(nm,g.division);
-          if(!(c==='Aberdeen'||c==='Calgary-area'||c==='Edmonton'))
+          if(!(c==='Lloydminster'||c==='Aberdeen'||c==='Calgary-area'||c==='Edmonton'))
             out.push({sev:'hard',rule:'Venue restriction',
-              msg:`${nm} (${g.division}) can’t play at Hardisty (${g.weekend}) — Hardisty is the Saskatoon↔Calgary/Edmonton midpoint only.`,wk:g.weekend}); });
+              msg:`${nm} (${g.division}) can’t play at Hardisty (${g.weekend}) — Hardisty is Lloydminster home ice plus the Saskatoon↔Calgary/Edmonton midpoint.`,wk:g.weekend}); });
       }
     });
     // Per-team Midway game caps: Lower Mainland/Purcell 2, Calgary 4 (3 for 19U).
@@ -1027,7 +1029,7 @@ function clusterName(vn){
   const city=v.split(/\s*[—–-]\s*/)[0].trim();
   const map={'Calgary':'Calgary-area','Calgary-area':'Calgary-area','Cochrane':'Calgary-area','Canmore':'Calgary-area','Banff':'Calgary-area',
     'Grand Prairie':'Grande Prairie','Grande Prairie':'Grande Prairie',
-    'Edmonton':'Edmonton','Morinville':'Edmonton','Spruce Grove':'Edmonton','Aberdeen':'Aberdeen','Lloydminster':'Lloydminster','Lashburn':'Lloydminster','Winnipeg':'Winnipeg',
+    'Edmonton':'Edmonton','Morinville':'Edmonton','Spruce Grove':'Edmonton','Aberdeen':'Aberdeen','Lloydminster':'Lloydminster','Lashburn':'Lloydminster','Hardisty':'Lloydminster','Winnipeg':'Winnipeg',
     'Abbotsford':'Lower Mainland','Delta':'Lower Mainland','Lower Mainland':'Lower Mainland',
     'Cowichan':'Cowichan','Kimberley':'Kimberley'};
   return map[city]||map[v]||city;
@@ -1080,8 +1082,9 @@ const TRAVEL_OVERRIDES={
   byTeam:{
     'Peace Country Northstars':{'Evansburg':'HOME','Grande Prairie':'HOME','Lloydminster':'REGIONAL'},
     'Jr. Ooks':{'Evansburg':'LOCAL'},
-    'Jr. Rustlers':{'Evansburg':'REGIONAL'},
-    'Angels Pro Hockey':{'Hardisty':'LOCAL'}
+    'Jr. Rustlers':{'Evansburg':'REGIONAL'}
+    // Angels→Hardisty override removed 2026-07-20: Hardisty is Lloydminster cluster per fsl-travel.json,
+    // so Edmonton→Hardisty resolves to Edmonton→Lloydminster = Regional drive via TRAVEL_MATRIX.
   },
   byHomeCluster:{
     // Calgary↔Lloydminster override removed 2026-07-19: fsl-travel.json says RDRV (regional drive).
