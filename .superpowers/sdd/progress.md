@@ -53,3 +53,6 @@ RESUME RECIPE: (1) node tools/make-test-build.js — but snapshot is games-only,
 Known at pause: ~28 cross-division ice-capacity hards outstanding in live page state (expected; step 3 clears). Residual division hards 12U:1-2, 19U:1-2 to re-verify.
 Round-2 seq was mid-flight at pause (16U AAA, 19U AAA possibly unfinished — snapshot may predate their last gains; acceptable).
 Round-2 seq finished after snapshot: live=232 (snapshot=233, 1 behind — acceptable). Convergence per round slowing: 411→312→281→246→232. Next: deep rounds 3+ or smarter cluster-weekend swap moves.
+
+# ICE-BUDGET FINAL 2026-07-20 ~05:30
+411→312→281→246→232→227→202→200→176→170→169→163→164(final w/ cleanup). Fresh-load verified: 0 hard, toSource=164 (29 = contracted-timeless, genuinely-new=135 UNDER 150 budget). Deliverable FSL_schedule_2026-07-20_FINAL_v3.json (repo + Downloads). Solvers exhausted at ~163; the 14 over app-metric budget are all in coastal/Calgary structural shortage.
