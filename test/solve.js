@@ -358,10 +358,10 @@ window.SOLVE = (function(){
     work.forEach(function(g){ if(!g.day||!g.weekend) return; var k=g.weekend+'␟'+g.day; (days[k]=days[k]||[]).push(g); });
     Object.keys(days).forEach(function(k){ var p=k.split('␟'); var wk=p[0], day=p[1]; var gs=days[k];
       var sheetFree={};   // venue -> [next-free per sheet]
-      var teamLast={};    // team -> last start (shared across venues this day)
+      var teamLast={};    // team -> last game END (shared across venues this day)
       gs.forEach(function(g){
         var slot=Math.round(slotHours(g.division)*60);
-        var rest=(g.division==='19U AAA')?0:((CFG.restHours[g.division]||3)*60);
+        var rest=(CFG.restMinBetween||165);   // space-between-games rule: min from game END to same team's next START, all divisions
         var sheets=Math.max(1,sheetsForVenueDay(wk,g.venue,day));
         if(!sheetFree[g.venue]){ var arr=[]; for(var i=0;i<sheets;i++)arr.push(DAYSTART); sheetFree[g.venue]=arr; }
         var sf=sheetFree[g.venue];
@@ -373,7 +373,7 @@ window.SOLVE = (function(){
           var aOk = teamLast[g.away]==null || (t-teamLast[g.away])>=rest;
           // place if a sheet is free (si>=0) AND my-busy + other-divisions at t stays within sheets AND both teams rested
           if(si>=0 && (busyMine + othersAtT) < sheets && hOk && aOk){ g.time=fmtT(t); g.endTime=fmtT(t+slot);
-            sf[si]=t+slot+BUF; teamLast[g.home]=t; teamLast[g.away]=t; placed=true; }
+            sf[si]=t+slot+BUF; teamLast[g.home]=t+slot; teamLast[g.away]=t+slot; placed=true; }
           else { t+=15; if(t>DAYEND){ g.time=fmtT(DAYSTART); g.endTime=fmtT(DAYSTART+slot); placed=true; } }
         }
       });

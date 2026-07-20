@@ -552,14 +552,17 @@ function detectConflicts(scope){
     const lim=(div==='19U AAA'&&tm==='Langley Leafs')?2:maxDay(div);
     if(gs.length>lim) out.push({sev:'hard',rule:'Max games/day',
       msg:`${tm} (${div}) has ${gs.length} games on ${day} ${wk} — limit is ${lim}.`,wk});
-    // rest between same-team games (only matters when 2 same day)
-    if(div!=='19U AAA' && gs.length>=2 && gs.every(g=>g.time)){
-      const times=gs.map(g=>toMin(g.time)).sort((a,b)=>a-b);
-      for(let i=1;i<times.length;i++){
-        const gapH=(times[i]-times[i-1])/60;
-        const needed=(CFG.restHours[div]||3);
-        if(gapH<needed) out.push({sev:'hard',rule:'Rest gap',
-          msg:`${tm} (${div}) games ${day} ${wk} only ${gapH.toFixed(1)}h apart — needs ${needed}h.`,wk});
+    // Space-between-games rule (league, 2026-07-20): at least 165 min between one game's
+    // END time and the same team's next START that day — every division.
+    if(gs.length>=2 && gs.every(g=>g.time)){
+      const need=(CFG.restMinBetween||165);
+      const ordered=gs.slice().sort((a,b)=>toMin(a.time)-toMin(b.time));
+      for(let i=1;i<ordered.length;i++){
+        const prev=ordered[i-1];
+        const prevEnd=prev.endTime?toMin(prev.endTime):toMin(prev.time)+Math.round(slotHours(prev.division)*60);
+        const gapM=toMin(ordered[i].time)-prevEnd;
+        if(gapM<need) out.push({sev:'hard',rule:'Rest gap',
+          msg:`${tm} (${div}) games ${day} ${wk} have only ${gapM} min between end and next start — needs ${need} min.`,wk});
       }
     }
   });
