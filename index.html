@@ -799,10 +799,14 @@ function detectConflicts(scope){
             msg:`${tm} (${div}) plays local rival(s) ${rivals.join(', ')} on a flight to ${flightDests.join(', ')} (${wk}) — no local rivalries on a fly weekend.`,wk});
       } else if(driveDests.length){
         const dg=gs.filter(g=>driveDests.includes(clusterName(g.venue)));
-        const driveMin=(div==='19U AAA')?2:3;
+        // 5-HOUR RULE (2026-07-20): a drive over 5 hours one-way must be a 4-game trip (19U: 3).
+        const over5=driveDests.some(c=>{const h=driveHoursBetween(home,c);return h!=null&&h>5;});
+        const driveMin=over5 ? ((div==='19U AAA')?3:4) : ((div==='19U AAA')?2:3);
         if(dg.length<driveMin)
-          out.push({sev:'hard',rule:'Long drive <3 games',
-            msg:`${tm} (${div}) drives 3h+ to ${driveDests.join(', ')} for only ${dg.length} game(s) in ${wk} — a 3h+ trip must be at least ${driveMin} games.`,wk});
+          out.push({sev:'hard',rule:over5?'5h+ drive <4 games':'Long drive <3 games',
+            msg: over5
+              ? `${tm} (${div}) drives 5+ hours to ${driveDests.join(', ')} for only ${dg.length} game(s) in ${wk} — a drive over 5 hours must be at least ${driveMin} games.`
+              : `${tm} (${div}) drives 3h+ to ${driveDests.join(', ')} for only ${dg.length} game(s) in ${wk} — a 3h+ trip must be at least ${driveMin} games.`,wk});
       }
     });
 
@@ -939,9 +943,17 @@ function detectConflicts(scope){
         const k=g.division+'␟'+nm+'␟'+g.weekend+'␟'+(isMid?'Midway':'Hardisty');
         ntCnt[k]=(ntCnt[k]||0)+1; });
     });
-    Object.entries(ntCnt).forEach(([k,n])=>{ if(n===1){ const [div,nm,wk,site]=k.split('␟');
-      out.push({sev:'hard',rule:'Neutral trip <2 games',
-        msg:`${nm} (${div}) travels to ${site} for only 1 game in ${wk} — a neutral-site trip must be at least 2 games.`,wk:wk}); } });
+    Object.entries(ntCnt).forEach(([k,n])=>{ const [div,nm,wk,site]=k.split('␟');
+      // 5-HOUR RULE (2026-07-20): a 5h+ drive to a neutral needs 4 games (19U: 3), not just 2
+      // (e.g. Calgary-area -> Midway is 6.5h). Under-5h visitors keep the 2-game neutral minimum.
+      const t=DATA.teams.find(x=>x.name===nm&&x.division===div);
+      const h=t?driveHoursBetween(t.homeCluster,site):null;
+      const over5=(h!=null&&h>5);
+      const min=over5 ? ((div==='19U AAA')?3:4) : 2;
+      if(n<min) out.push({sev:'hard',rule:over5?'5h+ drive <4 games':'Neutral trip <2 games',
+        msg: over5
+          ? `${nm} (${div}) drives 5+ hours to ${site} for only ${n} game(s) in ${wk} — a drive over 5 hours must be at least ${min} games.`
+          : `${nm} (${div}) travels to ${site} for only ${n} game in ${wk} — a neutral-site trip must be at least 2 games.`,wk:wk}); });
 
     // Per-team Midway game caps: Lower Mainland/Purcell 2, Calgary 4 (3 for 19U).
     const midCnt={};
@@ -1087,6 +1099,43 @@ const TRAVEL_MATRIX={
 // and Aberdeen (the midpoint users) — NOT Lloydminster home ice. It stays region-less so local
 // rivalries remain banned there, and the 2-game neutral-trip minimum applies to everyone incl. Lloyd.
 // classify travel from a team's home cluster to a destination cluster
+/* 5-HOUR DRIVE RULE (league, 2026-07-20): any trip a team drives that is OVER 5 hours by car
+   one-way must be at least a 4-GAME trip (19U: 3, matching its one-less minimums). Applies to
+   drive-tier cluster pairs AND the neutral midpoints by distance (e.g. Calgary-area -> Midway
+   or Lloydminster is 5h+ so those need 4 games; Lower Mainland -> Midway is under 5h so the
+   normal 2-game neutral minimum stands). Approximate one-way hours; pairs not listed keep the
+   standard 3h+ drive minimum of 3 games. */
+const DRIVE_HOURS={
+ 'Calgary-area|Lloydminster':5.5,
+ 'Calgary-area|Aberdeen':6.5,
+ 'Calgary-area|Midway':6.5,
+ 'Calgary-area|Hardisty':3.5,
+ 'Calgary-area|Kimberley':4.5,
+ 'Edmonton|Aberdeen':5.25,
+ 'Edmonton|Kimberley':7,
+ 'Edmonton|Hardisty':2,
+ 'Edmonton|Lloydminster':2.5,
+ 'Lloydminster|Aberdeen':3,
+ 'Lloydminster|Hardisty':1.5,
+ 'Lloydminster|Kimberley':8.5,
+ 'Aberdeen|Hardisty':3.5,
+ 'Aberdeen|Kimberley':9,
+ 'Winnipeg|Aberdeen':8,
+ 'Winnipeg|Lloydminster':10,
+ 'Winnipeg|Edmonton':13,
+ 'Winnipeg|Calgary-area':13,
+ 'Lower Mainland|Kimberley':9,
+ 'Cowichan|Kimberley':11,
+ 'Lower Mainland|Midway':4.75,
+ 'Cowichan|Midway':7,
+ 'Kimberley|Midway':3.75,
+ 'Kimberley|Hardisty':6.5
+};
+function driveHoursBetween(a,b){
+  if(DRIVE_HOURS[a+'|'+b]!=null) return DRIVE_HOURS[a+'|'+b];
+  if(DRIVE_HOURS[b+'|'+a]!=null) return DRIVE_HOURS[b+'|'+a];
+  return null;
+}
 function travelType(homeCl,destCl){
   if(homeCl===destCl) return 'HOME';
   const m=TRAVEL_MATRIX[homeCl]&&TRAVEL_MATRIX[homeCl][destCl];
