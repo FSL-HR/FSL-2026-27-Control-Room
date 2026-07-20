@@ -454,7 +454,7 @@ function eventsForDiv(div){
 let games = [];           // {id,weekend,venue,division,home,away,day,time}
 let gid = 1;
 let view = {type:'dash'}; // dash | ice | weekend | division | team | teams | conflicts
-const DAYS = ['Fri','Sat','Sun'];
+const DAYS = ['Fri','Sat','Sun','Mon'];   // Mon = holiday Monday (only held at Aberdeen Feb 12 — see monCapFor)
 
 /* persistence within session */
 function snapshot(){return JSON.stringify({games,gid});}
@@ -467,10 +467,19 @@ const teamObj = (nm,div) => DATA.teams.find(t=>t.name===nm && (!div||t.division=
 const tdisp = (nm,div) => div ? `${nm} — ${div}` : nm;
 // A venue/day with more than 6 available slots physically requires 2 sheets of ice.
 function sheetsForCap(capCount){ return Math.max(1, Math.ceil(capCount/6)); }
+/* ABERDEEN RULE (league, 2026-07-20): Aberdeen Rec Center is ONE sheet of ice, always.
+   On weekends we HOLD Aberdeen ice we pick the game times ourselves and they count as
+   sourced + confirmed (the per-day held counts still cap each day); weekends we DON'T
+   hold stay unsourced asks. The Feb 12 (Family Day) weekend also includes Monday Feb 15
+   as a held day at Aberdeen. */
+function monCapFor(v){ if(!v) return 0;
+  if(v.capMon!=null) return v.capMon;
+  return (v.weekend==='Feb 12'&&String(v.venue).startsWith('Aberdeen'))?6:0; }
 function sheetsForVenueDay(wk,venue,day){
+  if(String(venue).startsWith('Aberdeen')) return 1;   // Aberdeen is a single sheet, whatever the day cap says
   const v=DATA.venues.find(x=>x.weekend===wk && x.venue===venue);
   if(!v) return 1;
-  const cap={Fri:v.capFri,Sat:v.capSat,Sun:v.capSun}[day]||0;
+  const cap={Fri:v.capFri,Sat:v.capSat,Sun:v.capSun,Mon:monCapFor(v)}[day]||0;
   return sheetsForCap(cap);
 }
 const venuesFor = wk => DATA.venues.filter(v=>v.weekend===wk);
@@ -515,7 +524,7 @@ function detectConflicts(scope){
 
   // capacity per venue/day
   const capMap={};
-  DATA.venues.forEach(v=>{capMap[v.weekend+'|'+v.venue]={Fri:v.capFri,Sat:v.capSat,Sun:v.capSun};});
+  DATA.venues.forEach(v=>{capMap[v.weekend+'|'+v.venue]={Fri:v.capFri,Sat:v.capSat,Sun:v.capSun,Mon:monCapFor(v)};});
   const used={};
   pool.forEach(g=>{const k=g.weekend+'|'+g.venue+'|'+g.day;used[k]=(used[k]||0)+1;});
   Object.entries(used).forEach(([k,n])=>{
@@ -1601,9 +1610,10 @@ function realAvailTotal(wk,venue){
 // Per-day real ice, using the same precedence as realAvailTotal so day-level and
 // total-level sourcing math stay consistent.
 function realAvailDay(wk,venue,day){
-  const ck={Fri:'capFri',Sat:'capSat',Sun:'capSun'}[day]; if(!ck) return 0;
+  const ck={Fri:'capFri',Sat:'capSat',Sun:'capSun',Mon:'capMon'}[day]; if(!ck) return 0;
   try{ const s=realSlotListFor(wk,venue); if(!s||!s.length) return 0; }catch(e){}   // TIMES RULE (see realAvailTotal)
   const v=DATA.venues.find(x=>x.weekend===wk&&x.venue===venue);
+  if(day==='Mon') return Math.max(0, monCapFor(v));   // holiday Monday (Aberdeen Feb 12 — held day we time ourselves)
   if(v&&v.realImport) return Math.max(0,(v[ck]||0));
   const wkObj=(DATA.realIce&&DATA.realIce[wk])||null;
   if(wkObj&&wkObj[venue]) return (wkObj[venue][day]||0);
@@ -1793,8 +1803,8 @@ function iceView(){
       const vg=gamesFor(wk).filter(g=>g.venue===v.venue);
       const u={};DAYS.forEach(d=>u[d]=vg.filter(g=>g.day===d).length);
       const unassigned=vg.filter(g=>!g.day||!DAYS.includes(g.day)).length;
-      const caps={Fri:v.capFri,Sat:v.capSat,Sun:v.capSun};
-      const capTot=v.capFri+v.capSat+v.capSun;
+      const caps={Fri:v.capFri,Sat:v.capSat,Sun:v.capSun,Mon:monCapFor(v)||null};
+      const capTot=v.capFri+v.capSat+v.capSun+monCapFor(v);
       const usedTot=vg.length; // every game counts against the venue, day or not
       const isNew=/NEW/i.test(v.venue);
       rows.push({wk,v,u,unassigned,caps,capTot,usedTot,free:capTot-usedTot,isNew});
@@ -2124,10 +2134,10 @@ function realSlotListFor(wk, venue){
 // can't over-fill Friday), keeps each slot's exact start/end + sheet, and avoids putting a
 // team in two overlapping slots or breaking the same-day rest floor / per-day game cap.
 function placeIntoSlots(list, slots){
-  const DAYIDX={Fri:0,Sat:1,Sun:2}, REST=165, block=_SLV.block;
+  const DAYIDX={Fri:0,Sat:1,Sun:2,Mon:3}, REST=165, block=_SLV.block;
   const S=slots.filter(s=>DAYIDX[s.day]!=null).slice().sort((a,b)=>DAYIDX[a.day]-DAYIDX[b.day]||(a.start-b.start));
   const gm=list.map(g=>({id:String(g.id),division:g.division,home:g.home,away:g.away,_placed:false}));
-  const out={Fri:[],Sat:[],Sun:[]}, unplaced=[], flags=[], repairs=[], warns=[];
+  const out={Fri:[],Sat:[],Sun:[],Mon:[]}, unplaced=[], flags=[], repairs=[], warns=[];
   const dayCnt={}, teamTimes={}, mday={}, placed={};
   const maxFor=(div,day)=> day==='Sun' ? Math.min(1,maxDay(div)) : maxDay(div);
   const mk=g=>g.division+'|'+[g.home,g.away].slice().sort().join('~');
@@ -2163,8 +2173,8 @@ function placeIntoSlots(list, slots){
     mday[mk(g)+'|'+slot.day]=(mday[mk(g)+'|'+slot.day]||0)+1;
   }
   gm.filter(g=>!g._placed).forEach(g=>unplaced.push(g.id));
-  ['Fri','Sat','Sun'].forEach(d=>out[d].sort((a,b)=>a.start-b.start));
-  const openSlots=S.length-(out.Fri.length+out.Sat.length+out.Sun.length);
+  ['Fri','Sat','Sun','Mon'].forEach(d=>out[d].sort((a,b)=>a.start-b.start));
+  const openSlots=S.length-(out.Fri.length+out.Sat.length+out.Sun.length+out.Mon.length);
   if(unplaced.length) flags.push(unplaced.length+' game(s) had no free real slot (more games than uploaded slots, or a rest/limit rule blocked them) \u2014 left un-timed for manual placement.');
   if(openSlots>0) warns.push(openSlots+' uploaded slot'+(openSlots>1?'s':'')+' left unused (more real ice than games).');
   return {out, unplaced, flags, repairs, warns};
@@ -2174,7 +2184,17 @@ function solveOneVenue(wk, venue){
   const vshort=venue.split(' \u2014 ')[0]||venue;
   if(!list.length) return {ok:true, msg:'No placed games in this pod to time.'};
   const hhmm=x=>String(Math.floor((x%1440)/60)).padStart(2,'0')+':'+String(x%60).padStart(2,'0');
-  const slots=realSlotListFor(wk, venue);
+  let slots=realSlotListFor(wk, venue);
+  // ABERDEEN RULE: on held Aberdeen weekends the exact slot times are OURS to pick — keep the
+  // per-day held counts (incl. holiday Monday) but pack our own single-sheet grid; the times we
+  // choose are sourced + confirmed.
+  if(String(venue).startsWith('Aberdeen') && slots && slots.length){
+    const maxLen=Math.max.apply(null,list.map(g=>Math.round(slotHours(g.division)*60)));
+    const flex=[];
+    DAYS.forEach(d=>{ const n=realAvailDay(wk,venue,d); let t=8*60;
+      for(let i=0;i<n;i++){ if(t+maxLen>22*60+45) break; flex.push({day:d,start:t,end:t+maxLen,sheet:''}); t+=maxLen+15; } });
+    if(flex.length) slots=flex;
+  }
   let out, unplaced, flags, repairs, v, usedReal=false;
   if(slots && slots.length){
     usedReal=true;
@@ -2186,7 +2206,7 @@ function solveOneVenue(wk, venue){
     flags=['No real ice slots loaded for this venue \u2014 '+list.length+' game(s) left un-timed (times are only assigned from real inputted ice).'];
     repairs=[]; v={errs:[], warns:[]};
   }
-  ['Fri','Sat','Sun'].forEach(dd=>{ out[dd].forEach(o=>{
+  ['Fri','Sat','Sun','Mon'].forEach(dd=>{ (out[dd]||[]).forEach(o=>{
     const gg=list.find(x=>String(x.id)===String(o.id)); if(!gg) return;
     gg.day=dd; gg.time=hhmm(o.start); gg.endTime=hhmm(o.end); gg.sheet=o.sheet||'';
     GAME_TIMES[String(gg.id)]={date:o.date||'',day:dd,time:gg.time,end:gg.endTime,sheet:o.sheet||'',venue:venue};
@@ -2195,7 +2215,7 @@ function solveOneVenue(wk, venue){
   unplaced.forEach(id=>{ const gg=list.find(x=>String(x.id)===String(id)); if(gg){ gg.day='';gg.time='';gg.endTime='';gg.sheet=''; delete GAME_TIMES[String(gg.id)]; } });
   try{saveGameTimes();}catch(e){}
   const entry={venue:venue, n:list.length, unplaced:unplaced.length, errs:v.errs, warns:v.warns, flags:flags, repairs:repairs,
-    days:{Fri:out.Fri.length,Sat:out.Sat.length,Sun:out.Sun.length}, real:usedReal};
+    days:{Fri:out.Fri.length,Sat:out.Sat.length,Sun:out.Sun.length,Mon:(out.Mon||[]).length}, real:usedReal};
   const rep=SOLVE_REPORT[wk]||{wk:wk, ts:Date.now(), venues:[]};
   rep.ts=Date.now(); rep.venues=rep.venues.filter(x=>x.venue!==venue); rep.venues.push(entry); SOLVE_REPORT[wk]=rep;
   const issues=v.errs.length+flags.length+unplaced.length;
@@ -2604,7 +2624,7 @@ function venueBlock(wk,v){
   const naGroup=noDay.length?`<div class="day-grp"><div class="dlabel" style="color:var(--mut-d)">Day not set (${noDay.length})</div>
       ${noDay.slice().sort((a,b)=>(a.home+a.away).localeCompare(b.home+b.away)).map(g=>gameLine(g)).join('')}</div>`:'';
   const bodyGroups=dayGroups+naGroup;
-  const totCap=v.capFri+v.capSat+v.capSun;
+  const totCap=v.capFri+v.capSat+v.capSun+monCapFor(v);
   const totUsed=vgames.length;
   let tcls='';if(totCap&&totUsed>totCap)tcls='over';else if(totCap&&totUsed===totCap)tcls='full';
   const overBooked = totCap && totUsed>totCap;

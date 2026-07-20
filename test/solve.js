@@ -338,7 +338,9 @@ window.SOLVE = (function(){
     work.forEach(function(g){ if(!g.day) return; (groups[g.weekend+'␟'+g.venue+'␟'+g.day]=groups[g.weekend+'␟'+g.venue+'␟'+g.day]||[]).push(g); });
     Object.keys(groups).forEach(function(k){ var p=k.split('␟'); var wk=p[0], vn=p[1], day=p[2];
       var v=DATA.venues.find(function(x){return x.weekend===wk&&x.venue===vn;});
-      if(!v) return; var cap=({Fri:v.capFri,Sat:v.capSat,Sun:v.capSun}[day])||0;
+      if(!v) return;
+      var cap = day==='Mon' ? (v.capMon!=null?v.capMon:((wk==='Feb 12'&&String(vn).indexOf('Aberdeen')===0)?6:0))
+                            : (({Fri:v.capFri,Sat:v.capSat,Sun:v.capSun}[day])||0);
       var gs=groups[k]; if(gs.length<=cap) return;
       var cl=clusterName(vn); if(cl==='Midway'||cl==='Hardisty') return; // don't dilute neutrals
       if((CFG.noNewIce||[]).indexOf(cl)>=0) return; // can't source (Winnipeg/Kimberley/GP): leave for solver
@@ -393,7 +395,8 @@ window.SOLVE = (function(){
       if((CFG.noNewIce||[]).indexOf(cl)>=0) return;   // can't source (Winnipeg etc.) — leave held
       var v=DATA.venues.find(function(x){return x.weekend===wk&&x.venue===vn;});
       if(!v) return;                                    // already a To-Source/unknown: no cap
-      var cap=({Fri:v.capFri,Sat:v.capSat,Sun:v.capSun}[day])||0;
+      var cap = day==='Mon' ? (v.capMon!=null?v.capMon:((wk==='Feb 12'&&String(vn).indexOf('Aberdeen')===0)?6:0))
+                            : (({Fri:v.capFri,Sat:v.capSat,Sun:v.capSun}[day])||0);
       var used=occDay[k]||0;                            // slots taken by other divisions
       var allowed=Math.max(0, cap-used);
       var gs=groups[k];
