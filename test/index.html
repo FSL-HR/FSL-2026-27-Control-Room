@@ -916,14 +916,30 @@ function detectConflicts(scope){
             out.push({sev:'hard',rule:'Venue restriction',
               msg:`${nm} (${g.division}) can’t play at Midway (${g.weekend}) — Midway is for Lower Mainland, Purcell and Calgary teams only.`,wk:g.weekend}); });
       } else if(String(g.venue).split(/\s*[—–-]\s*/)[0].trim()==='Hardisty'){
-        // Hardisty is a Lloydminster-cluster home venue (fsl-travel.json, 2026-07-20) — Lloyd teams
-        // play there freely; drive-in access stays limited to the Aberdeen/Calgary/Edmonton midpoint users.
+        // Hardisty is a local-drive neutral for Lloydminster, Aberdeen, Calgary-area and Edmonton
+        // teams (user rule 2026-07-20). No other team may play there.
         [g.home,g.away].forEach(nm=>{ const c=clOf(nm,g.division);
           if(!(c==='Lloydminster'||c==='Aberdeen'||c==='Calgary-area'||c==='Edmonton'))
             out.push({sev:'hard',rule:'Venue restriction',
-              msg:`${nm} (${g.division}) can’t play at Hardisty (${g.weekend}) — Hardisty is Lloydminster home ice plus the Saskatoon↔Calgary/Edmonton midpoint.`,wk:g.weekend}); });
+              msg:`${nm} (${g.division}) can’t play at Hardisty (${g.weekend}) — Hardisty is the Lloyd/Saskatoon/Calgary/Edmonton drive-in site only.`,wk:g.weekend}); });
       }
     });
+    // NEUTRAL TRIP MINIMUM (league rule 2026-07-20): a team never travels to a neutral site
+    // (Midway or Hardisty) for fewer than 2 games in a weekend. Applies to EVERY team — Hardisty
+    // is a local drive for Lloyd/Edmonton/Calgary/Aberdeen, but still a trip.
+    const ntCnt={};
+    pool.forEach(g=>{ if(!g.venue) return;
+      const city=String(g.venue).split(/\s*[—–-]\s*/)[0].trim();
+      const isMid=clusterName(g.venue)==='Midway', isHar=city==='Hardisty';
+      if(!isMid&&!isHar) return;
+      [g.home,g.away].forEach(nm=>{
+        const k=g.division+'␟'+nm+'␟'+g.weekend+'␟'+(isMid?'Midway':'Hardisty');
+        ntCnt[k]=(ntCnt[k]||0)+1; });
+    });
+    Object.entries(ntCnt).forEach(([k,n])=>{ if(n===1){ const [div,nm,wk,site]=k.split('␟');
+      out.push({sev:'hard',rule:'Neutral trip <2 games',
+        msg:`${nm} (${div}) travels to ${site} for only 1 game in ${wk} — a neutral-site trip must be at least 2 games.`,wk:wk}); } });
+
     // Per-team Midway game caps: Lower Mainland/Purcell 2, Calgary 4 (3 for 19U).
     const midCnt={};
     pool.forEach(g=>{ if(!g.venue||clusterName(g.venue)!=='Midway') return;
@@ -1038,7 +1054,7 @@ function clusterName(vn){
   const city=v.split(/\s*[—–-]\s*/)[0].trim();
   const map={'Calgary':'Calgary-area','Calgary-area':'Calgary-area','Cochrane':'Calgary-area','Canmore':'Calgary-area','Banff':'Calgary-area',
     'Grand Prairie':'Grande Prairie','Grande Prairie':'Grande Prairie',
-    'Edmonton':'Edmonton','Morinville':'Edmonton','Spruce Grove':'Edmonton','Aberdeen':'Aberdeen','Lloydminster':'Lloydminster','Lashburn':'Lloydminster','Hardisty':'Lloydminster','Winnipeg':'Winnipeg',
+    'Edmonton':'Edmonton','Morinville':'Edmonton','Spruce Grove':'Edmonton','Aberdeen':'Aberdeen','Lloydminster':'Lloydminster','Lashburn':'Lloydminster','Winnipeg':'Winnipeg',
     'Abbotsford':'Lower Mainland','Delta':'Lower Mainland','Lower Mainland':'Lower Mainland',
     'Cowichan':'Cowichan','Kimberley':'Kimberley'};
   return map[city]||map[v]||city;
@@ -1055,15 +1071,18 @@ const LOCAL_DRIVE={ // within ~3h drive of each other
 // LDRV (long drive) → REGIONAL tier, FLY → FLY. LM↔Cowichan is the ferry crossing (doc: RDRV) —
 // typed FERRY, same non-flight tier as a regional drive.
 const TRAVEL_MATRIX={
- 'Edmonton':      {'Calgary-area':'LOCAL','Lloydminster':'LOCAL','Aberdeen':'REGIONAL','Winnipeg':'FLY','Lower Mainland':'FLY','Cowichan':'FLY','Kimberley':'REGIONAL'},
- 'Calgary-area':  {'Edmonton':'LOCAL','Lloydminster':'LOCAL','Aberdeen':'REGIONAL','Winnipeg':'FLY','Lower Mainland':'FLY','Cowichan':'FLY','Kimberley':'LOCAL'},
- 'Lloydminster':  {'Edmonton':'LOCAL','Calgary-area':'LOCAL','Aberdeen':'LOCAL','Winnipeg':'REGIONAL','Lower Mainland':'FLY','Cowichan':'FLY','Kimberley':'REGIONAL'},
- 'Aberdeen':      {'Edmonton':'REGIONAL','Calgary-area':'REGIONAL','Lloydminster':'LOCAL','Winnipeg':'REGIONAL','Lower Mainland':'FLY','Cowichan':'FLY','Kimberley':'REGIONAL'},
- 'Winnipeg':      {'Edmonton':'REGIONAL','Calgary-area':'REGIONAL','Lloydminster':'REGIONAL','Aberdeen':'REGIONAL','Lower Mainland':'FLY','Cowichan':'FLY','Kimberley':'FLY'},
- 'Lower Mainland':{'Edmonton':'FLY','Calgary-area':'FLY','Lloydminster':'FLY','Aberdeen':'FLY','Winnipeg':'FLY','Cowichan':'FERRY','Kimberley':'REGIONAL'},
- 'Cowichan':      {'Edmonton':'FLY','Calgary-area':'FLY','Lloydminster':'FLY','Aberdeen':'FLY','Winnipeg':'FLY','Lower Mainland':'FERRY','Kimberley':'REGIONAL'},
- 'Kimberley':     {'Edmonton':'REGIONAL','Calgary-area':'LOCAL','Lloydminster':'REGIONAL','Aberdeen':'REGIONAL','Winnipeg':'FLY','Lower Mainland':'REGIONAL','Cowichan':'REGIONAL'}
+ 'Edmonton':      {'Calgary-area':'LOCAL','Lloydminster':'LOCAL','Aberdeen':'REGIONAL','Winnipeg':'FLY','Lower Mainland':'FLY','Cowichan':'FLY','Kimberley':'REGIONAL','Hardisty':'LOCAL'},
+ 'Calgary-area':  {'Edmonton':'LOCAL','Lloydminster':'LOCAL','Aberdeen':'REGIONAL','Winnipeg':'FLY','Lower Mainland':'FLY','Cowichan':'FLY','Kimberley':'LOCAL','Hardisty':'LOCAL'},
+ 'Lloydminster':  {'Edmonton':'LOCAL','Calgary-area':'LOCAL','Aberdeen':'LOCAL','Winnipeg':'REGIONAL','Lower Mainland':'FLY','Cowichan':'FLY','Kimberley':'REGIONAL','Hardisty':'LOCAL'},
+ 'Aberdeen':      {'Edmonton':'REGIONAL','Calgary-area':'REGIONAL','Lloydminster':'LOCAL','Winnipeg':'REGIONAL','Lower Mainland':'FLY','Cowichan':'FLY','Kimberley':'REGIONAL','Hardisty':'LOCAL'},
+ 'Winnipeg':      {'Edmonton':'REGIONAL','Calgary-area':'REGIONAL','Lloydminster':'REGIONAL','Aberdeen':'REGIONAL','Lower Mainland':'FLY','Cowichan':'FLY','Kimberley':'FLY','Hardisty':'REGIONAL'},
+ 'Lower Mainland':{'Edmonton':'FLY','Calgary-area':'FLY','Lloydminster':'FLY','Aberdeen':'FLY','Winnipeg':'FLY','Cowichan':'FERRY','Kimberley':'REGIONAL','Hardisty':'FLY'},
+ 'Cowichan':      {'Edmonton':'FLY','Calgary-area':'FLY','Lloydminster':'FLY','Aberdeen':'FLY','Winnipeg':'FLY','Lower Mainland':'FERRY','Kimberley':'REGIONAL','Hardisty':'FLY'},
+ 'Kimberley':     {'Edmonton':'REGIONAL','Calgary-area':'LOCAL','Lloydminster':'REGIONAL','Aberdeen':'REGIONAL','Winnipeg':'FLY','Lower Mainland':'REGIONAL','Cowichan':'REGIONAL','Hardisty':'REGIONAL'}
 };
+// Hardisty is its OWN site (user 2026-07-20): a LOCAL drive for Lloydminster, Edmonton, Calgary-area
+// and Aberdeen (the midpoint users) — NOT Lloydminster home ice. It stays region-less so local
+// rivalries remain banned there, and the 2-game neutral-trip minimum applies to everyone incl. Lloyd.
 // classify travel from a team's home cluster to a destination cluster
 function travelType(homeCl,destCl){
   if(homeCl===destCl) return 'HOME';
