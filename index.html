@@ -998,28 +998,40 @@ function detectConflicts(scope){
       });
     })();
     (function(){
-      const hostsBy={};
-      DATA.teams.forEach(t=>{ const k=t.division+'␟'+t.homeCluster; (hostsBy[k]=hostsBy[k]||[]).push(t.name); });
-      const byTW={};
+      // A team visiting another region must play a host-region team at least once that weekend.
+      // EXEMPTION (user 2026-07-21): a visitor is excused once the host is "full" — i.e. the hosts
+      // present are already playing as many DISTINCT visitors as their game count allows that
+      // weekend (a single host with 3 games can host at most 3 distinct visitors; the rest overflow
+      // and are unavoidable). Only unhosted visitors that the host COULD still take are flagged.
+      const hostNames={};
+      DATA.teams.forEach(t=>{ const k=t.division+'␟'+t.homeCluster; (hostNames[k]=hostNames[k]||[]).push(t.name); });
+      const isIsl=x=>x==='Cowichan'||x==='Victoria';
+      const grp={};
       pool.forEach(g=>{ if(!g.venue||!g.weekend) return;
-        const c=clusterName(g.venue);
-        if(!c||c==='Midway'||c==='Hardisty') return;
-        [g.home,g.away].forEach(nm=>{ const t=DATA.teams.find(x=>x.name===nm&&x.division===g.division); if(!t) return;
-          if(t.homeCluster===c) return;
-          const k=g.division+'␟'+nm+'␟'+g.weekend+'␟'+c; (byTW[k]=byTW[k]||[]).push(g); });
-      });
-      Object.entries(byTW).forEach(([k,gs])=>{ const [div,nm,wk,c]=k.split('␟');
-        const t=DATA.teams.find(x=>x.name===nm&&x.division===div);
-        // Ferry hops (island<->Lower Mainland) are treated as local throughout the schedule.
-        const isIsl=x=>x==='Cowichan'||x==='Victoria';
-        if((isIsl(t.homeCluster)&&c==='Lower Mainland')||(t.homeCluster==='Lower Mainland'&&isIsl(c))) return;
-        const tt=travelTypeFor(t,c);
-        if(tt==='LOCAL'){ const h=driveHoursBetween(t.homeCluster,c); if(!(h!=null&&h>5)) return; }
-        const hosts=(hostsBy[div+'␟'+c]||[]).filter(h=>h!==nm);
-        if(!hosts.length) return;
-        const plays=gs.some(g=>hosts.includes(g.home===nm?g.away:g.home));
-        if(!plays) out.push({sev:'hard',rule:'Play the host',
-          msg:`${nm} (${div}) visits ${c} in ${wk} without playing the host — a visiting team must play a ${c} team at least once (hosts: ${hosts.join(', ')}).`,wk});
+        const c=clusterName(g.venue); if(!c||c==='Midway'||c==='Hardisty') return;
+        const k=g.division+'␟'+g.weekend+'␟'+c; (grp[k]=grp[k]||[]).push(g); });
+      Object.entries(grp).forEach(([k,gs])=>{ const [div,wk,c]=k.split('␟');
+        const hosts=hostNames[div+'␟'+c]||[]; if(!hosts.length) return;
+        const present=new Set(); gs.forEach(g=>{present.add(g.home);present.add(g.away);});
+        const visitors=[...present].filter(nm=>{ const t=DATA.teams.find(x=>x.name===nm&&x.division===div); if(!t) return false;
+          if(t.homeCluster===c) return false;
+          if((isIsl(t.homeCluster)&&c==='Lower Mainland')||(t.homeCluster==='Lower Mainland'&&isIsl(c))) return false; // ferry hop
+          const tt=travelTypeFor(t,c);
+          if(tt==='LOCAL'){ const h=driveHoursBetween(t.homeCluster,c); if(!(h!=null&&h>5)) return false; } // short local hop
+          return true; });
+        if(!visitors.length) return;
+        // host game slots present (each game with >=1 host can host at most 1 distinct visitor)
+        const hostGameCount=gs.filter(g=>hosts.includes(g.home)||hosts.includes(g.away)).length;
+        const hosted=new Set();
+        gs.forEach(g=>{ const hb=hosts.includes(g.home), ha=hosts.includes(g.away);
+          if(hb&&!ha&&visitors.includes(g.away)) hosted.add(g.away);
+          if(ha&&!hb&&visitors.includes(g.home)) hosted.add(g.home); });
+        const maxHostable=Math.min(visitors.length, hostGameCount);
+        if(hosted.size>=maxHostable) return; // host saturated — remaining visitors are unavoidable overflow
+        visitors.filter(nm=>!hosted.has(nm)).forEach(nm=>{
+          out.push({sev:'hard',rule:'Play the host',
+            msg:`${nm} (${div}) visits ${c} in ${wk} without playing the host — a visiting team must play a ${c} team at least once (hosts: ${hosts.filter(h=>h!==nm).join(', ')}).`,wk});
+        });
       });
     })();
     (function(){
