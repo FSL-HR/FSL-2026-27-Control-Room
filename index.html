@@ -973,6 +973,55 @@ function detectConflicts(scope){
            in a weekend), the resident island team must play 4 games that weekend too.
        C3  NO STANDALONE 16U AA COWICHAN SHOWCASE — 16U AA may only play at Cowichan on weekends
            where the Cowichan 12U AAA or 14U AAA team also has games there. */
+    /* ===== FSL travel rules added 2026-07-21 (user) =====
+       PT  PURCELL TRIP MINIMUMS — Purcell is no longer exempt from long-trip minimums: any far
+           destination needs a full slate of 4 games (19U: 3), with a special user allowance at
+           Lower Mainland (Delta): 16U AAA may play 3, 19U may play 2. Calgary-area (~3.5h) and
+           Midway stay under Purcell's old exemption.
+       PH  PLAY THE HOST — a team travelling to another region must play the host (a team homed
+           in that region's cluster) at least once that weekend. Applies to real trips: flights,
+           regional drives, and 5h+ drives. Local hops (≤5h LOCAL tier, ferry) and neutral sites
+           (Midway/Hardisty) are exempt; skipped when the destination has no same-division host. */
+    (function(){
+      const FAR={'Aberdeen':1,'Edmonton':1,'Lloydminster':1,'Winnipeg':1,'Cowichan':1,'Victoria':1,'Lower Mainland':1};
+      DATA.teams.filter(t=>/purcell/i.test(t.name)).forEach(t=>{
+        const byWk={};
+        pool.forEach(g=>{ if(g.division!==t.division||!g.venue||!g.weekend) return;
+          if(g.home!==t.name&&g.away!==t.name) return;
+          const c=clusterName(g.venue); if(!FAR[c]) return;
+          const k=g.weekend+'␟'+c; byWk[k]=(byWk[k]||0)+1; });
+        Object.entries(byWk).forEach(([k,n])=>{ const [wk,c]=k.split('␟');
+          const min=(c==='Lower Mainland')?((t.division==='19U AAA')?2:3):((t.division==='19U AAA')?3:4);
+          if(n<min) out.push({sev:'hard',rule:'Purcell trip minimums',
+            msg:`${t.name} (${t.division}) travels to ${c} for only ${n} game(s) in ${wk} — Purcell needs ${min}+ there (LM allowance: 16U 3, 19U 2; elsewhere 4, 19U 3).`,wk});
+        });
+      });
+    })();
+    (function(){
+      const hostsBy={};
+      DATA.teams.forEach(t=>{ const k=t.division+'␟'+t.homeCluster; (hostsBy[k]=hostsBy[k]||[]).push(t.name); });
+      const byTW={};
+      pool.forEach(g=>{ if(!g.venue||!g.weekend) return;
+        const c=clusterName(g.venue);
+        if(!c||c==='Midway'||c==='Hardisty') return;
+        [g.home,g.away].forEach(nm=>{ const t=DATA.teams.find(x=>x.name===nm&&x.division===g.division); if(!t) return;
+          if(t.homeCluster===c) return;
+          const k=g.division+'␟'+nm+'␟'+g.weekend+'␟'+c; (byTW[k]=byTW[k]||[]).push(g); });
+      });
+      Object.entries(byTW).forEach(([k,gs])=>{ const [div,nm,wk,c]=k.split('␟');
+        const t=DATA.teams.find(x=>x.name===nm&&x.division===div);
+        // Ferry hops (island<->Lower Mainland) are treated as local throughout the schedule.
+        const isIsl=x=>x==='Cowichan'||x==='Victoria';
+        if((isIsl(t.homeCluster)&&c==='Lower Mainland')||(t.homeCluster==='Lower Mainland'&&isIsl(c))) return;
+        const tt=travelTypeFor(t,c);
+        if(tt==='LOCAL'){ const h=driveHoursBetween(t.homeCluster,c); if(!(h!=null&&h>5)) return; }
+        const hosts=(hostsBy[div+'␟'+c]||[]).filter(h=>h!==nm);
+        if(!hosts.length) return;
+        const plays=gs.some(g=>hosts.includes(g.home===nm?g.away:g.home));
+        if(!plays) out.push({sev:'hard',rule:'Play the host',
+          msg:`${nm} (${div}) visits ${c} in ${wk} without playing the host — a visiting team must play a ${c} team at least once (hosts: ${hosts.join(', ')}).`,wk});
+      });
+    })();
     (function(){
       const ISLC=c=>c==='Cowichan'||c==='Victoria';
       pool.forEach(g=>{ if(!g.venue) return;
