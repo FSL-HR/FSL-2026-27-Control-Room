@@ -780,7 +780,15 @@ function detectConflicts(scope){
       // Count only games at the trip's destination(s) of each type, not every game that weekend
       // (a team can't be in two regions in one weekend, but the data may mix clusters).
       const flightDests=[...new Set(gs.map(g=>clusterName(g.venue)).filter(c=>travelTypeFor(t,c)==='FLY'&&!HALFWAY.has(c)))];
-      const driveDests=[...new Set(gs.map(g=>clusterName(g.venue)).filter(c=>travelTypeFor(t,c)==='REGIONAL'&&!islandMainland(home,c)))];
+      const driveDests=[...new Set(gs.map(g=>clusterName(g.venue)).filter(c=>{
+        if(islandMainland(home,c)) return false;
+        const tt=travelTypeFor(t,c);
+        if(tt==='REGIONAL') return true;
+        // 5-HOUR RULE also covers LOCAL-tier (RDrv) pairs that exceed 5 hours by car
+        // (e.g. Calgary-area <-> Lloydminster at 5.5h — the rule's original example).
+        if(tt==='LOCAL'){ const h=driveHoursBetween(home,c); return h!=null&&h>5; }
+        return false;
+      }))];
       if(flightDests.length){
         const fg=gs.filter(g=>flightDests.includes(clusterName(g.venue)));
         // Flights should be >=4 games, but 3 is allowed (soft) for all divisions (user-set 2026-07-18,
@@ -955,6 +963,68 @@ function detectConflicts(scope){
           ? `${nm} (${div}) drives 5+ hours to ${site} for only ${n} game(s) in ${wk} — a drive over 5 hours must be at least ${min} games.`
           : `${nm} (${div}) travels to ${site} for only ${n} game in ${wk} — a neutral-site trip must be at least 2 games.`,wk:wk}); });
 
+    /* ===== FSL rules added 2026-07-21 (user) =====
+       P   FLIGHT PARITY — in every division, Vancouver Aeros and Langley Leafs must take the
+           same number of flight trips as each other; likewise Calgary Glaciers and Bow Valley
+           Nationals. (A trip = a weekend with 1+ games at a FLY destination.)
+       C1  COWICHAN HOSTS AT HOME — a game whose designated home team is island-based may not
+           sit at a Lower Mainland venue: island teams host on the island, not across the ferry.
+       C2  COWICHAN SHOWCASE = FULL SLATE — when a division has a showcase at Cowichan (3+ games
+           in a weekend), the resident island team must play 4 games that weekend too.
+       C3  NO STANDALONE 16U AA COWICHAN SHOWCASE — 16U AA may only play at Cowichan on weekends
+           where the Cowichan 12U AAA or 14U AAA team also has games there. */
+    (function(){
+      const ISLC=c=>c==='Cowichan'||c==='Victoria';
+      pool.forEach(g=>{ if(!g.venue) return;
+        const hc=clOf(g.home,g.division);
+        if(hc&&ISLC(hc)&&clusterName(g.venue)==='Lower Mainland')
+          out.push({sev:'hard',rule:'Cowichan hosts at home',
+            msg:`${g.home} (${g.division}) is the home team vs ${g.away} at ${g.venue} (${g.weekend}) — island teams host at Cowichan, not on the mainland.`,wk:g.weekend});
+      });
+      (function(){
+        const cw={};
+        pool.forEach(g=>{ if(!g.venue||!ISLC(clusterName(g.venue))) return;
+          const k=g.division+'␟'+g.weekend; (cw[k]=cw[k]||[]).push(g); });
+        Object.keys(cw).forEach(k=>{ const [div,wk]=k.split('␟');
+          const gs=cw[k]; if(gs.length<3) return;
+          DATA.teams.filter(t=>t.division===div&&ISLC(t.homeCluster)).forEach(t=>{
+            const n=gs.filter(g=>g.home===t.name||g.away===t.name).length;
+            const need=div==='19U AAA'?3:4;
+            if(n<need) out.push({sev:'hard',rule:'Cowichan showcase slate',
+              msg:`${t.name} (${div}) only plays ${n} game(s) in the ${wk} Cowichan showcase — the island host must get ${need} games.`,wk});
+          });
+        });
+      })();
+      (function(){
+        const wk16={}, wkKid={};
+        pool.forEach(g=>{ if(!g.venue||!ISLC(clusterName(g.venue))) return;
+          if(g.division==='16U AA') wk16[g.weekend]=(wk16[g.weekend]||0)+1;
+          if(g.division==='12U AAA'||g.division==='14U AAA') wkKid[g.weekend]=(wkKid[g.weekend]||0)+1;
+        });
+        Object.keys(wk16).forEach(wk=>{ if(!wkKid[wk])
+          out.push({sev:'hard',rule:'16U AA Cowichan piggyback',
+            msg:`16U AA has ${wk16[wk]} game(s) at Cowichan in ${wk} with no Cowichan 12U/14U showcase that weekend — 16U AA may only play there alongside the island 12U/14U team.`,wk}); });
+      })();
+      if(!(scope&&scope.weekend)){
+        const PAIRS=[['Vancouver Aeros','Langley Leafs'],['Calgary Glaciers','Bow Valley Nationals']];
+        [...new Set(games.map(g=>g.division))].forEach(div=>{
+          PAIRS.forEach(([an,bn])=>{
+            const A=DATA.teams.find(t=>t.division===div&&t.name.startsWith(an));
+            const B=DATA.teams.find(t=>t.division===div&&t.name.startsWith(bn));
+            if(!A||!B) return;
+            const tripsOf=t=>{ const wks=new Set();
+              games.forEach(g=>{ if(g.division!==div||!g.venue||!g.weekend) return;
+                if(g.home!==t.name&&g.away!==t.name) return;
+                const c=clusterName(g.venue);
+                if(c&&travelTypeFor(t,c)==='FLY') wks.add(g.weekend); });
+              return wks.size; };
+            const na=tripsOf(A), nb=tripsOf(B);
+            if(na!==nb) out.push({sev:'hard',rule:'Flight parity',
+              msg:`${A.name} has ${na} flight trip(s) but ${B.name} has ${nb} (${div}) — these two teams must fly the same number of times.`,wk:null});
+          });
+        });
+      }
+    })();
     // Per-team Midway game caps: Lower Mainland/Purcell 2, Calgary 4 (3 for 19U).
     const midCnt={};
     pool.forEach(g=>{ if(!g.venue||clusterName(g.venue)!=='Midway') return;
