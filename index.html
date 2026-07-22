@@ -4840,23 +4840,51 @@ const PG=(function(){
     const name=String(ven).trim(); if(!name){ showToast('No arena name entered.','warn'); return null; }
     return {wk, ven:name};
   }
+  // Move a game/pod to a hypothetical (unsourced) weekend + location. Uses a proper picker modal
+  // (weekend dropdown + a searchable location list you can pick from OR type a new arena into) \u2014
+  // replaces the old free-text prompt() flow so the date and location are selectable from dropdowns.
   function moveToUnsourced(set){
     if(!set||!set.length){ render(); return false; }
-    const pick=promptUnsourced();
-    if(!pick){ render(); return false; }
-    const {wk, ven}=pick;
-    if(isEffLocked(wk,ven)){showToast('\uD83D\uDD12 That weekend is locked \u2014 pick a different one.','warn');render();return false;}
     const n=set.length;
-    if(!confirm('\u26A0 You are moving this '+(n>1?(n+' games'):'game')+' to an UNSOURCED weekend.\n\n'
-      +'Target: '+ven+' \u00b7 '+wk+' ('+(WKDATE[wk]||'')+')\n\n'
-      +'This weekend/arena has no real contracted ice \u2014 '+(n>1?(n+' slots'):'a slot')+' will be added to the sourcing list. Proceed?')){
-      render(); return false;
-    }
-    ensureUnsourcedVenue(wk, ven);
-    set.forEach(g=>{ g.weekend=wk; g.venue=ven; g.day='';g.time='';g.sheet='';g.endTime='';g.date='';
-      delete PARKING[String(g.id)]; GAME_TIMES[String(g.id)]={date:'',weekend:wk,day:'',time:'',end:'',sheet:'',venue:ven}; });
-    sugKey=null; SEL.clear(); saveParking(); try{saveGameTimes();}catch(e){}
-    render(); showToast('Moved '+n+' game'+(n>1?'s':'')+' \u2192 '+short(ven)+' \u00b7 '+wkDateShort(wk)+' (unsourced)','good');
+    const wk0=set[0].weekend||WK[0];
+    const wkOpts=WK.map(w=>`<option value="${escA(w)}" ${w===wk0?'selected':''}>${esc(wkDateShort(w))}</option>`).join('');
+    const knownVen=[...new Set(DATA.venues.map(v=>v.venue).filter(Boolean))].sort();
+    const venList=knownVen.map(v=>`<option value="${escA(v)}"></option>`).join('');
+    const modal=document.createElement('div');modal.className='modal-bg';modal.id='modalbg';
+    modal.innerHTML=`<div class="modal">
+      <div class="modal-h"><h3>\uD83C\uDD7F Move to a hypothetical (unsourced) date &amp; location</h3><button class="x" data-close>\u2715</button></div>
+      <div class="modal-b">
+        <div class="dt" style="margin-bottom:10px">Moving <b>${n} game${n>1?'s':''}</b> to a weekend / arena with no contracted ice yet \u2014 ${n>1?(n+' slots'):'a slot'} will be added to the sourcing list. Pick a weekend and location below; you can set the exact date &amp; time next.</div>
+        <div class="fld-row">
+          <div class="fld"><label>Weekend</label><select id="uns-wk">${wkOpts}</select></div>
+          <div class="fld"><label>Location / arena</label><input id="uns-ven" list="uns-venlist" placeholder="Pick an arena or type a new one\u2026" autocomplete="off"></div>
+        </div>
+        <datalist id="uns-venlist">${venList}</datalist>
+        <div class="dt" style="font-size:10.5px;margin-top:6px">Choose an existing arena from the location dropdown, or type a brand-new hypothetical arena name. The weekend sets the date range; the exact day/time is set on the next step.</div>
+        <div class="live-warn" id="uns-warn"></div>
+      </div>
+      <div class="modal-foot"><button class="btn" data-close>Cancel</button><button class="btn primary" id="uns-save">Move here</button></div>
+    </div>`;
+    document.getElementById('app').appendChild(modal);
+    const close=()=>modal.remove();
+    modal.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>{ close(); render(); });
+    modal.onclick=e=>{ if(e.target===modal){ close(); render(); } };
+    modal.querySelector('#uns-save').onclick=()=>{
+      const wk=(modal.querySelector('#uns-wk').value||'').trim();
+      const ven=(modal.querySelector('#uns-ven').value||'').trim();
+      const warn=modal.querySelector('#uns-warn');
+      if(!wk){ warn.className='live-warn show'; warn.textContent='Pick a weekend.'; return; }
+      if(!ven){ warn.className='live-warn show'; warn.textContent='Pick a location from the list or type an arena name.'; return; }
+      if(isEffLocked(wk,ven)){ warn.className='live-warn show'; warn.textContent='\uD83D\uDD12 That weekend/venue is locked \u2014 pick a different one.'; return; }
+      ensureUnsourcedVenue(wk, ven);
+      set.forEach(g=>{ g.weekend=wk; g.venue=ven; g.day='';g.time='';g.sheet='';g.endTime='';g.date='';
+        delete PARKING[String(g.id)]; GAME_TIMES[String(g.id)]={date:'',weekend:wk,day:'',time:'',end:'',sheet:'',venue:ven}; });
+      sugKey=null; SEL.clear(); saveParking(); try{saveGameTimes();}catch(e){}
+      close(); render();
+      showToast('Moved '+n+' game'+(n>1?'s':'')+' \u2192 '+short(ven)+' \u00b7 '+wkDateShort(wk)+' (unsourced)','good');
+      // For a single game, open the date/time/surface picker so they can pin it immediately.
+      if(n===1){ try{ openDateSurface(set[0].id, wk, ven); }catch(e){} }
+    };
     return true;
   }
 
