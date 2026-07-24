@@ -3656,6 +3656,26 @@ function hypoTimePod(wk,venue){
     }
   }
   const R=best.R, out=best.out;
+  // Tighten turnover to exactly BUF (15 min) between consecutive games. The fill grid steps by the pod's
+  // LONGEST game (maxBlk), so in a mixed-division pod a shorter (2h) game ends 30 min before the next start.
+  // Re-lay each day's single-rink timeline so each game starts BUF after the previous one ENDS, using its
+  // own length, while keeping the 165-min same-team rest. Compaction only shrinks gaps (no game ends later
+  // than the grid placed it), so the day-end caps, per-day limits and timed/to-source counts are unchanged.
+  const REST=(CFG.restMinBetween||165);
+  ['Fri','Sat','Sun'].forEach(d=>{
+    const rows=(out[d]||[]); if(!rows.length) return;
+    const bySheet={}; rows.forEach(o=>{ (bySheet[o.sheet||'']=bySheet[o.sheet||'']||[]).push(o); });
+    const teamIv={};                                             // team -> [{start,end}] placed so far this day (165 rest)
+    Object.keys(bySheet).forEach(sh=>{
+      const arr=bySheet[sh].sort((a,b)=>a.start-b.start); let prevEnd=null;
+      arr.forEach(o=>{ const g=list.find(x=>String(x.id)===String(o.id)); const blk=g?block(g.division):(o.end-o.start);
+        let st=(prevEnd==null)?o.start:prevEnd+BUF;              // tight 15-min turnover from the previous game
+        [g&&g.home,g&&g.away].filter(Boolean).forEach(t=>{ (teamIv[t]||[]).forEach(iv=>{ if(st<iv.end+REST) st=iv.end+REST; }); });
+        o.start=st; o.end=st+blk; prevEnd=o.end;
+        [g&&g.home,g&&g.away].filter(Boolean).forEach(t=>{ (teamIv[t]=teamIv[t]||[]).push({start:o.start,end:o.end}); });
+      });
+    });
+  });
   // Friday finishes at 8:30 PM and works its way up: per rink, shift Friday games so the last ends 20:30.
   const friBy={}; out.Fri.forEach(o=>{ (friBy[o.sheet||'']=friBy[o.sheet||'']||[]).push(o); });
   Object.keys(friBy).forEach(sh=>{ const arr=friBy[sh]; const latest=Math.max.apply(null,arr.map(o=>o.end)); const d=FRI_END-latest; if(d>0) arr.forEach(o=>{o.start+=d;o.end+=d;}); });
