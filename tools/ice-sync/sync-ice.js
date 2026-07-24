@@ -20,6 +20,8 @@ const VENUE_MAP = {
   'Canmore|Town of Canmore':'Canmore — Canmore Arena',
   'Cochrane|SLS Centre':'Cochrane — SLS Center',
   'Delta|Planet Ice Delta':'Delta — Planet Ice Delta',
+  'Grande Prairie|Bonnetts Energy Centre':'Grande Prairie — Bonnetts Energy Centre',
+  'Grand Prairie|Bonnetts Energy Centre':'Grande Prairie — Bonnetts Energy Centre',
   'Edmonton|SISE HATCH CO':'Edmonton — Silent Ice Center (Hatch+Hesco)',
   'Edmonton|SISE HESCO':'Edmonton — Silent Ice Center (Hatch+Hesco)',
   'Edmonton|SISE Morinville':'Edmonton — Morinville Silent Ice Gardens',
