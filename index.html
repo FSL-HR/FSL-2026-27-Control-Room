@@ -2970,6 +2970,16 @@ function dlCell(nm,div,wk){
   return `<td class="cell g-${type}" title="${iceEscA(title)}"><div class="c">${short}</div><div class="n">${gs.length}g</div></td>`;
 }
 
+// Split a team's placed games into before / after the Alpine Cup (the cup sits right after
+// ALPINE_BLACKOUT.after, e.g. Dec 11 — so "before" = weekends up to & incl. that, "after" = later).
+function dlAlpineSplit(nm,div){
+  const cut=WK.indexOf(ALPINE_BLACKOUT.after);
+  let before=0, after=0;
+  games.forEach(g=>{ if(g.division===div && (g.home===nm||g.away===nm) && g.weekend){
+    const i=WK.indexOf(g.weekend); if(i<0) return;
+    if(cut<0 || i<=cut) before++; else after++; }});
+  return {before,after};
+}
 function divLayoutView(){
   const groups=dlGroups();
   const showDivRow=DL_SCOPE.mode!=='team';   // a single team doesn't need its own division banner cluttering
@@ -2980,18 +2990,23 @@ function divLayoutView(){
     ${WK.map(wk=>{const parts=wk.split(' ');const n=games.filter(g=>g.weekend===wk).length;
       return `<th title="${iceEscA(wk+' · '+n+' league games')}">${parts[0]}<br><span class="wd">${parts[1]||''}</span></th>`
         +(wk===ALPINE_BLACKOUT.after?boTH:'');}).join('')}
+    <th class="totcol" title="Games before ${iceEscA(ALPINE_BLACKOUT.label)} (through ${iceEscA(ALPINE_BLACKOUT.after)})">Pre&nbsp;Cup</th>
+    <th class="totcol" title="Games after ${iceEscA(ALPINE_BLACKOUT.label)}">Post&nbsp;Cup</th>
     <th class="totcol">Total</th></tr>`;
 
   const body=groups.map(({div,teams})=>{
     const tgt=gameTarget(div);
-    const divRow=showDivRow?`<tr class="divrow"><td colspan="${WK.length+3}">${div} · ${teams.length} team${teams.length===1?'':'s'} · ${tgt}-game season</td></tr>`:'';
+    const divRow=showDivRow?`<tr class="divrow"><td colspan="${WK.length+5}">${div} · ${teams.length} team${teams.length===1?'':'s'} · ${tgt}-game season</td></tr>`:'';
     const rows=teams.map(nm=>{
       const cells=WK.map(wk=>dlCell(nm,div,wk)+(wk===ALPINE_BLACKOUT.after?`<td class="bocol"><div class="bolbl">${ALPINE_BLACKOUT.label}</div></td>`:'')).join('');
       const gc=teamGameCount(nm,div);
       const short=gc<tgt;
+      const c=dlAlpineSplit(nm,div);
       return `<tr>
         <td class="tcol"><a class="tlink" data-nav="team" data-team="${nm}" data-div="${div}" style="display:inline-flex;align-items:center;gap:5px">${teamBadge(nm)}<span>${tdisp(nm,div)}</span></a></td>
         ${cells}
+        <td class="totcol" title="${iceEscA(nm)} — ${c.before} game${c.before===1?'':'s'} before ${iceEscA(ALPINE_BLACKOUT.label)}">${c.before}</td>
+        <td class="totcol" title="${iceEscA(nm)} — ${c.after} game${c.after===1?'':'s'} after ${iceEscA(ALPINE_BLACKOUT.label)}">${c.after}</td>
         <td class="totcol ${short?'short':''}">${gc}/${tgt}</td></tr>`;
     }).join('');
     return divRow+rows;
