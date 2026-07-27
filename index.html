@@ -3136,14 +3136,18 @@ function oppMatrix(div,tt){
     cnt[g.home+'|'+g.away]=(cnt[g.home+'|'+g.away]||0)+1;
     cnt[g.away+'|'+g.home]=(cnt[g.away+'|'+g.home]||0)+1;
   });
-  const head=`<th></th>`+tt.map(t=>`<th style="writing-mode:vertical-rl;transform:rotate(180deg);font-size:9px;padding:6px 2px;max-height:90px">${t.replace(/- (AA|Gold|Green)/,'')}</th>`).join('')+`<th>Tot</th>`;
+  // Header/row labels: drop the (implied) division tag but KEEP the colour (Gold/Green) so the two
+  // Purcell teams are distinct; a colour dot makes it obvious at a glance.
+  const lbl=n=>String(n).replace(/-\s*AAA?\s*$/i,'');
+  const dot=n=>{ const tg=colourTag(n); return tg?`<span style="color:${_TAG_COLORS[tg]||'#888'}" title="${iceEscA(tg)}">●</span> `:''; };
+  const head=`<th></th>`+tt.map(t=>`<th style="writing-mode:vertical-rl;transform:rotate(180deg);font-size:9px;padding:6px 2px;max-height:120px">${dot(t)}${lbl(t)}</th>`).join('')+`<th>Tot</th>`;
   const rows=tt.map(a=>{
     let tot=0;
     const cells=tt.map(b=>{if(a===b)return '<td style="background:var(--blk)"></td>';
       const n=cnt[a+'|'+b]||0;tot+=n;
       const bg=n===0?'':n>2?'background:var(--dangerbg);color:var(--red-d);font-weight:800':'background:var(--okbg)';
       return `<td style="text-align:center;${bg}">${n||''}</td>`;}).join('');
-    return `<tr><td class="tm" style="font-size:11px">${a.replace(/- (AA|Gold|Green)/,'')}</td>${cells}<td style="text-align:center;font-weight:800">${tot}</td></tr>`;
+    return `<tr><td class="tm" style="font-size:11px;white-space:nowrap">${dot(a)}${lbl(a)}</td>${cells}<td style="text-align:center;font-weight:800">${tot}</td></tr>`;
   }).join('');
   return `<div style="overflow-x:auto"><table class="tbl" style="font-size:11px"><thead><tr>${head}</tr></thead><tbody>${rows}</tbody></table></div>
     <div class="legend"><span><span class="sw" style="background:var(--okbg)"></span>1–2 meetings</span><span><span class="sw" style="background:var(--dangerbg)"></span>3+ (review)</span></div>`;
