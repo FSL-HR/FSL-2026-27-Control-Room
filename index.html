@@ -583,7 +583,9 @@ function detectConflicts(scope){
     // Per-weekend game cap: 19U is 3, EXCEPT the four-game-weekend teams (Langley, Purcell Gold/Green, Sask).
     // ABSOLUTE CAP (league rule, 2026-07-19): no team may EVER exceed 4 games in a weekend —
     // no showcase exception, no acknowledgement. Division caps below 4 (e.g. 19U = 3) still apply.
-    const lim=Math.min(4,is4Game19U(div,tm)?4:perShow(div));
+    // EXCEPTION (user, 2026-07-27): Manitoba Mavericks may play one 5-game weekend — their lone
+    // sanctioned BC trip carries the extra game (Winnipeg teams get a single BC flight per season).
+    const lim=(tm==='Manitoba Mavericks')?5:Math.min(4,is4Game19U(div,tm)?4:perShow(div));
     if(gs.length>lim) out.push({sev:'hard',rule:'Games/showcase',
       msg:`${tm} (${div}) has ${gs.length} games in ${wk} — showcase max is ${lim}.`,wk});
     // ONE LOCATION PER WEEKEND: a team's placed games in a weekend must all be in a single
