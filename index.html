@@ -486,6 +486,9 @@ const venuesFor = wk => DATA.venues.filter(v=>v.weekend===wk);
 const gamesFor = wk => games.filter(g=>g.weekend===wk);
 const isFlying = nm => {const t=DATA.teams.find(x=>x.name===nm);return t&&t.flying;};
 const slotHours = div => CFG.slotHours[div]||2;
+// 19U four-game-weekend teams (user, 2026-07-27): these 19U AAA teams may play 4 games in a weekend
+// (and therefore 2 on a day) — Langley (original exception) plus Purcell Gold/Green and Sask.
+function is4Game19U(div,tm){ return div==='19U AAA' && (tm==='Langley Leafs'||tm==='Purcell Collegiate- Gold'||tm==='Purcell Collegiate- Green'||tm==='Sask Phantoms'); }
 const maxDay = div => CFG.maxPerDay[div]||CFG.maxPerDay.default;
 const perShow = div => CFG.gamesPerShowcase[div]||CFG.gamesPerShowcase.default;
 const gameTarget = div => CFG.gameCount[div]||CFG.gameCount.default;
@@ -557,8 +560,8 @@ function detectConflicts(scope){
   });
   Object.entries(byTeamWkDay).forEach(([k,gs])=>{
     const [div,tm,wk,day]=k.split('~');
-    // 19U is 1 game/day, EXCEPT Langley Leafs (19U) who play four-game weekends and so may play 2/day.
-    const lim=(div==='19U AAA'&&tm==='Langley Leafs')?2:maxDay(div);
+    // 19U is 1 game/day, EXCEPT the four-game-weekend teams (Langley, Purcell Gold/Green, Sask) who may play 2/day.
+    const lim=is4Game19U(div,tm)?2:maxDay(div);
     if(gs.length>lim) out.push({sev:'hard',rule:'Max games/day',
       msg:`${tm} (${div}) has ${gs.length} games on ${day} ${wk} — limit is ${lim}.`,wk});
     // Space-between-games rule (league, 2026-07-20): at least 165 min between one game's
@@ -577,10 +580,10 @@ function detectConflicts(scope){
   });
   Object.entries(byTeamWk).forEach(([k,gs])=>{
     const [div,tm,wk]=k.split('~');
-    // Per-weekend game cap: 19U is 3, EXCEPT Langley Leafs (19U) who play four-game weekends.
+    // Per-weekend game cap: 19U is 3, EXCEPT the four-game-weekend teams (Langley, Purcell Gold/Green, Sask).
     // ABSOLUTE CAP (league rule, 2026-07-19): no team may EVER exceed 4 games in a weekend —
     // no showcase exception, no acknowledgement. Division caps below 4 (e.g. 19U = 3) still apply.
-    const lim=Math.min(4,(div==='19U AAA'&&tm==='Langley Leafs')?4:perShow(div));
+    const lim=Math.min(4,is4Game19U(div,tm)?4:perShow(div));
     if(gs.length>lim) out.push({sev:'hard',rule:'Games/showcase',
       msg:`${tm} (${div}) has ${gs.length} games in ${wk} — showcase max is ${lim}.`,wk});
     // ONE LOCATION PER WEEKEND: a team's placed games in a weekend must all be in a single
@@ -2335,7 +2338,9 @@ function placeIntoSlots(list, slots){
     const en=slot.end!=null?slot.end:slot.start+block(g.division);
     for(const t of [g.home,g.away]){
       const k=g.division+'|'+t+'|'+slot.day;
-      if((dayCnt[k]||0) >= maxFor(g.division,slot.day)) return false;
+      // Four-game-weekend 19U teams may play 2 on Fri/Sat (Sun stays capped at 1).
+      const cap=(typeof is4Game19U==='function'&&is4Game19U(g.division,t)&&slot.day!=='Sun')?2:maxFor(g.division,slot.day);
+      if((dayCnt[k]||0) >= cap) return false;
       for(const it of (teamTimes[k]||[])){
         if(slot.start < it.end && en > it.start) return false;                 // time overlap
         const gap = slot.start>=it.end ? slot.start-it.end : it.start-en;       // same-day rest
