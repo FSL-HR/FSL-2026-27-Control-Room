@@ -1167,15 +1167,22 @@ function _clubInitials(club){
   return (words[0][0]+words[words.length-1][0]).toUpperCase();
 }
 // Returns badge HTML (real logo if we have one for the club, else colored initials). 22px.
+// A club split into colour teams (e.g. "Purcell Collegiate- Gold"/"- Green") shares ONE logo, so the
+// badge alone can't tell them apart. Detect the colour suffix and distinguish the badge with a coloured
+// ring + the colour in its tooltip. (Same suffix set clubKey strips, so badge grouping stays consistent.)
+const _TAG_COLORS={Gold:'#C9A227',Green:'#1a7f4b',Black:'#111827',White:'#c9ccd1',Red:'#c0392b',Blue:'#2563eb',Silver:'#9aa0a6'};
+function colourTag(name){ const m=String(name||'').match(/-\s*(Gold|Green|Black|White|Red|Blue|Silver)\s*$/i); return m?(m[1][0].toUpperCase()+m[1].slice(1).toLowerCase()):''; }
 function teamBadge(name){
-  const club=clubKey(name);
+  const club=clubKey(name), tag=colourTag(name);
+  const ring=tag?(';box-shadow:0 0 0 2px '+(_TAG_COLORS[tag]||'#888')):'';
+  const ttl=(club+(tag?' — '+tag:'')).replace(/"/g,'');
   const logo=TEAM_LOGOS[club];
   const box='width:22px;height:22px;border-radius:4px;vertical-align:middle;flex:0 0 auto';
   if(logo){
-    return `<img src="${logo}" alt="" title="${club.replace(/"/g,'')}" style="${box};object-fit:contain">`;
+    return `<img src="${logo}" alt="" title="${ttl}" style="${box};object-fit:contain${ring}">`;
   }
   const col=_clubColor(club), ini=_clubInitials(club);
-  return `<span title="${club.replace(/"/g,'')}" style="${box};display:inline-flex;align-items:center;justify-content:center;background:${col};color:#fff;font-size:9px;font-weight:800;letter-spacing:.3px">${ini}</span>`;
+  return `<span title="${ttl}" style="${box};display:inline-flex;align-items:center;justify-content:center;background:${col};color:#fff;font-size:9px;font-weight:800;letter-spacing:.3px${ring}">${ini}</span>`;
 }
 // Team name with its badge, as an inline-flex unit so the badge and name stay together.
 function teamWithBadge(name){
@@ -1184,14 +1191,16 @@ function teamWithBadge(name){
 // Large version of the club photo/logo, for the team detail page header. Reuses the
 // same TEAM_LOGOS map (and colored-initials fallback) as the small badge, just bigger.
 function teamPhotoLarge(name){
-  const club=clubKey(name);
+  const club=clubKey(name), tag=colourTag(name);
+  const ring=tag?(';box-shadow:0 0 0 3px '+(_TAG_COLORS[tag]||'#888')):'';
+  const ttl=(club+(tag?' — '+tag:'')).replace(/"/g,'');
   const logo=TEAM_LOGOS[club];
   const box='width:84px;height:84px;border-radius:12px;flex:0 0 auto';
   if(logo){
-    return `<img src="${logo}" alt="${club.replace(/"/g,'')}" title="${club.replace(/"/g,'')}" style="${box};object-fit:contain;background:rgba(255,255,255,.06);padding:6px">`;
+    return `<img src="${logo}" alt="${ttl}" title="${ttl}" style="${box};object-fit:contain;background:rgba(255,255,255,.06);padding:6px${ring}">`;
   }
   const col=_clubColor(club), ini=_clubInitials(club);
-  return `<span title="${club.replace(/"/g,'')}" style="${box};display:inline-flex;align-items:center;justify-content:center;background:${col};color:#fff;font-size:30px;font-weight:800;letter-spacing:.5px">${ini}</span>`;
+  return `<span title="${ttl}" style="${box};display:inline-flex;align-items:center;justify-content:center;background:${col};color:#fff;font-size:30px;font-weight:800;letter-spacing:.5px${ring}">${ini}</span>`;
 }
 function clusterName(vn){
   // venue names are now full arena strings like "Edmonton — Silent Ice Center (Hatch+Hesco)";
