@@ -669,6 +669,21 @@ function detectConflicts(scope){
     }
   });
 
+  // NO LONG IDLE GAPS (league rule, 2026-07-27): between a team's first and last played weekend,
+  // it may never sit out more than FOUR consecutive schedule weekends — no exceptions.
+  DATA.teams.forEach(t=>{
+    const idx=[...new Set(teamWeekends(t.name,t.division))].map(w=>WK.indexOf(w)).filter(i=>i>=0).sort((a,b)=>a-b);
+    for(let i=1;i<idx.length;i++){
+      const gap=idx[i]-idx[i-1]-1;
+      if(gap>4){
+        const si=scope&&scope.weekend?WK.indexOf(scope.weekend):-1;
+        if(si<0 || (si>idx[i-1] && si<=idx[i]))
+          out.push({sev:'hard',rule:'Idle gap',
+            msg:`${t.name} (${t.division}) does not play between ${WK[idx[i-1]]} and ${WK[idx[i]]} — ${gap} straight idle weekends (max 4).`,wk:WK[idx[i]]});
+      }
+    }
+  });
+
   // blackout & venue-restriction rules
   pool.forEach(g=>{
     if(g.weekend==='Jan 02')
