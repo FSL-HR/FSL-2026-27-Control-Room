@@ -5630,6 +5630,97 @@ render();
    of a file. Everything else in the app is untouched.
    ===================================================================== */
 (function(){
+  /* ---- SMART 3-WAY MERGE ---------------------------------------------------------------
+     base = the last-synced doc this client is level with; local = our current state; remote =
+     the teammate's incoming doc. For each key we take whichever side changed it VS BASE, so two
+     people editing different games/weekends/stores never collide. A key both sides changed
+     DIFFERENTLY is a conflict: we keep LOCAL (the work in front of you) and record it so a backup
+     is saved. Every synced field is an id/key-keyed map, an additive set, or the id-keyed games
+     array — all mergeable this way. Nothing is ever silently overwritten. */
+  function stableStr(x){
+    if(x===null||typeof x!=='object') return JSON.stringify(x)||'null';
+    if(Array.isArray(x)) return '['+x.map(stableStr).join(',')+']';
+    return '{'+Object.keys(x).sort().map(k=>JSON.stringify(k)+':'+stableStr(x[k])).join(',')+'}';
+  }
+  function _eq(a,b){ return stableStr(a)===stableStr(b); }
+  // 3-way merge of a plain id/key-keyed map. Deletions (value ends undefined) are omitted.
+  function _mergeMap(b,l,r,field,conflicts){
+    b=b||{}; l=l||{}; r=r||{}; const out={};
+    const keys=new Set([].concat(Object.keys(b),Object.keys(l),Object.keys(r)));
+    keys.forEach(k=>{
+      const bv=b[k], lv=l[k], rv=r[k];
+      const lCh=!_eq(lv,bv), rCh=!_eq(rv,bv);
+      let v;
+      if(lCh&&rCh){ if(_eq(lv,rv)){ v=lv; } else { v=lv; conflicts.push({field:field,key:k,local:lv,remote:rv}); } }
+      else if(rCh){ v=rv; } else { v=lv; }
+      if(v!==undefined) out[k]=v;
+    });
+    return out;
+  }
+  // 3-way merge of an additive set (array), identity via idOf(el). A removal (in base, gone from a
+  // side) wins over the other side leaving it untouched; an add (absent from base) is kept.
+  function _mergeSet(b,l,r,idOf){
+    b=b||[]; l=l||[]; r=r||[];
+    const mp=arr=>{ const m={}; arr.forEach(e=>{ if(e!=null) m[idOf(e)]=e; }); return m; };
+    const bm=mp(b), lm=mp(l), rm=mp(r), out=[];
+    // CANONICAL order (sorted by identity key) so every client emits byte-identical arrays for the same
+    // set — otherwise base-anchored ordering diverges between clients and the write-back guard never
+    // quiesces (perpetual sync ping-pong). Also keeps the persisted payload stable.
+    const keys=Array.from(new Set([].concat(Object.keys(bm),Object.keys(lm),Object.keys(rm)))).sort();
+    keys.forEach(k=>{ const inB=(k in bm), inL=(k in lm), inR=(k in rm);
+      const keep = inB ? (inL && inR) : (inL || inR);
+      if(keep) out.push((inL?lm:rm)[k]);
+    });
+    return out;
+  }
+  function merge3(base, local, remote){
+    const conflicts=[];
+    const M=f=>_mergeMap(base&&base[f], local&&local[f], remote&&remote[f], f, conflicts);
+    const toMap=a=>{ const m={}; (a||[]).forEach(g=>{ if(g&&g.id!=null) m[String(g.id)]=g; }); return m; };
+    const gm=_mergeMap(toMap(base&&base.games), toMap(local&&local.games), toMap(remote&&remote.games), 'games', conflicts);
+    const games=Object.keys(gm).sort().map(k=>gm[k]);   // canonical (sorted-by-id) order — deterministic across clients
+    return { merged:{
+      stamp:(local&&local.stamp)||'', exported:new Date().toISOString(), games:games,
+      locked:M('locked'), iceDecisions:M('iceDecisions'), conflictAck:M('conflictAck'),
+      gameTimes:M('gameTimes'), manualTimes:M('manualTimes'), hypoTimes:M('hypoTimes'),
+      matchupLog:M('matchupLog'), parking:M('parking'),
+      venueAdds:_mergeSet(base&&base.venueAdds, local&&local.venueAdds, remote&&remote.venueAdds, stableStr),
+      slotAdds:_mergeSet(base&&base.slotAdds, local&&local.slotAdds, remote&&remote.slotAdds, stableStr),
+      removedGames:_mergeSet(base&&base.removedGames, local&&local.removedGames, remote&&remote.removedGames, e=>String(e)),
+      activityLog:_mergeSet(base&&base.activityLog, local&&local.activityLog, remote&&remote.activityLog, e=>String(e&&e.id))
+    }, conflicts:conflicts };
+  }
+  function parsePayload(data){ try{ return (data&&typeof data.payload==='string')?JSON.parse(data.payload):(data&&data.payload)||null; }catch(e){ return null; } }
+  // On a true same-record conflict we keep LOCAL live and save BOTH copies so nothing is lost:
+  // a localStorage copy (guaranteed) plus a best-effort file download.
+  function backupConflicts(conflicts, mine, theirs){
+    try{
+      const when=new Date().toISOString().replace(/[:.]/g,'-');
+      const blob={when:when, conflicts:conflicts, mine:mine, theirs:theirs};
+      try{ localStorage.setItem('fsl_conflict_backup_latest', JSON.stringify(blob)); }catch(e){}  // in-app fallback copy; the downloaded file below is the archival record (avoids unbounded localStorage growth)
+      try{ const a=document.createElement('a');
+        a.href=URL.createObjectURL(new Blob([JSON.stringify(blob,null,2)],{type:'application/json'}));
+        a.download='FSL_merge_backup_'+when+'.json'; document.body.appendChild(a); a.click();
+        setTimeout(()=>{ try{ URL.revokeObjectURL(a.href); a.remove(); }catch(e){} }, 4000);
+      }catch(e){}
+      const n=conflicts.length;
+      try{ showToast('⚠ Merge: '+n+' item'+(n>1?'s':'')+' were changed by both of you — your version was kept, a backup was saved.','warn'); }catch(e){}
+    }catch(e){}
+  }
+  // Compare two payloads by MEANINGFUL content only — ignore the volatile exported/stamp timestamps and
+  // game-array ORDER — so a merge that changed nothing real doesn't trigger a write-back (which would make
+  // two clients ping-pong writes forever, since merge3 always stamps a fresh `exported`).
+  function sameContent(a,b){
+    const byId=arr=>(arr||[]).slice().sort((x,y)=>String(x&&x.id).localeCompare(String(y&&y.id)));
+    const byStr=arr=>(arr||[]).slice().sort((x,y)=>stableStr(x).localeCompare(stableStr(y)));
+    const norm=p=>{ if(!p) return 'null'; const c=Object.assign({},p); delete c.exported; delete c.stamp;
+      c.games=byId(p.games); c.activityLog=byId(p.activityLog);           // sort EVERY set/array field, not just games,
+      c.venueAdds=byStr(p.venueAdds); c.slotAdds=byStr(p.slotAdds);        // so order differences never trigger a false
+      c.removedGames=(p.removedGames||[]).slice().map(String).sort();      // write-back (the residual write-storm path)
+      return stableStr(c); };
+    return norm(a)===norm(b);
+  }
+  window.__merge3=merge3; window.__mergeStableStr=stableStr; window.__sameContent=sameContent;   // exposed for tests
   // ---- Build the shared payload (identical shape to the Save-schedule file) ----
   function buildPayload(){
     return {stamp:(DATA.published&&DATA.published.stamp)||'',exported:new Date().toISOString(),games,
@@ -5737,17 +5828,76 @@ render();
 
   const DOC_PATH = ['schedules','fsl-shared'];  // one shared document both people use
   let db=null, docRef=null, applyingRemote=false, lastLocalWriteStamp=0, saveTimer=null;
+  let BASE=null, BASE_VERSION=0;   // last-synced doc this client is level with (common ancestor for merges)
+  const _BASE_KEY='fsl_sync_base_v1';
+  function setBase(p,v){ BASE=p; if(typeof v==='number') BASE_VERSION=v;
+    try{ localStorage.setItem(_BASE_KEY, JSON.stringify({v:BASE_VERSION,p:BASE})); }catch(e){} }
+  // Restore the base across reloads: without it, __cloudDirty is lost on reload and the first snapshot
+  // would blind-overwrite un-synced local edits. With a persisted base, a reload does a real 3-way merge.
+  try{ const _sb=JSON.parse(localStorage.getItem(_BASE_KEY)||'null'); if(_sb&&_sb.p){ BASE=_sb.p; BASE_VERSION=_sb.v||0; } }catch(e){}
+
+  // ---- Version-guarded write: read the doc, 3-way merge if it advanced past our base, then write
+  // atomically. A transaction means two simultaneous saves can't both blind-overwrite — the second
+  // sees the bumped version and merges first. If the SDK lacks transactions, fall back to a
+  // read-merge-write (tiny race, but still never a wholesale clobber). On ANY failure we stay dirty
+  // and retry — we never overwrite newer data. ----
+  async function cloudWrite(){
+    const C=window.__cloud; if(!C) return;
+    setPill('Saving…','#BA7517');
+    let committed=null;
+    try{
+      const finish=(exists,remoteVer,data)=>{
+        let toWrite, mergedLocal=null, conflicts=[], remotePayload=null;
+        // Merge the server's state in whenever it exists AND it advanced past our base OR we have no
+        // base yet (a base-less write that blind-overwrote an existing doc was the reviewer's bug).
+        if(exists && (BASE===null || remoteVer!==BASE_VERSION)){
+          remotePayload=parsePayload(data);
+          const baseFor=(BASE!==null)?BASE:(remotePayload||{});
+          const m=merge3(baseFor, buildPayload(), remotePayload||{});
+          toWrite=m.merged; mergedLocal=m.merged; conflicts=m.conflicts;
+        } else { toWrite=buildPayload(); }
+        return {toWrite, mergedLocal, conflicts, remotePayload, version:remoteVer+1};
+      };
+      if(typeof C.runTransaction==='function'){
+        await C.runTransaction(C.db, async (tx)=>{
+          const snap=await tx.get(C.ref);
+          const exists=!!(snap&&snap.exists&&snap.exists());
+          const remoteVer=exists?((typeof snap.data().version==='number')?snap.data().version:0):0;
+          const plan=finish(exists,remoteVer,exists?snap.data():null);
+          const stamp=Date.now();
+          tx.set(C.ref, { version:plan.version, stamp:stamp, by:(window.__cloudUser||''), updated:new Date().toISOString(), payload:JSON.stringify(plan.toWrite) });
+          committed={stamp:stamp, version:plan.version, toWrite:plan.toWrite, mergedLocal:plan.mergedLocal, conflicts:plan.conflicts, remotePayload:plan.remotePayload};
+        });
+      } else if(typeof C.getDoc==='function'){
+        const snap=await C.getDoc(C.ref);
+        const exists=!!(snap&&snap.exists&&snap.exists());
+        const remoteVer=exists?((typeof snap.data().version==='number')?snap.data().version:0):0;
+        const plan=finish(exists,remoteVer,exists?snap.data():null);
+        const stamp=Date.now(); lastLocalWriteStamp=stamp;   // set BEFORE the await so the optimistic self-echo is suppressed
+        await C.setDoc(C.ref, { version:plan.version, stamp:stamp, by:(window.__cloudUser||''), updated:new Date().toISOString(), payload:JSON.stringify(plan.toWrite) });
+        committed={stamp:stamp, version:plan.version, toWrite:plan.toWrite, mergedLocal:plan.mergedLocal, conflicts:plan.conflicts, remotePayload:plan.remotePayload};
+      } else {
+        throw new Error('no safe write API');   // neither transaction nor getDoc — stay dirty, never blind-write
+      }
+      if(committed){
+        lastLocalWriteStamp=committed.stamp; setBase(committed.toWrite, committed.version);
+        if(committed.mergedLocal){ applyingRemote=true; try{ applyPayload(committed.mergedLocal); }catch(e){} applyingRemote=false;
+          if(committed.conflicts && committed.conflicts.length) backupConflicts(committed.conflicts, buildPayload(), committed.remotePayload); }
+      }
+      window.__cloudDirty=false; setPill('All changes saved ✓','#1d9e75');
+    }catch(e){ window.__cloudDirty=true; setPill('Unsaved — will retry','#C81E28'); }
+  }
 
   // ---- Load Firebase (modular SDK) then wire everything up ----
   const boot = `
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getFirestore, doc, onSnapshot, setDoc }
+    import { getFirestore, doc, onSnapshot, setDoc, getDoc, runTransaction }
       from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
     const app = initializeApp(${JSON.stringify(firebaseConfig)});
     const db = getFirestore(app);
     window.__cloud = {
       ref: doc(db, ${JSON.stringify(DOC_PATH[0])}, ${JSON.stringify(DOC_PATH[1])}),
-      onSnapshot, setDoc, doc, db
+      onSnapshot, setDoc, getDoc, runTransaction, doc, db
     };
     window.dispatchEvent(new Event('cloud-ready'));
   `;
@@ -5758,46 +5908,50 @@ render();
   window.addEventListener('cloud-ready', ()=>{
     const C=window.__cloud;
 
-    // 1) LISTEN: whenever the shared schedule changes (either person), apply it.
-    C.onSnapshot(C.ref, (snap)=>{
-      if(!snap.exists()){ setPill('Shared \u2014 waiting for first save','#BA7517'); return; }
-      const data=snap.data();
-      // Ignore the echo of our own just-written update.
-      if(data.stamp && data.stamp===lastLocalWriteStamp){ setPill('Synced \u2713','#1d9e75'); return; }
-      let payload=null;
-      try{ payload = (typeof data.payload==='string') ? JSON.parse(data.payload) : data.payload; }catch(e){ payload=null; }
-      if(payload){
-        applyingRemote=true;
-        try{ applyPayload(payload); }catch(e){}
-        applyingRemote=false;
-        const who = data.by ? (' by '+data.by) : '';
-        setPill('Updated'+who+' \u2713','#1d9e75');
-        try{ showToast('\u2601 Schedule updated'+who+'.', 'good'); }catch(e){}
-      }
-    }, (err)=>{ setPill('Sync error \u2014 saving locally','#C81E28'); });
-
-    // 2) PUSH: after any local change, save the shared schedule to the cloud.
+    // PUSH: after any local change, save (version-guarded merge-write) \u2014 debounced.
     window.__cloudPush = function(){
       if(applyingRemote) return;                 // don't rebroadcast a change we just received
       window.__cloudDirty = true;
       setPill('Unsaved changes\u2026','#BA7517');
       clearTimeout(saveTimer);
-      saveTimer=setTimeout(async ()=>{
-        try{
-          const stamp = Date.now();
-          lastLocalWriteStamp = stamp;
-          setPill('Saving\u2026','#BA7517');
-          await C.setDoc(C.ref, {
-            stamp,
-            by: (window.__cloudUser||''),
-            updated: new Date().toISOString(),
-            payload: JSON.stringify(buildPayload())
-          });
-          window.__cloudDirty = false;
-          setPill('All changes saved \u2713','#1d9e75');
-        }catch(e){ window.__cloudDirty = true; setPill('Unsaved \u2014 will retry','#C81E28'); }
-      }, 250);                                    // debounce rapid edits
+      saveTimer=setTimeout(()=>{ cloudWrite(); }, 250);   // debounce rapid edits
     };
+
+    // LISTEN: when the shared schedule changes, MERGE it into ours (never wholesale overwrite).
+    C.onSnapshot(C.ref, (snap)=>{
+      if(!snap.exists()){ setPill('Shared \u2014 waiting for first save','#BA7517'); return; }
+      const data=snap.data();
+      const remoteVer=(typeof data.version==='number')?data.version:0;
+      // Echo of our own just-written update: adopt it as our base and stop.
+      if(data.stamp && data.stamp===lastLocalWriteStamp){ setBase(BASE===null?(parsePayload(data)||BASE):BASE, remoteVer); setPill('Synced \u2713','#1d9e75'); return; }
+      const remote=parsePayload(data); if(!remote) return;
+      const who = data.by ? (' by '+data.by) : '';
+      if(BASE===null){
+        // First server state we've EVER seen (no persisted base): if we made edits before connecting,
+        // merge them onto the server copy; otherwise adopt the server copy.
+        applyingRemote=true;
+        try{
+          if(window.__cloudDirty){ const m=merge3(remote, buildPayload(), remote); applyPayload(m.merged); setBase(m.merged, remoteVer); }
+          else { applyPayload(remote); setBase(remote, remoteVer); }
+        }catch(e){}
+        finally{ applyingRemote=false; }
+        setPill('Synced'+who+' \u2713','#1d9e75');
+        if(window.__cloudDirty) window.__cloudPush();      // ship our pre-connect edits
+        return;
+      }
+      // Normal 3-way merge of their change into ours.
+      const local=buildPayload();
+      const m=merge3(BASE, local, remote);
+      if(m.conflicts.length) backupConflicts(m.conflicts, local, remote);
+      applyingRemote=true; try{ applyPayload(m.merged); }catch(e){} applyingRemote=false;
+      setBase(m.merged, remoteVer);
+      setPill('Updated'+who+' \u2713','#1d9e75');
+      try{ showToast('\u2601 Schedule updated'+who+(m.conflicts.length?' \u00b7 merged':'')+'.', 'good'); }catch(e){}
+      // Write back ONLY if our local added real CONTENT the server hasn't seen (ignoring the volatile
+      // exported/stamp + game order) \u2014 otherwise two clients would ping-pong writes forever.
+      if(!sameContent(m.merged, remote)) window.__cloudPush();
+    }, (err)=>{ setPill('Sync error \u2014 saving locally','#C81E28'); });
+
     setPill('All changes saved \u2713','#1d9e75');
   });
 
@@ -5806,14 +5960,9 @@ render();
   function flushCloud(){
     try{
       if(!window.__cloud || applyingRemote || !window.__cloudDirty) return;
-      const C=window.__cloud;
       clearTimeout(saveTimer);
-      const stamp=Date.now(); lastLocalWriteStamp=stamp;
-      C.setDoc(C.ref, {
-        stamp, by:(window.__cloudUser||''),
-        updated:new Date().toISOString(),
-        payload: JSON.stringify(buildPayload())
-      }).then(()=>{ window.__cloudDirty=false; }).catch(()=>{});
+      cloudWrite();   // version-guarded; if the tab closes before it finishes, the change is safe in
+                      // localStorage and merges on next load — we never blind-overwrite newer data.
     }catch(e){}
   }
   // If a save failed and we're still dirty, quietly retry every few seconds
