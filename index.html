@@ -3574,6 +3574,35 @@ function shedTimeState(id){ id=String(id);
   try{ if(typeof HYPO_TIMES!=='undefined' && HYPO_TIMES[id]){ delete HYPO_TIMES[id]; saveHypoTimes(); } }catch(e){}
   try{ clearTbdNeed(id); }catch(e){}
 }
+// HARD BLOCK — a team may only be in ONE location (cluster) per weekend. Given games being moved/placed
+// onto (wk, venue), return a blocking reason if that would leave any involved team in MORE distinct
+// locations that weekend than it already has. Consolidating a team (same or fewer locations) stays
+// allowed so the existing splits can still be fixed. null = OK to proceed. To relocate a team's whole
+// weekend, move the pod together (that keeps it at one location); moving a single game to a new city
+// while others stay is what gets blocked.
+function locSplitCheck(set, wk, venue){
+  try{
+    if(!set||!set.length||!wk||!venue) return null;
+    const targetCluster=clusterName(venue);
+    const moveIds=new Set(set.map(g=>String(g.id)));
+    // Scope by DIVISION+team: the same club name (e.g. "Sask Phantoms") fields separate teams in
+    // several divisions, and each travels independently — they are NOT one team.
+    const teams={}; set.forEach(g=>{ if(!g)return; if(g.home)teams[g.division+'|||'+g.home]=1; if(g.away)teams[g.division+'|||'+g.away]=1; });
+    for(const key of Object.keys(teams)){
+      const i=key.indexOf('|||'), div=key.slice(0,i), t=key.slice(i+3);
+      const onWk=games.filter(g=>g.weekend===wk && g.division===div && (g.home===t||g.away===t));
+      const before=new Set(), after=new Set();
+      onWk.forEach(g=>{ if(g.venue&&String(g.venue).trim()){ before.add(clusterName(g.venue));
+        if(!moveIds.has(String(g.id))) after.add(clusterName(g.venue)); } });
+      after.add(targetCluster);   // this team has at least one game landing at the target
+      if(after.size>1 && after.size>before.size){
+        const others=[...after].filter(c=>c!==targetCluster);
+        return {team:t, div:div, wk:wk, msg:'🚫 '+t+' ('+div+') would be booked in two locations on '+wk+': '+others.join(', ')+' and '+targetCluster+'. A team must stay in ONE location per weekend — move the whole pod together, or place this game where the team already plays.'};
+      }
+    }
+  }catch(e){}
+  return null;
+}
 /* ===== HYPO_TIMES: hypothetical (planning) game times for UNSOURCED pods. These are never
    written onto the games themselves — a real time on the game (from CSV import, Add slot +
    assignment, auto-solve, or manual) always wins. They surface only on venue/city exports and
@@ -4644,6 +4673,7 @@ const PG=(function(){
     if(isEffLocked(wk,ven)){showToast('\uD83D\uDD12 That venue/weekend is locked \u2014 pick a different target.','warn');render();return;}
     if(typeof iceDoesNotExist==='function' && iceDoesNotExist(wk,ven) && !confirm('This ice does not exist. Do you want to proceed?')){render();return;}
     if(!confirmUnsourced(wk,ven,1)){render();return;}
+    { const _sc=locSplitCheck([g],wk,ven); if(_sc){ showToast(_sc.msg,'warn'); render(); return; } }
     g.weekend=wk; g.venue=ven; g.day='';g.time='';g.sheet='';g.endTime='';g.date=''; shedTimeState(id);
     delete PARKING[String(id)]; GAME_TIMES[String(id)]={date:'',weekend:wk,day:'',time:'',end:'',sheet:'',venue:ven};
     saveParking(); try{saveGameTimes();}catch(err){}
@@ -4841,6 +4871,7 @@ const PG=(function(){
     if(isEffLocked(wk,ven)){showToast('\uD83D\uDD12 That venue/weekend is locked \u2014 pick a different target.','warn');return;}
     if(typeof iceDoesNotExist==='function' && iceDoesNotExist(wk,ven) && !confirm('This ice does not exist. Do you want to proceed?'))return;
     if(!confirmUnsourced(wk,ven,1))return;
+    { const _sc=locSplitCheck([g],wk,ven); if(_sc){ showToast(_sc.msg,'warn'); return; } }
     g.weekend=wk; g.venue=ven; g.day='';g.time='';g.sheet='';g.endTime='';g.date=''; shedTimeState(g.id);
     delete PARKING[String(g.id)]; GAME_TIMES[String(g.id)]={date:'',weekend:wk,day:'',time:'',end:'',sheet:'',venue:ven}; sugKey=null;
     saveParking(); try{saveGameTimes();}catch(e){}
@@ -4850,6 +4881,7 @@ const PG=(function(){
     if(isEffLocked(wk,ven)){showToast('\uD83D\uDD12 That venue/weekend is locked \u2014 pick a different target.','warn');return;}
     if(typeof iceDoesNotExist==='function' && iceDoesNotExist(wk,ven) && !confirm('This ice does not exist. Do you want to proceed?'))return;
     if(!confirmUnsourced(wk,ven,set.length))return;
+    { const _sc=locSplitCheck(set,wk,ven); if(_sc){ showToast(_sc.msg,'warn'); return; } }
     set.forEach(g=>{ g.weekend=wk; g.venue=ven; g.day='';g.time='';g.sheet='';g.endTime='';g.date=''; shedTimeState(g.id); delete PARKING[String(g.id)]; GAME_TIMES[String(g.id)]={date:'',weekend:wk,day:'',time:'',end:'',sheet:'',venue:ven}; });
     sugKey=null; saveParking(); try{saveGameTimes();}catch(e){}
     render(); showToast('Placed '+set.length+' games \u2192 '+short(ven)+' \u00b7 '+wkDateShort(wk),'good'); }
@@ -4860,6 +4892,7 @@ const PG=(function(){
     if(isEffLocked(wk,ven)){showToast('\uD83D\uDD12 That venue/weekend is locked \u2014 pick a different target.','warn');return false;}
     if(typeof iceDoesNotExist==='function' && iceDoesNotExist(wk,ven) && !confirm('This ice does not exist. Do you want to proceed?'))return false;
     if(!confirmUnsourced(wk,ven,set.length))return false;
+    { const _sc=locSplitCheck(set,wk,ven); if(_sc){ showToast(_sc.msg,'warn'); return false; } }
     set.forEach(g=>{ g.weekend=wk; g.venue=ven; g.day='';g.time='';g.sheet='';g.endTime='';g.date=''; shedTimeState(g.id);
       delete PARKING[String(g.id)]; GAME_TIMES[String(g.id)]={date:'',weekend:wk,day:'',time:'',end:'',sheet:'',venue:ven}; });
     sugKey=null; saveParking(); try{saveGameTimes();}catch(e){}
@@ -4934,6 +4967,7 @@ const PG=(function(){
       if(!wk){ warn.className='live-warn show'; warn.textContent='Pick a weekend.'; return; }
       if(!ven){ warn.className='live-warn show'; warn.textContent='Pick a location from the list or type an arena name.'; return; }
       if(isEffLocked(wk,ven)){ warn.className='live-warn show'; warn.textContent='\uD83D\uDD12 That weekend/venue is locked \u2014 pick a different one.'; return; }
+      { const _sc=locSplitCheck(set,wk,ven); if(_sc){ warn.className='live-warn show'; warn.textContent=_sc.msg; return; } }
       ensureUnsourcedVenue(wk, ven);
       set.forEach(g=>{ g.weekend=wk; g.venue=ven; g.day='';g.time='';g.sheet='';g.endTime='';g.date=''; shedTimeState(g.id);
         delete PARKING[String(g.id)]; GAME_TIMES[String(g.id)]={date:'',weekend:wk,day:'',time:'',end:'',sheet:'',venue:ven}; });
