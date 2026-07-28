@@ -1849,7 +1849,27 @@ function iceHiddenSection(hidRows){
 }
 
 /* ============ ICE ALLOCATION ============ */
+/* BIBLE IS ICE TRUTH (2026-07-28) — "ghost ice".
+   Some venue-weekends carry contracted-looking capacity that came from a months-old baked snapshot
+   (IMP import / realSlotsV2) and does NOT appear in the current ICE ALLOCATION BIBLE. Only Bible
+   ice is actually held, so once the sync has loaded, that phantom capacity must stop counting as
+   real — but the ice and its games STAY on the weekend, labelled UNSOURCED (user's call), exactly
+   like ice removed on the Ice Allocation page.
+   Never applies to: ice the user marked SECURED ('have'), or slots the user added by hand — those
+   remain real, and bibleOmitsIce reports the user-added count so it survives. Before the sync has
+   loaded we cannot know what the Bible holds, so nothing is reclassified. */
+function bibleLoaded(){ return !!(DATA.bibleSlots && Object.keys(DATA.bibleSlots).length); }
+function bibleOmitsIce(wk,venue){
+  try{
+    if(!bibleLoaded()) return null;                                     // sync hasn't landed yet
+    if(DATA.bibleSlots[wk+'|||'+venue]) return null;                    // the Bible holds this ice
+    if(typeof iceDecision==='function' && iceDecision(wk,venue)==='have') return null;  // user says secured
+    const adds=(typeof slotAddsFor==='function')?(slotAddsFor(wk,venue).total||0):0;
+    return {userAdded:adds};                                            // real ice = only what the user added
+  }catch(e){ return null; }
+}
 function realAvailTotal(wk,venue){
+  { const go=bibleOmitsIce(wk,venue); if(go) return go.userAdded; }   // ghost ice: only user-added slots are real
   // TRUE contracted ice for a venue-weekend — ONE reconciled source of truth so the
   // sourcing math (used-vs-real) and the "unsourced pod" flag can never disagree.
   //
@@ -1882,6 +1902,9 @@ function realAvailTotal(wk,venue){
 // total-level sourcing math stay consistent.
 function realAvailDay(wk,venue,day){
   const ck={Fri:'capFri',Sat:'capSat',Sun:'capSun',Mon:'capMon'}[day]; if(!ck) return 0;
+  // Ghost ice (see bibleOmitsIce): only the user's own added slots on this day count as real.
+  { const go=bibleOmitsIce(wk,venue);
+    if(go){ try{ return Math.max(0, (slotAddsFor(wk,venue)[day]||0)); }catch(e){ return 0; } } }
   try{ const s=realSlotListFor(wk,venue); if(!s||!s.length) return 0; }catch(e){}   // TIMES RULE (see realAvailTotal)
   const v=DATA.venues.find(x=>x.weekend===wk&&x.venue===venue);
   if(day==='Mon') return Math.max(0, monCapFor(v));   // holiday Monday (Aberdeen Feb 12 — held day we time ourselves)
@@ -4407,6 +4430,7 @@ const XP=(function(){
   function sourceReason(r){
     const dec=iceDecision(r.wk,r.venue);
     if(dec==='del') return 'Ice removed \u2014 games kept, ALL slots need sourcing';
+    if(typeof bibleOmitsIce==='function' && bibleOmitsIce(r.wk,r.venue)) return 'Not in the Ice Allocation Bible \u2014 needs sourcing';
     if(dec==='no') return 'Flagged NOT secured \u2014 needs sourcing';
     if(r.real<=0) return 'No contracted ice \u2014 source all slots';
     if(r.used>r.real) return 'Over capacity \u2014 '+r.used+' booked / '+r.real+' real';
@@ -6636,6 +6660,20 @@ render();
         removedFromBible++;
         if(extraTotal>0){ rec.userExtra=true; rec.status='Real ice (user ice only)'; }
         else { delete rec.userExtra; rec.status='Removed from Bible — unsourced'; }
+      });
+      // GHOST ICE (2026-07-28): venue-weekends that never had a Bible baseline (their capacity came
+      // from an old baked import) and are absent from the current Bible. The pass above skips them,
+      // so they used to keep advertising themselves as "Real ice". Per the user's ruling the ice and
+      // its games STAY on the weekend — we only relabel it, and bibleOmitsIce stops it counting as
+      // contracted. Capacity is left untouched so nothing moves or disappears.
+      DATA.venues.forEach(rec=>{
+        if(rec.bibleFri!=null) return;                                  // handled by the pass above
+        if(inBible.has(rec.weekend+'|'+rec.venue)) return;              // the Bible holds it
+        if(typeof iceDecision==='function' && iceDecision(rec.weekend,rec.venue)==='have') return;
+        if(!/^Real ice/.test(rec.status||'')) return;                   // already flagged some other way
+        const adds=(typeof slotAddsFor==='function')?(slotAddsFor(rec.weekend,rec.venue).total||0):0;
+        rec.status = adds>0 ? 'Real ice (user ice only) — not in Bible' : 'Not in Bible — unsourced';
+        rec.ghostIce=true;
       });
     }
     // BIBLE SLOT TIMES (2026-07-28): the sync used to set only the CAPS and then throw the times
