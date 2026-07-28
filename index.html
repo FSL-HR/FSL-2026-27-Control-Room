@@ -523,7 +523,11 @@ function slotTooShort(g){
 function detectConflicts(scope){
   // scope: undefined=all, or {weekend}
   const out=[];
-  const pool = scope&&scope.weekend ? gamesFor(scope.weekend) : games;
+  // Date-TBD parked games are explicitly dateless ("not tied to the weekend they were pulled
+  // from") — they keep counting toward season totals, but no weekend-based rule may count them
+  // against their old nominal weekend (2026-07-28).
+  const notTbd = g => !(typeof PARKING!=='undefined' && PARKING[String(g.id)] && PARKING[String(g.id)].tbd);
+  const pool = (scope&&scope.weekend ? gamesFor(scope.weekend) : games).filter(notTbd);
 
   // capacity per venue/day
   const capMap={};
