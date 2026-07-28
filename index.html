@@ -6325,28 +6325,77 @@ render();
     if(['Aberdeen','Winnipeg','Saskatoon'].includes(city)) return 'SK/MB';
     return '';
   }
+  function slotAddBump(wk,venue,day){
+    let n=0; try{ (typeof SLOT_ADDS!=='undefined'?SLOT_ADDS:[]).forEach(a=>{
+      if(a.weekend===wk&&a.venue===venue&&a.day===day) n+=Math.max(0,parseInt(a.n,10)||0); }); }catch(e){}
+    return n;
+  }
   function overlaySyncedIce(j){
     // weekend|venue combos that are newly synced this run (from the sync's diff)
     const newVW=new Set((j.newThisSync||[]).map(k=>{ const p=String(k).split('|'); return p[0]+'|'+p[1]; }));
-    let updated=0, added=0;
+    let updated=0, added=0, preserved=0, removedFromBible=0;
+    const DAYS=['Fri','Sat','Sun'];
+    const inBible=new Set();
     for(const wk in j.weekends){
       const vmap=j.weekends[wk];
       for(const venue in vmap){
+        inBible.add(wk+'|'+venue);
         const d=vmap[venue];
-        const capFri=(d.Fri||[]).length, capSat=(d.Sat||[]).length, capSun=(d.Sun||[]).length;
+        const bible={Fri:(d.Fri||[]).length, Sat:(d.Sat||[]).length, Sun:(d.Sun||[]).length};
         let rec=DATA.venues.find(v=>v.weekend===wk && v.venue===venue);
         if(rec){
-          rec.capFri=capFri; rec.capSat=capSat; rec.capSun=capSun;
-          rec.realImport=true; if(!/^Real ice/.test(rec.status||'')) rec.status='Real ice';
+          // USER ICE PRESERVATION (2026-07-28): a Bible sync must never delete ice the user
+          // added by hand. Each sync stores the Bible's own count as a baseline (bibleFri/Sat/Sun);
+          // anything the user stacked ABOVE the baseline — added-slot entries or manual cap bumps —
+          // is user ice and is re-applied on top of the fresh Bible count every sync.
+          let extraTotal=0;
+          DAYS.forEach(day=>{
+            const capK='cap'+day, bibK='bible'+day;
+            const cur=Math.max(0,parseInt(rec[capK],10)||0);
+            const base=(rec[bibK]!=null)?Math.max(0,parseInt(rec[bibK],10)||0)
+                      :(rec.realImport?Math.max(0,cur-slotAddBump(wk,venue,day)):0);
+            const extra=Math.max(Math.max(0,cur-base), slotAddBump(wk,venue,day));
+            rec[capK]=bible[day]+extra; rec[bibK]=bible[day]; extraTotal+=extra;
+          });
+          rec.realImport=true;
+          if(extraTotal>0){ rec.userExtra=true; preserved++;
+            if(!/^Real ice/.test(rec.status||'')) rec.status='Real ice (incl. user ice)';
+          } else { delete rec.userExtra;
+            if(!rec.added && !rec.unsourced && !/^Real ice/.test(rec.status||'')) rec.status='Real ice';
+          }
           updated++;
         } else {
-          rec={weekend:wk, venue:venue, capFri, capSat, capSun, realImport:true, status:'Real ice', region:guessRegion(venue)};
+          rec={weekend:wk, venue:venue, capFri:bible.Fri, capSat:bible.Sat, capSun:bible.Sun,
+               bibleFri:bible.Fri, bibleSat:bible.Sat, bibleSun:bible.Sun,
+               realImport:true, status:'Real ice', region:guessRegion(venue)};
           DATA.venues.push(rec); added++;
         }
         if(newVW.has(wk+'|'+venue)) rec.syncedNew=true; else if(rec.syncedNew) delete rec.syncedNew;
       }
     }
-    window.__iceSync={at:j.generatedAt, updated, added, newCount:(j.newThisSync||[]).length};
+    // BIBLE REMOVALS (2026-07-28): a venue-weekend a previous sync held but the Bible no longer
+    // lists loses its Bible portion only. The record is NEVER deleted, user ice on it stays, and
+    // games on it stay exactly where they are — they surface as unsourced (caps drop, so the
+    // to-source math and Ice-capacity conflicts flag them) instead of silently disappearing.
+    // Guarded so a bad or partial ice-allocation fetch can't zero the whole inventory.
+    if((j.totalSlots||0)>=50){
+      DATA.venues.forEach(rec=>{
+        if(!rec.realImport || rec.bibleFri==null) return;      // never synced with a baseline
+        if(inBible.has(rec.weekend+'|'+rec.venue)) return;     // still in the Bible
+        let extraTotal=0;
+        DAYS.forEach(day=>{
+          const capK='cap'+day, bibK='bible'+day;
+          const cur=Math.max(0,parseInt(rec[capK],10)||0);
+          const base=Math.max(0,parseInt(rec[bibK],10)||0);
+          const extra=Math.max(Math.max(0,cur-base), slotAddBump(rec.weekend,rec.venue,day));
+          rec[capK]=extra; rec[bibK]=0; extraTotal+=extra;
+        });
+        removedFromBible++;
+        if(extraTotal>0){ rec.userExtra=true; rec.status='Real ice (user ice only)'; }
+        else { delete rec.userExtra; rec.status='Removed from Bible — unsourced'; }
+      });
+    }
+    window.__iceSync={at:j.generatedAt, updated, added, preserved, removedFromBible, newCount:(j.newThisSync||[]).length};
     return window.__iceSync;
   }
   window.__overlaySyncedIce=overlaySyncedIce;  // exposed for tests
