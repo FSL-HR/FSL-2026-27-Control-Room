@@ -5705,6 +5705,11 @@ const ACTIONS={
         // UNDO SAFETY (2026-07-28): a Load replaces the whole schedule — undo snapshots from
         // before the Load would restore the pre-Load world and wipe it. Reset the history.
         try{ if(typeof UNDO_STACK!=='undefined'){ UNDO_STACK.length=0; REDO_STACK.length=0; } }catch(e){}
+        // LOAD IS AUTHORITATIVE (2026-07-28): loading a file is a deliberate "this is the schedule"
+        // act. Without this, the stale-client guard sees a big local change on a tab whose base is
+        // behind the server and hands the conflict to the SERVER — silently undoing parts of the
+        // file you just loaded (which reads as "it reverts as soon as I refresh").
+        try{ window.__fslMarkAuthoritative && window.__fslMarkAuthoritative(); }catch(e){}
         try{ render(); }catch(e){ showToast('Loaded '+games.length+' games, but the view failed to redraw ('+e.message+'). Try switching tabs.','warn'); return; }
         const lockN=Object.keys(LOCKED||{}).length;
         showToast('Loaded '+games.length+' games'+(lockN?(' and '+lockN+' lock'+(lockN>1?'s':'')):'')+' from '+f.name+'.','good');
@@ -6030,6 +6035,16 @@ render();
   }
   window.__fslStaleness=staleness;   // exposed for tests
 
+  /* A deliberate, whole-schedule act by the person at the keyboard — loading a file — outranks the
+     stale-client guard. The guard exists to stop a FORGOTTEN tab's incidental edits from beating
+     newer work; it must never undo a file the user just chose to load. While this flag is set the
+     next push merges with LOCAL winning (the original behaviour) and the base is re-anchored, so
+     the loaded schedule lands whole instead of being partly reverted by the server copy. */
+  let localAuthoritative=false;
+  window.__fslMarkAuthoritative=function(){ localAuthoritative=true; BASE_TIME=Date.now(); staleWarned=false;
+    try{ const b=document.getElementById('fsl-stale-bar'); if(b) b.remove(); }catch(e){} };
+  window.__fslIsAuthoritative=function(){ return localAuthoritative; };   // exposed for tests
+
   // ---- Version-guarded write: read the doc, 3-way merge if it advanced past our base, then write
   // atomically. A transaction means two simultaneous saves can't both blind-overwrite — the second
   // sees the bumped version and merges first. If the SDK lacks transactions, fall back to a
@@ -6050,7 +6065,8 @@ render();
           const baseFor=(BASE!==null)?BASE:(remotePayload||{});
           // Stale-client guard: if this tab has fallen far behind, the server's newer value wins any
           // true conflict instead of our out-of-date edit (overridden edits still go to a backup).
-          stale=staleness(remoteVer);
+          // A just-Loaded schedule is exempt — see __fslMarkAuthoritative.
+          stale=localAuthoritative?null:staleness(remoteVer);
           const m=merge3(baseFor, buildPayload(), remotePayload||{}, {preferRemote:!!stale});
           toWrite=m.merged; mergedLocal=m.merged; conflicts=m.conflicts;
         } else { toWrite=buildPayload(); }
@@ -6079,6 +6095,7 @@ render();
       }
       if(committed){
         lastLocalWriteStamp=committed.stamp; setBase(committed.toWrite, committed.version);
+        localAuthoritative=false;   // the loaded schedule is now on the server and is our base
         if(committed.mergedLocal){ applyingRemote=true; try{ applyPayload(committed.mergedLocal); }catch(e){} applyingRemote=false;
           if(committed.conflicts && committed.conflicts.length) backupConflicts(committed.conflicts, buildPayload(), committed.remotePayload); }
         // Stale-client guard fired: say so plainly rather than letting the schedule change under them.
@@ -6142,7 +6159,7 @@ render();
       // Normal 3-way merge of their change into ours. Stale-client guard: if this tab has fallen far
       // behind the shared doc, its own edits no longer win conflicts \u2014 the newer server value does.
       const local=buildPayload();
-      const stale=staleness(remoteVer);
+      const stale=localAuthoritative?null:staleness(remoteVer);   // a just-Loaded schedule outranks the guard
       const m=merge3(BASE, local, remote, {preferRemote:!!stale});
       if(m.conflicts.length) backupConflicts(m.conflicts, local, remote);
       applyingRemote=true; try{ applyPayload(m.merged); }catch(e){} applyingRemote=false;
