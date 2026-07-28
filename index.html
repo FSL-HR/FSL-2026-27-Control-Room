@@ -2361,7 +2361,26 @@ function solveWeekend(wk){
 // Returns [{day,start,end|null,sheet,date}] or null when nothing real is known.
 function realSlotListFor(wk, venue){
   let base=null;
-  try{ if(typeof IMP!=='undefined' && IMP && IMP.realSlotsFor){ const s=IMP.realSlotsFor(wk, venue); if(s && s.length) base=s; } }catch(e){}
+  // BIBLE FIRST (2026-07-28): times synced from the ICE ALLOCATION BIBLE outrank every baked-in
+  // source. Those bakes are point-in-time snapshots that drift as the Bible is edited, which is how
+  // a pod could show the right slot COUNT on times the rink never gave us. Only start times come
+  // over, so borrow the ice surface from a baked slot at the same day+time when one lines up.
+  try{
+    const bs=DATA.bibleSlots && DATA.bibleSlots[wk+'|||'+venue];
+    if(bs){
+      const hm=t=>{const m=/^(\d{1,2}):(\d{2})$/.exec(String(t).trim());return m?(+m[1])*60+(+m[2]):null;};
+      let baked=null;
+      try{ if(typeof IMP!=='undefined' && IMP && IMP.realSlotsFor) baked=IMP.realSlotsFor(wk,venue)||null; }catch(e){}
+      if(!baked){ try{ const v2=DATA.realSlotsV2 && DATA.realSlotsV2[wk+'|||'+venue];
+        if(v2&&v2.length) baked=v2.map(s=>({day:s.d,start:hm(s.s),sheet:s.sheet||''})); }catch(e){} }
+      const sheetAt=(d,st)=>{ try{ const hit=(baked||[]).find(s=>s.day===d&&s.start===st); return hit?(hit.sheet||''):''; }catch(e){ return ''; } };
+      const out=[];
+      ['Fri','Sat','Sun'].forEach(d=>{ (bs[d]||[]).forEach(t=>{ const v=hm(t);
+        if(v!=null) out.push({day:d,start:v,end:null,sheet:sheetAt(d,v),bible:true}); }); });
+      if(out.length) base=out;
+    }
+  }catch(e){}
+  if(!base){ try{ if(typeof IMP!=='undefined' && IMP && IMP.realSlotsFor){ const s=IMP.realSlotsFor(wk, venue); if(s && s.length) base=s; } }catch(e){} }
   // Baked, season-wide real ice loaded from the allocation file: exact times + sheet per venue-weekend.
   if(!base){ try{
     const v2=DATA.realSlotsV2 && DATA.realSlotsV2[wk+'|||'+venue];
@@ -6609,6 +6628,25 @@ render();
         else { delete rec.userExtra; rec.status='Removed from Bible — unsourced'; }
       });
     }
+    // BIBLE SLOT TIMES (2026-07-28): the sync used to set only the CAPS and then throw the times
+    // away, so a venue-weekend could show the right number of slots while the app still handed out
+    // times from a months-old baked import (Winnipeg Oct 09 read 14:00/17:15/19:30 when the Bible
+    // said 14:00/17:30/19:45). Keep them, keyed the way realSlotListFor looks them up, so the
+    // Bible is the source of truth for WHEN the ice is, not just how much of it there is.
+    try{
+      const bs={};
+      for(const wk in j.weekends){
+        const vmap=j.weekends[wk];
+        for(const venue in vmap){
+          const d=vmap[venue], keep={Fri:[],Sat:[],Sun:[]};
+          DAYS.forEach(day=>{ (d[day]||[]).forEach(t=>{
+            if(/^\d{1,2}:\d{2}$/.test(String(t).trim())) keep[day].push(String(t).trim());  // skip TBD / ??:??
+          }); });
+          if(keep.Fri.length||keep.Sat.length||keep.Sun.length) bs[wk+'|||'+venue]=keep;
+        }
+      }
+      DATA.bibleSlots=bs;
+    }catch(e){}
     window.__iceSync={at:j.generatedAt, updated, added, preserved, removedFromBible, newCount:(j.newThisSync||[]).length};
     return window.__iceSync;
   }
