@@ -2412,9 +2412,15 @@ function realSlotListFor(wk, venue){
       if(out.length) base=out;
     }
   }catch(e){}
-  if(!base){ try{ if(typeof IMP!=='undefined' && IMP && IMP.realSlotsFor){ const s=IMP.realSlotsFor(wk, venue); if(s && s.length) base=s; } }catch(e){} }
+  // GHOST ICE: this venue-weekend is not in the Bible, so its baked capacity is phantom (see
+  // bibleOmitsIce). Handing those times to the solver would schedule games onto ice we do not hold —
+  // which is how "Time this pod" produced times the rink never gave us. Skip every baked source;
+  // the user's own added slots below are real and still count. With no slots, solveOneVenue
+  // correctly declines to invent times and the pod's Hypothetical-times tool takes over.
+  const _ghostIce = (typeof bibleOmitsIce==='function') ? bibleOmitsIce(wk,venue) : null;
+  if(!base && !_ghostIce){ try{ if(typeof IMP!=='undefined' && IMP && IMP.realSlotsFor){ const s=IMP.realSlotsFor(wk, venue); if(s && s.length) base=s; } }catch(e){} }
   // Baked, season-wide real ice loaded from the allocation file: exact times + sheet per venue-weekend.
-  if(!base){ try{
+  if(!base && !_ghostIce){ try{
     const v2=DATA.realSlotsV2 && DATA.realSlotsV2[wk+'|||'+venue];
     if(v2 && v2.length){
       const hm=t=>{const m=/^(\d{1,2}):(\d{2})$/.exec(String(t).trim());return m?(+m[1])*60+(+m[2]):null;};
@@ -2422,7 +2428,7 @@ function realSlotListFor(wk, venue){
       if(out.length) base=out;
     }
   }catch(e){} }
-  if(!base){
+  if(!base && !_ghostIce){
     const city=String(venue).split(' \u2014 ')[0].trim();
     const rs=DATA.realSlots && DATA.realSlots[wk] && DATA.realSlots[wk][city];
     if(rs){ const hm=t=>{const m=/^(\d{1,2}):(\d{2})$/.exec(String(t).trim()); return m?(+m[1])*60+(+m[2]):null;};
@@ -6025,7 +6031,7 @@ render();
     +'display:flex;align-items:center;gap:7px;cursor:default;user-select:none;transition:.2s';
   // BUILD MARKER: shown next to the sync status so "which version am I actually running?" is never a
   // guessing game again. Bump this string whenever the sync/boot logic changes.
-  const FSL_BUILD='2026-07-28g';
+  const FSL_BUILD='2026-07-28h';
   window.__fslBuild=FSL_BUILD;
   function setPill(txt,color){ pill.innerHTML='<span style="width:8px;height:8px;border-radius:50%;background:'+(color||'#8a8a90')+';display:inline-block"></span>'+txt+'<span style="opacity:.55;font-weight:600;margin-left:7px">build '+FSL_BUILD+'</span>'; }
   pill.style.cursor='pointer';
