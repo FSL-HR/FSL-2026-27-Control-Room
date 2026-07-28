@@ -5980,7 +5980,11 @@ render();
   pill.style.cssText='position:fixed;bottom:14px;right:14px;z-index:9999;font:600 12px -apple-system,Segoe UI,Roboto,sans-serif;'
     +'padding:8px 12px;border-radius:20px;background:#161616;color:#fff;box-shadow:0 2px 10px rgba(0,0,0,.3);'
     +'display:flex;align-items:center;gap:7px;cursor:default;user-select:none;transition:.2s';
-  function setPill(txt,color){ pill.innerHTML='<span style="width:8px;height:8px;border-radius:50%;background:'+(color||'#8a8a90')+';display:inline-block"></span>'+txt; }
+  // BUILD MARKER: shown next to the sync status so "which version am I actually running?" is never a
+  // guessing game again. Bump this string whenever the sync/boot logic changes.
+  const FSL_BUILD='2026-07-28e';
+  window.__fslBuild=FSL_BUILD;
+  function setPill(txt,color){ pill.innerHTML='<span style="width:8px;height:8px;border-radius:50%;background:'+(color||'#8a8a90')+';display:inline-block"></span>'+txt+'<span style="opacity:.55;font-weight:600;margin-left:7px">build '+FSL_BUILD+'</span>'; }
   pill.style.cursor='pointer';
   pill.title='Sync status \u2014 click to save now';
   pill.addEventListener('click', ()=>{ try{ flushCloud(); }catch(e){} });
@@ -6074,6 +6078,42 @@ render();
   }
   window.__fslStaleness=staleness;   // exposed for tests
 
+  /* ---- BASELINE-PUSH PROTECTION (2026-07-28) — belt and braces -------------------------------
+     The games array is rebuilt from the schedule baked into this file on every load. If anything
+     ever leaves local state sitting on that pristine baseline while the shared doc has moved on,
+     pushing it would roll the season back — which is precisely the damage we kept seeing.
+     So: refuse to write when our games are byte-for-byte the file's baseline AND the server's are
+     not. There is no legitimate reason to overwrite a diverged shared schedule with the untouched
+     published copy. Instead we adopt the server's copy and say so. A deliberate Load sets
+     localAuthoritative and is exempt, so a genuine "reset to published" still works.
+     This is deliberately independent of the staleness/rehydration logic: it holds even on an old
+     cached build path, a second device, or some future regression in either of those.
+
+     Measured by how much of the schedule still sits exactly where the published baseline put it.
+     A ratio rather than an exact match, so a revert followed by a stray click is still caught:
+       reverted state ......... 1.00 of games match the baseline
+       real worked schedule ... 0.45
+     so the 0.98 / 0.90 thresholds sit in a very wide gap and cannot fire on genuine work. */
+  const BASELINE_PLACE=(function(){ const m={}; try{
+      (DATA.published&&DATA.published.games||[]).forEach(g=>{ m[String(g.id)]=(g.weekend||'')+'|'+(g.venue||''); });
+    }catch(e){} return m; })();
+  const BASELINE_N=Object.keys(BASELINE_PLACE).length;
+  function baselineMatch(gs){                       // 0..1 — share of games still on their published placement
+    if(!BASELINE_N) return 0;
+    let n=0,m=0;
+    (gs||[]).forEach(g=>{ const k=BASELINE_PLACE[String(g.id)]; if(k===undefined) return; n++;
+      if(k===((g.weekend||'')+'|'+(g.venue||''))) m++; });
+    return n?(m/n):0;
+  }
+  const BASELINE_LOCAL_MIN=0.98, BASELINE_REMOTE_MAX=0.90;
+  // Local looks like the file's published copy while the shared doc has clearly moved on.
+  function isBaselineRevert(localGames, remoteGames){
+    return BASELINE_N>0 && baselineMatch(localGames)>=BASELINE_LOCAL_MIN
+                        && baselineMatch(remoteGames)<=BASELINE_REMOTE_MAX;
+  }
+  window.__fslBaselineMatch=baselineMatch;             // exposed for tests
+  window.__fslIsBaselineRevert=isBaselineRevert;
+
   /* A deliberate, whole-schedule act by the person at the keyboard — loading a file — outranks the
      stale-client guard. The guard exists to stop a FORGOTTEN tab's incidental edits from beating
      newer work; it must never undo a file the user just chose to load. While this flag is set the
@@ -6099,6 +6139,14 @@ render();
         // Merge the server's state in whenever it exists AND it advanced past our base OR we have no
         // base yet (a base-less write that blind-overwrote an existing doc was the reviewer's bug).
         let stale=null;
+        // BASELINE-PUSH PROTECTION: never overwrite a diverged shared schedule with this file's
+        // untouched published copy (see isBaselineRevert). Abort and adopt the server's instead.
+        if(exists && !localAuthoritative){
+          const rp=parsePayload(data);
+          if(rp && Array.isArray(rp.games) && isBaselineRevert(buildPayload().games, rp.games)){
+            return {abort:'baseline', remotePayload:rp, version:remoteVer};
+          }
+        }
         if(exists && (BASE===null || remoteVer!==BASE_VERSION)){
           remotePayload=parsePayload(data);
           const baseFor=(BASE!==null)?BASE:(remotePayload||{});
@@ -6111,12 +6159,14 @@ render();
         } else { toWrite=buildPayload(); }
         return {toWrite, mergedLocal, conflicts, remotePayload, stale, version:remoteVer+1};
       };
+      let aborted=null;
       if(typeof C.runTransaction==='function'){
         await C.runTransaction(C.db, async (tx)=>{
           const snap=await tx.get(C.ref);
           const exists=!!(snap&&snap.exists&&snap.exists());
           const remoteVer=exists?((typeof snap.data().version==='number')?snap.data().version:0):0;
           const plan=finish(exists,remoteVer,exists?snap.data():null);
+          if(plan.abort){ aborted=plan; return; }              // write nothing — see baseline protection
           const stamp=Date.now();
           tx.set(C.ref, { version:plan.version, stamp:stamp, by:(window.__cloudUser||''), updated:new Date().toISOString(), payload:JSON.stringify(plan.toWrite) });
           committed={stamp:stamp, version:plan.version, toWrite:plan.toWrite, mergedLocal:plan.mergedLocal, conflicts:plan.conflicts, remotePayload:plan.remotePayload, stale:plan.stale};
@@ -6126,11 +6176,25 @@ render();
         const exists=!!(snap&&snap.exists&&snap.exists());
         const remoteVer=exists?((typeof snap.data().version==='number')?snap.data().version:0):0;
         const plan=finish(exists,remoteVer,exists?snap.data():null);
-        const stamp=Date.now(); lastLocalWriteStamp=stamp;   // set BEFORE the await so the optimistic self-echo is suppressed
-        await C.setDoc(C.ref, { version:plan.version, stamp:stamp, by:(window.__cloudUser||''), updated:new Date().toISOString(), payload:JSON.stringify(plan.toWrite) });
-        committed={stamp:stamp, version:plan.version, toWrite:plan.toWrite, mergedLocal:plan.mergedLocal, conflicts:plan.conflicts, remotePayload:plan.remotePayload, stale:plan.stale};
+        if(plan.abort){ aborted=plan; }
+        else {
+          const stamp=Date.now(); lastLocalWriteStamp=stamp;   // set BEFORE the await so the optimistic self-echo is suppressed
+          await C.setDoc(C.ref, { version:plan.version, stamp:stamp, by:(window.__cloudUser||''), updated:new Date().toISOString(), payload:JSON.stringify(plan.toWrite) });
+          committed={stamp:stamp, version:plan.version, toWrite:plan.toWrite, mergedLocal:plan.mergedLocal, conflicts:plan.conflicts, remotePayload:plan.remotePayload, stale:plan.stale};
+        }
       } else {
         throw new Error('no safe write API');   // neither transaction nor getDoc — stay dirty, never blind-write
+      }
+      // BASELINE-PUSH PROTECTION fired: our schedule was this file's untouched published copy while
+      // the shared one had moved on. Take theirs rather than rolling the season back, and say so.
+      if(aborted){
+        applyingRemote=true; try{ applyPayload(aborted.remotePayload); }catch(e){} applyingRemote=false;
+        setBase(aborted.remotePayload, aborted.version);
+        window.__cloudDirty=false;
+        setPill('Shared schedule kept ✓','#1d9e75');
+        try{ render(); }catch(e){}
+        try{ showToast('⚠ This tab had reverted to the app’s built-in July schedule, which would have rolled the season back. The shared schedule was kept instead — nothing was overwritten.','warn'); }catch(e){}
+        return;
       }
       if(committed){
         lastLocalWriteStamp=committed.stamp; setBase(committed.toWrite, committed.version);
@@ -6198,6 +6262,18 @@ render();
       // Normal 3-way merge of their change into ours. Stale-client guard: if this tab has fallen far
       // behind the shared doc, its own edits no longer win conflicts \u2014 the newer server value does.
       const local=buildPayload();
+      // BASELINE-PUSH PROTECTION, listener side: if our games are this file's untouched published
+      // copy and theirs are not, adopt theirs outright — merging would let the baseline "win" the
+      // games the server hasn't touched since our base, which is exactly how the season got rolled
+      // back. A deliberate Load is exempt.
+      if(!localAuthoritative && isBaselineRevert(local.games, remote.games)){
+        applyingRemote=true; try{ applyPayload(remote); }catch(e){} applyingRemote=false;
+        setBase(remote, remoteVer); window.__cloudDirty=false;
+        setPill('Shared schedule kept ✓','#1d9e75');
+        try{ render(); }catch(e){}
+        try{ showToast('⚠ This tab had reverted to the app’s built-in July schedule. The shared schedule was kept — nothing was overwritten.','warn'); }catch(e){}
+        return;
+      }
       const stale=localAuthoritative?null:staleness(remoteVer);   // a just-Loaded schedule outranks the guard
       const m=merge3(BASE, local, remote, {preferRemote:!!stale});
       if(m.conflicts.length) backupConflicts(m.conflicts, local, remote);
