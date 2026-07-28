@@ -506,7 +506,10 @@ function isParkedGame(g){
 }
 /* team scheduled game count */
 function teamGameCount(nm,div){return games.filter(g=>(g.home===nm||g.away===nm)&&g.division===div&&isPlaced(g)).length;}
-function teamWeekends(nm,div){return [...new Set(games.filter(g=>(g.home===nm||g.away===nm)&&g.division===div).map(g=>g.weekend))];}
+function teamWeekends(nm,div){return [...new Set(games.filter(g=>(g.home===nm||g.away===nm)&&g.division===div
+  // Date-TBD parked games are dateless — they must not pin a team to their old nominal weekend
+  // (regular parked games keep counting there by design; 2026-07-28).
+  &&!(typeof PARKING!=='undefined'&&PARKING[String(g.id)]&&PARKING[String(g.id)].tbd)).map(g=>g.weekend))];}
 /* Item 2: 16U/19U games need 2.25h of ice. Flag any that ended up on a slot shorter than
    required (e.g. a 2-hour slot). Returns true only for divisions needing more than 2h. */
 function slotTooShort(g){
