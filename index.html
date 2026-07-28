@@ -794,6 +794,19 @@ function detectConflicts(scope){
       [g.home,g.away].forEach(tm=>{ const k=g.division+SEP+tm+SEP+g.weekend; (trips[k]=trips[k]||[]).push(g); }); });
     Object.keys(trips).forEach(k=>{
       const [div,tm,wk]=k.split(SEP); const gs=trips[k];
+      // PEACE COUNTRY 4-GAME MINIMUM (2026-07-27, user): Peace Country's real home is Grande
+      // Prairie (DATA models them as Edmonton-cluster for scheduling); every OTHER cluster —
+      // including Edmonton — is a trip and must be at least 4 games, except exactly 2 games
+      // at Evansburg (the Edmonton<->GP midpoint meet).
+      if(/peace country/i.test(tm)){
+        const dests={}; gs.forEach(g=>{ const c=clusterName(g.venue); if(!c||c==='Grande Prairie')return;
+          (dests[c]=dests[c]||[]).push(g); });
+        Object.entries(dests).forEach(([c,arr])=>{
+          if(c==='Evansburg'&&arr.length===2) return;
+          if(arr.length<4) out.push({sev:'hard',rule:'Peace Country trip <4 games',
+            msg:`Peace Country Northstars (${div}) goes to ${c} for only ${arr.length} game(s) in ${wk} — Peace Country never travels for fewer than 4 games (except a 2-game Evansburg trip).`,wk});
+        });
+      }
       // CALGARY 2-GAME MINIMUM (2026-07-27, user): Edmonton-based teams (Angels, Aurora, Jr. Ooks,
       // Rustlers, ...) and Purcell never visit Calgary/Canmore for a single game — minimum 2.
       // Checked BEFORE the exemption so it binds Purcell too (their one carve-out).
