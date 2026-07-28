@@ -539,7 +539,10 @@ function detectConflicts(scope){
   pool.forEach(g=>{const k=g.weekend+'|'+g.venue+'|'+g.day;used[k]=(used[k]||0)+1;});
   Object.entries(used).forEach(([k,n])=>{
     const [wk,vn,day]=k.split('|');
-    const cap=(capMap[wk+'|'+vn]||{})[day];
+    let cap=(capMap[wk+'|'+vn]||{})[day];
+    // Removed ('del') ice does not exist: any day-assigned games still on it are over
+    // capacity by definition (0 slots), so they surface as a sourcing need, not silence.
+    if(/^(Fri|Sat|Sun|Mon)$/.test(day)&&typeof iceDecision==='function'&&iceDecision(wk,vn)==='del') cap=0;
     if(cap!=null && n>cap) out.push({sev:'hard',rule:'Ice capacity',
       msg:`${vn} ${day} (${wk}) is over capacity: ${n} games on ${cap} slots.`,wk});
   });
@@ -1888,13 +1891,14 @@ function aberdeenExempt(wk){
 }
 function sourcedFor(wk,venue){
   const dec=iceDecision(wk,venue);
-  // 'del' (row hidden/removed) contributes nothing. 'have' means the REAL contracted
-  // ice is confirmed — it does NOT mean unlimited ice, so any games placed beyond that
-  // real capacity ("after the fact", or extra games added later) still need sourcing.
-  // Only 'del' short-circuits to 0; 'have' now falls through to the normal used-vs-real
-  // math below (realAvailTotal already reflects CSV-imported / added real ice).
-  if(dec==='del') return 0;
+  // 'del' (row removed) means the ice does not exist — so games still sitting there are
+  // ALL unsourced (real = 0), the same as a 'no' flag. Removed rows with no games simply
+  // contribute 0 via used=0. 'have' means the REAL contracted ice is confirmed — it does
+  // NOT mean unlimited ice, so any games placed beyond that real capacity ("after the
+  // fact", or extra games added later) still need sourcing; it falls through to the normal
+  // used-vs-real math below (realAvailTotal already reflects CSV-imported / added real ice).
   const used=gamesFor(wk).filter(g=>g.venue===venue).length;
+  if(dec==='del') return used;
   if(dec!=='no'&&clusterName(venue)==='Aberdeen'&&aberdeenExempt(wk)) return 0;
   const real=(dec==='no')?0:realAvailTotal(wk,venue);
   return Math.max(0,used-real);
@@ -1918,6 +1922,7 @@ function isAddedVenue(wk,venue){
 }
 function iceDoesNotExist(wk,venue){
   const dec=iceDecision(wk,venue);
+  if(dec==='del') return true;                // user removed the row — this ice does not exist
   if(dec==='have') return false;              // user asserts they secured it
   if(dec==='no') return true;                 // user flagged it as needing sourcing
   // A venue you added after the original doc is unsourced by default (needs sourcing)
@@ -2728,12 +2733,12 @@ function addedSlotsView(){
 }
 function weekendView(wk){
   const allVs=venuesFor(wk);
-  // Only venues the user explicitly REMOVED (del) are hidden here. Ice that is unsourced / not-real
-  // (needs sourcing, or not contracted) now STAYS visible, flagged with a warning that the ice does
-  // not exist yet — so the games still show on the proper weekend instead of silently disappearing.
-  const isHidden=v=>{const s=iceDecision(wk,v.venue);return s==='del';};
-  const vs=allVs.filter(v=>!isHidden(v));
-  const stranded=allVs.filter(isHidden)
+  // Venues the user explicitly REMOVED (del) are hidden here ONLY while nothing is scheduled on
+  // them. A removed venue that still has games stays visible as a normal block, flagged UNSOURCED
+  // (the ice does not exist), so games can never silently disappear from the weekend.
+  const isDel=v=>iceDecision(wk,v.venue)==='del';
+  const vs=allVs.filter(v=>!isDel(v));
+  const stranded=allVs.filter(isDel)
     .map(v=>({v,n:gamesFor(wk).filter(g=>g.venue===v.venue).length}))
     .filter(x=>x.n>0);
   const strandedTot=stranded.reduce((s,x)=>s+x.n,0);
@@ -2742,7 +2747,7 @@ function weekendView(wk){
   const banner = gamesFor(wk).length===0 ? '' :
     hard.length? `<div class="conf-banner bad"><span class="ic">⚠</span><div><b>${hard.length} rule conflict${hard.length>1?'s':''}</b> this weekend — see details below.</div></div>`
     : `<div class="conf-banner good"><span class="ic">✓</span><div><b>No conflicts.</b> All placed games satisfy the rules.</div></div>`;
-  const strandedBanner = strandedTot ? `<div class="conf-banner bad"><span class="ic">⚠</span><div><b>${strandedTot} game${strandedTot>1?'s':''} on removed ice</b> — ${stranded.map(x=>`${x.v.venue.replace(/\s*\(NEW\)/i,'')} (${x.n})`).join(', ')}. These venues are hidden here because they're marked removed on the Ice Allocation page. Restore them there to show them again, or move the games (Park them below, or reassign a venue) so nothing is scheduled on ice you don't have.</div></div>` : '';
+  const strandedBanner = strandedTot ? `<div class="conf-banner" style="background:#FFF7E8;border-color:#E0A743;color:#7a5b00"><span class="ic">⚠</span><div><b>${strandedTot} game${strandedTot>1?'s':''} on removed ice</b> — ${stranded.map(x=>`${x.v.venue.replace(/\s*\(NEW\)/i,'')} (${x.n})`).join(', ')}. This ice was removed on the Ice Allocation page, so it does not exist — the games are <b>kept below, marked UNSOURCED</b>, and counted in the Ice-to-source report. Source the ice, move/park the games, or restore the venue to clear this.</div></div>` : '';
   const confList = hard.length? `<div style="margin-bottom:18px">${hard.map(c=>confItem(c)).join('')}</div>`:'';
   // A game reallocated to this weekend may sit on a venue that has no row for THIS weekend
   // (venues are stored per-weekend). Draw those as normal venue blocks for this weekend so the
@@ -2756,12 +2761,19 @@ function weekendView(wk){
       const note=`<div style="padding:6px 17px 0;font-size:11px;color:var(--mut-d)">Moved to ${wk} \u00b7 not on this weekend's ice list yet \u2014 add it on the Ice Allocation page to track capacity.</div>`;
       return note+venueBlock(wk,v);
     }).join('');
-  const vTotal=vs.length+extraNames.length;
-  const blocks = (vs.length||extraNames.length)? vs.map(v=>venueBlock(wk,v)).join('') :
+  // Removed venues that still hold games render as normal blocks with an UNSOURCED warning —
+  // the ice does not exist, but the games stay visible on their weekend.
+  const strandedBlocks = stranded.map(x=>{
+    const note=`<div style="padding:6px 17px 0;font-size:11px;color:var(--red);font-weight:700">⚠ ${iceEscA(x.v.venue.replace(/\s*\(NEW\)/i,''))} was removed on the Ice Allocation page — this ice does not exist. The ${x.n} game${x.n>1?'s':''} below ${x.n>1?'are':'is'} kept and marked UNSOURCED (counted in Ice to source). Source ice, move/park the games, or restore the venue.</div>`;
+    return note+venueBlock(wk,x.v);
+  }).join('');
+  const vTotal=vs.length+extraNames.length+stranded.length;
+  const blocks = (vs.length||extraNames.length||stranded.length)? vs.map(v=>venueBlock(wk,v)).join('') :
     (allVs.length
       ? `<div class="empty"><div class="ic">🚫</div><h3>No available ice this weekend</h3><div>Every venue for ${wk} is marked removed on the Ice Allocation page. Restore one to bring it back here.</div></div>`
       : `<div class="empty"><div class="ic">📅</div><h3>No venues this weekend</h3><div>This weekend has no ice allocated yet.</div></div>`);
-  const hiddenNote=(allVs.length-vs.length)>0?` <span style="color:var(--mut)">· ${allVs.length-vs.length} hidden (removed)</span>`:'';
+  const hiddenN=allVs.length-vs.length-stranded.length;
+  const hiddenNote=hiddenN>0?` <span style="color:var(--mut)">· ${hiddenN} hidden (removed)</span>`:'';
   const locked=isLocked(wk);
   const lockBtn=`<button class="tb-btn" data-act="toggleLock" data-wk="${wk}" title="${locked?'Unlock this weekend to allow changes again':'Lock this weekend/showcase as complete \u2014 no auto-solve, auto-timing, or moves will be applied to it'}" style="white-space:nowrap;${locked?'background:#e8f6ee;color:var(--ok);border-color:var(--ok)':''}">${locked?'\uD83D\uDD12 Locked \u00b7 unlock':'\uD83D\uDD13 Lock weekend'}</button>`;
   const lockBanner=locked?`<div class="conf-banner good" style="background:#eef6ff;border-color:#b9d4f5;color:#25507f"><span class="ic">\uD83D\uDD12</span><div><b>This weekend is locked (marked complete).</b> Auto weekend solve, \u201CTime this pod\u201D, slot edits, moves, parking, and opponent swaps are disabled here so nothing changes it. Click \u201C\uD83D\uDD12 Locked \u00b7 unlock\u201D above to make changes again.</div></div>`:'';
@@ -2769,7 +2781,7 @@ function weekendView(wk){
       <div><h2>${wk} <span style="color:var(--mut);font-weight:600;font-size:15px">· ${WKDATE[wk]||''} (Fri–Sun)</span>${locked?' <span class="pill" style="background:#e8f6ee;color:var(--ok);vertical-align:middle">\uD83D\uDD12 locked</span>':''}</h2><div class="dt">${gamesFor(wk).length} games · ${vTotal} venues${hiddenNote}</div></div>
       <div style="display:flex;gap:8px">${lockBtn}${(gamesFor(wk).length&&!locked)?`<button class="tb-btn red" data-act="autosolve" data-wk="${wk}" style="white-space:nowrap">⚙ Auto weekend solve</button>`:''}</div>
     </div>
-    ${lockBanner}${banner}${strandedBanner}${solveReport(wk)}${confList}${blocks}${extraBlocks}${PG.sectionForWeekend(wk)}`;
+    ${lockBanner}${banner}${strandedBanner}${solveReport(wk)}${confList}${blocks}${extraBlocks}${strandedBlocks}${PG.sectionForWeekend(wk)}`;
 }
 function solveReport(wk){
   const r=SOLVE_REPORT[wk]; if(!r||!r.venues||!r.venues.length) return '';
@@ -4337,11 +4349,14 @@ const XP=(function(){
       (venuesFor(wk)||[]).forEach(v=>names.add(v.venue));
       gamesFor(wk).forEach(g=>{ if(g.venue&&String(g.venue).trim()) names.add(g.venue); });
       names.forEach(venue=>{
-        if(iceDecision(wk,venue)==='del') return; // removed row — ignore
+        const dec=iceDecision(wk,venue);
         const vg=gamesFor(wk).filter(g=>g.venue===venue);
+        // A removed ('del') row with nothing on it is ignored; a removed row that still HOLDS
+        // games stays in the report — the ice does not exist, so every game there is unsourced.
+        if(dec==='del'&&!vg.length) return;
         const ref=(DATA.venues.find(x=>x.weekend===wk&&x.venue===venue))||{};
         const divs=[...new Set(vg.map(g=>g.division))].sort();
-        out.push({wk, venue, region:ref.region||'', used:vg.length, real:realAvailTotal(wk,venue), divs});
+        out.push({wk, venue, region:ref.region||'', used:vg.length, real:dec==='del'?0:realAvailTotal(wk,venue), divs});
       });
     });
     return out;
@@ -4363,6 +4378,7 @@ const XP=(function(){
   }
   function sourceReason(r){
     const dec=iceDecision(r.wk,r.venue);
+    if(dec==='del') return 'Ice removed \u2014 games kept, ALL slots need sourcing';
     if(dec==='no') return 'Flagged NOT secured \u2014 needs sourcing';
     if(r.real<=0) return 'No contracted ice \u2014 source all slots';
     if(r.used>r.real) return 'Over capacity \u2014 '+r.used+' booked / '+r.real+' real';
@@ -5539,11 +5555,11 @@ const ACTIONS={
   iceNo:d=>{const k=iceKey(d.wk,d.venue);if(ICE_DECISIONS[k]==='no')delete ICE_DECISIONS[k];else ICE_DECISIONS[k]='no';saveIceDecisions();render();showToast('\u2717 Flagged as NOT secured \u2014 needs sourcing: '+d.venue+' \u00b7 '+d.wk,'warn');},
   iceHeld:d=>{const k=iceKey(d.wk,d.venue);if(ICE_DECISIONS[k]==='held')delete ICE_DECISIONS[k];else ICE_DECISIONS[k]='held';saveIceDecisions();render();showToast('\u23F8 Held as UNSOURCED (kept, awaiting confirmation): '+d.venue+' \u00b7 '+d.wk,'');},
   iceDel:d=>{ICE_DECISIONS[iceKey(d.wk,d.venue)]='del';saveIceDecisions();
-    let moved=0;
-    try{ const gs=games.filter(g=>g.weekend===d.wk&&g.venue===d.venue);
-      if(gs.length&&window.PG&&PG.parkMany){PG.parkMany(gs,'',true);moved=gs.length;} }catch(e){}
+    // Games are NEVER pulled off the weekend by removing ice \u2014 they stay put, flagged
+    // UNSOURCED, and count in the Ice-to-source report until sourced, moved, or parked.
+    const kept=games.filter(g=>g.weekend===d.wk&&g.venue===d.venue).length;
     render();
-    showToast('Removed from ice list: '+d.venue+' \u00b7 '+d.wk+(moved?('. '+moved+' game'+(moved>1?'s':'')+' pulled off this weekend \u2192 Unscheduled Showcase (garage).'):'. Restore from the hidden list below.'),'warn');},
+    showToast('Removed from ice list: '+d.venue+' \u00b7 '+d.wk+(kept?(' \u2014 '+kept+' game'+(kept>1?'s':'')+' kept on the weekend, marked UNSOURCED (source ice, or move/park them).'):'. Restore from the hidden list below.'),'warn');},
   iceRestore:d=>{delete ICE_DECISIONS[iceKey(d.wk,d.venue)];saveIceDecisions();render();showToast('Restored: '+d.venue+' \u00b7 '+d.wk,'good');},
   iceReset:()=>{if(!Object.keys(ICE_DECISIONS).length){showToast('No ice decisions to reset.','');return;}if(!confirm('Clear all your ice have / need / unsourced / hidden decisions?'))return;ICE_DECISIONS={};saveIceDecisions();render();showToast('All ice decisions cleared.','good');},
   venueAdd:()=>{const val=id=>{const e=document.getElementById(id);return e?String(e.value).trim():'';};
