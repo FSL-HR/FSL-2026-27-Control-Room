@@ -1,7 +1,7 @@
 {
-  "generatedAt": "2026-07-18T12:00:00-06:00",
+  "generatedAt": "2026-07-24T09:00:00-06:00",
   "source": "ICE ALLOCATION BIBLE.xlsx",
-  "totalSlots": 718,
+  "totalSlots": 714,
   "weekends": {
     "Oct 02": {
       "Delta — Planet Ice Delta": {
@@ -29,9 +29,8 @@
       },
       "Canmore — Canmore Arena": {
         "Fri": [
-          "07:30",
           "09:45",
-          "15:30",
+          "15:00",
           "17:45",
           "20:00"
         ],
@@ -40,7 +39,7 @@
           "19:30"
         ],
         "Sun": [
-          "08:30"
+          "08:15"
         ]
       },
       "Aberdeen — Aberdeen Rec Center": {
@@ -165,12 +164,7 @@
         ]
       },
       "Kimberley — Civic Centre": {
-        "Fri": [
-          "13:00",
-          "15:30",
-          "18:00",
-          "20:30"
-        ],
+        "Fri": [],
         "Sat": [
           "08:00",
           "10:30",
@@ -324,16 +318,15 @@
     "Oct 16": {
       "Edmonton — Silent Ice Center (Hatch+Hesco)": {
         "Fri": [
-          "08:45",
           "09:30",
-          "11:15",
+          "10:00",
           "11:45",
-          "13:45",
+          "12:30",
           "14:00",
-          "16:00",
+          "15:00",
           "16:15",
-          "18:15",
-          "20:30"
+          "17:30",
+          "20:00"
         ],
         "Sat": [
           "08:15",
@@ -429,9 +422,7 @@
       },
       "Kimberley — Civic Centre": {
         "Fri": [
-          "15:30",
-          "18:00",
-          "20:30"
+          "08:30"
         ],
         "Sat": [
           "09:30",
@@ -440,7 +431,8 @@
         ],
         "Sun": [
           "08:00",
-          "10:30"
+          "10:30",
+          "13:00"
         ]
       }
     },
@@ -551,16 +543,16 @@
     "Nov 27": {
       "Edmonton — Morinville Silent Ice Gardens": {
         "Fri": [
-          "16:30",
-          "19:00"
+          "18:00",
+          "20:15"
         ],
         "Sat": [
           "08:00",
-          "10:30",
-          "13:00",
-          "15:30",
-          "18:00",
-          "20:30"
+          "10:15",
+          "12:45",
+          "15:15",
+          "17:30",
+          "19:45"
         ],
         "Sun": []
       },
@@ -712,14 +704,12 @@
           "08:30",
           "11:00",
           "13:30",
-          "15:45",
-          "18:15"
+          "15:45"
         ],
         "Sat": [
           "15:30",
           "18:00",
           "18:00",
-          "20:30",
           "20:30"
         ],
         "Sun": [
@@ -782,8 +772,7 @@
       },
       "Calgary — Father David Bauer Arena": {
         "Fri": [
-          "08:15",
-          "10:30"
+          "10:15"
         ],
         "Sat": [
           "11:00",
@@ -836,30 +825,31 @@
       },
       "Cochrane — SLS Center": {
         "Fri": [
-          "15:15",
-          "15:45",
-          "17:30",
-          "18:00"
+          "12:00",
+          "12:15",
+          "14:30",
+          "14:45",
+          "17:00",
+          "17:15",
+          "19:30"
         ],
         "Sat": [
-          "07:45",
-          "08:15",
-          "10:00",
+          "08:00",
+          "08:00",
           "10:30",
-          "12:15",
-          "12:45",
-          "14:30",
+          "10:30",
+          "13:00",
           "16:15",
           "18:15",
-          "18:30"
+          "18:45"
         ],
         "Sun": [
           "08:00",
-          "08:15",
-          "10:15",
+          "08:00",
           "10:30",
-          "12:30",
-          "12:45"
+          "10:30",
+          "13:00",
+          "13:00"
         ]
       },
       "Calgary — Calgary East Arena": {
@@ -871,9 +861,9 @@
         "Sat": [
           "08:00",
           "10:15",
-          "12:30",
-          "15:00",
-          "17:15"
+          "12:45",
+          "15:15",
+          "17:30"
         ],
         "Sun": [
           "08:00",
@@ -885,19 +875,16 @@
       "Canmore — Canmore Arena": {
         "Fri": [
           "08:30",
-          "14:00",
-          "15:30",
           "16:15",
-          "17:45",
-          "20:00"
+          "17:45"
         ],
         "Sat": [
-          "08:30",
+          "08:15",
           "16:45",
           "19:15"
         ],
         "Sun": [
-          "08:30"
+          "08:15"
         ]
       },
       "Abbotsford — Rinks at Summit Center": {
@@ -959,7 +946,8 @@
     "Oct 09": {
       "Canmore — Canmore Arena": {
         "Fri": [
-          "14:00"
+          "14:00",
+          "18:30"
         ],
         "Sat": [
           "14:00",
@@ -967,10 +955,9 @@
           "19:00"
         ],
         "Sun": [
-          "08:30",
+          "08:15",
           "10:45",
-          "13:00",
-          "16:30"
+          "13:00"
         ]
       },
       "Aberdeen — Aberdeen Rec Center": {
@@ -1044,6 +1031,21 @@
           "10:15",
           "12:30"
         ]
+      },
+      "Abbotsford — Rinks at Summit Center": {
+        "Fri": [],
+        "Sat": [
+          "08:00",
+          "08:15",
+          "10:30",
+          "10:45",
+          "13:00",
+          "13:15",
+          "15:30",
+          "15:45",
+          "18:15"
+        ],
+        "Sun": []
       }
     },
     "Jan 08": {
@@ -1148,7 +1150,6 @@
       "Lloydminster — Archie Miller Arena": {
         "Fri": [],
         "Sat": [
-          "08:00",
           "08:45",
           "11:00",
           "13:15",
@@ -1253,10 +1254,63 @@
       }
     }
   },
-  "newThisSync": [],
-  "removedThisSync": [],
+  "newThisSync": [
+    "Oct 09|Abbotsford — Rinks at Summit Center|Sat|08:00",
+    "Oct 09|Abbotsford — Rinks at Summit Center|Sat|08:15",
+    "Oct 09|Abbotsford — Rinks at Summit Center|Sat|10:30",
+    "Oct 09|Abbotsford — Rinks at Summit Center|Sat|10:45",
+    "Oct 09|Abbotsford — Rinks at Summit Center|Sat|13:00",
+    "Oct 09|Abbotsford — Rinks at Summit Center|Sat|13:15",
+    "Oct 09|Abbotsford — Rinks at Summit Center|Sat|15:30",
+    "Oct 09|Abbotsford — Rinks at Summit Center|Sat|15:45",
+    "Oct 09|Abbotsford — Rinks at Summit Center|Sat|18:15",
+    "Oct 16|Edmonton — Silent Ice Center (Hatch+Hesco)|Fri|10:00",
+    "Oct 16|Edmonton — Silent Ice Center (Hatch+Hesco)|Fri|12:30",
+    "Oct 16|Edmonton — Silent Ice Center (Hatch+Hesco)|Fri|15:00",
+    "Oct 16|Edmonton — Silent Ice Center (Hatch+Hesco)|Fri|17:30",
+    "Oct 16|Edmonton — Silent Ice Center (Hatch+Hesco)|Fri|20:00",
+    "Oct 23|Kimberley — Civic Centre|Fri|08:30",
+    "Oct 23|Kimberley — Civic Centre|Sun|13:00",
+    "Sep 18|Calgary — Calgary East Arena|Sat|12:45",
+    "Sep 18|Calgary — Calgary East Arena|Sat|15:15",
+    "Sep 18|Calgary — Calgary East Arena|Sat|17:30",
+    "Sep 18|Cochrane — SLS Center|Fri|12:00",
+    "Sep 18|Cochrane — SLS Center|Fri|12:15",
+    "Sep 18|Cochrane — SLS Center|Sat|18:15"
+  ],
+  "removedThisSync": [
+    "Feb 05|Kimberley — Civic Centre|Fri|13:00",
+    "Feb 05|Kimberley — Civic Centre|Fri|15:30",
+    "Feb 05|Kimberley — Civic Centre|Fri|18:00",
+    "Feb 05|Kimberley — Civic Centre|Fri|20:30",
+    "Oct 02|Abbotsford — Rinks at Summit Center|Sat|08:00",
+    "Oct 02|Abbotsford — Rinks at Summit Center|Sat|10:30",
+    "Oct 02|Abbotsford — Rinks at Summit Center|Sat|13:00",
+    "Oct 02|Abbotsford — Rinks at Summit Center|Sat|15:30",
+    "Oct 02|Abbotsford — Rinks at Summit Center|Sat|18:00",
+    "Oct 02|Abbotsford — Rinks at Summit Center|Sat|20:30",
+    "Oct 02|Abbotsford — Rinks at Summit Center|Sun|08:00",
+    "Oct 02|Abbotsford — Rinks at Summit Center|Sun|10:30",
+    "Oct 02|Abbotsford — Rinks at Summit Center|Sun|13:00",
+    "Oct 02|Abbotsford — Rinks at Summit Center|Sun|15:30",
+    "Oct 02|Abbotsford — Rinks at Summit Center|Sun|18:00",
+    "Oct 02|Abbotsford — Rinks at Summit Center|Sun|20:30",
+    "Oct 16|Edmonton — Silent Ice Center (Hatch+Hesco)|Fri|08:45",
+    "Oct 16|Edmonton — Silent Ice Center (Hatch+Hesco)|Fri|11:15",
+    "Oct 16|Edmonton — Silent Ice Center (Hatch+Hesco)|Fri|13:45",
+    "Oct 16|Edmonton — Silent Ice Center (Hatch+Hesco)|Fri|16:00",
+    "Oct 16|Edmonton — Silent Ice Center (Hatch+Hesco)|Fri|18:15",
+    "Oct 16|Edmonton — Silent Ice Center (Hatch+Hesco)|Fri|20:30",
+    "Oct 23|Kimberley — Civic Centre|Fri|15:30",
+    "Oct 23|Kimberley — Civic Centre|Fri|18:00",
+    "Oct 23|Kimberley — Civic Centre|Fri|20:30",
+    "Sep 18|Calgary — Calgary East Arena|Sat|12:30",
+    "Sep 18|Calgary — Calgary East Arena|Sat|15:00",
+    "Sep 18|Calgary — Calgary East Arena|Sat|17:15",
+    "Sep 18|Cochrane — SLS Center|Fri|19:45"
+  ],
   "contentChanged": true,
-  "isBaseline": true,
+  "isBaseline": false,
   "slotKeys": [
     "Dec 11|Edmonton — Morinville Silent Ice Gardens|Sun|08:00",
     "Dec 11|Edmonton — Morinville Silent Ice Gardens|Sun|10:30",
@@ -1270,10 +1324,6 @@
     "Feb 05|Delta — Planet Ice Delta|Sun|16:15",
     "Feb 05|Edmonton — Morinville Silent Ice Gardens|Fri|21:15",
     "Feb 05|Edmonton — Morinville Silent Ice Gardens|Sat|20:15",
-    "Feb 05|Kimberley — Civic Centre|Fri|13:00",
-    "Feb 05|Kimberley — Civic Centre|Fri|15:30",
-    "Feb 05|Kimberley — Civic Centre|Fri|18:00",
-    "Feb 05|Kimberley — Civic Centre|Fri|20:30",
     "Feb 05|Kimberley — Civic Centre|Sat|08:00",
     "Feb 05|Kimberley — Civic Centre|Sat|10:30",
     "Feb 05|Kimberley — Civic Centre|Sat|13:00",
@@ -1498,7 +1548,6 @@
     "Jan 29|Grande Prairie — Bonnetts Energy Centre|Sat|17:15",
     "Jan 29|Grande Prairie — Bonnetts Energy Centre|Sun|09:00",
     "Jan 29|Grande Prairie — Bonnetts Energy Centre|Sun|11:15",
-    "Jan 29|Lloydminster — Archie Miller Arena|Sat|08:00",
     "Jan 29|Lloydminster — Archie Miller Arena|Sat|08:45",
     "Jan 29|Lloydminster — Archie Miller Arena|Sat|11:00",
     "Jan 29|Lloydminster — Archie Miller Arena|Sat|13:15",
@@ -1596,14 +1645,14 @@
     "Nov 20|Spruce Grove - Heavy Metal Place|Sat|19:45",
     "Nov 20|Spruce Grove - Heavy Metal Place|Sun|08:15",
     "Nov 20|Spruce Grove - Heavy Metal Place|Sun|08:30",
-    "Nov 27|Edmonton — Morinville Silent Ice Gardens|Fri|16:30",
-    "Nov 27|Edmonton — Morinville Silent Ice Gardens|Fri|19:00",
+    "Nov 27|Edmonton — Morinville Silent Ice Gardens|Fri|18:00",
+    "Nov 27|Edmonton — Morinville Silent Ice Gardens|Fri|20:15",
     "Nov 27|Edmonton — Morinville Silent Ice Gardens|Sat|08:00",
-    "Nov 27|Edmonton — Morinville Silent Ice Gardens|Sat|10:30",
-    "Nov 27|Edmonton — Morinville Silent Ice Gardens|Sat|13:00",
-    "Nov 27|Edmonton — Morinville Silent Ice Gardens|Sat|15:30",
-    "Nov 27|Edmonton — Morinville Silent Ice Gardens|Sat|18:00",
-    "Nov 27|Edmonton — Morinville Silent Ice Gardens|Sat|20:30",
+    "Nov 27|Edmonton — Morinville Silent Ice Gardens|Sat|10:15",
+    "Nov 27|Edmonton — Morinville Silent Ice Gardens|Sat|12:45",
+    "Nov 27|Edmonton — Morinville Silent Ice Gardens|Sat|15:15",
+    "Nov 27|Edmonton — Morinville Silent Ice Gardens|Sat|17:30",
+    "Nov 27|Edmonton — Morinville Silent Ice Gardens|Sat|19:45",
     "Nov 27|Edmonton — Silent Ice Center (Hatch+Hesco)|Sat|08:30",
     "Nov 27|Edmonton — Silent Ice Center (Hatch+Hesco)|Sat|18:15",
     "Nov 27|Edmonton — Silent Ice Center (Hatch+Hesco)|Sat|20:30",
@@ -1622,14 +1671,13 @@
     "Oct 02|Banff — Fenlands Arena|Fri|TBD",
     "Oct 02|Banff — Fenlands Arena|Sat|TBD",
     "Oct 02|Banff — Fenlands Arena|Sun|TBD",
-    "Oct 02|Canmore — Canmore Arena|Fri|07:30",
     "Oct 02|Canmore — Canmore Arena|Fri|09:45",
-    "Oct 02|Canmore — Canmore Arena|Fri|15:30",
+    "Oct 02|Canmore — Canmore Arena|Fri|15:00",
     "Oct 02|Canmore — Canmore Arena|Fri|17:45",
     "Oct 02|Canmore — Canmore Arena|Fri|20:00",
     "Oct 02|Canmore — Canmore Arena|Sat|17:15",
     "Oct 02|Canmore — Canmore Arena|Sat|19:30",
-    "Oct 02|Canmore — Canmore Arena|Sun|08:30",
+    "Oct 02|Canmore — Canmore Arena|Sun|08:15",
     "Oct 02|Delta — Planet Ice Delta|Fri|18:45",
     "Oct 02|Delta — Planet Ice Delta|Fri|20:00",
     "Oct 02|Delta — Planet Ice Delta|Sat|16:15",
@@ -1639,6 +1687,15 @@
     "Oct 02|Delta — Planet Ice Delta|Sun|13:30",
     "Oct 02|Delta — Planet Ice Delta|Sun|15:30",
     "Oct 02|Edmonton — Silent Ice Center (Hatch+Hesco)|Sat|08:00",
+    "Oct 09|Abbotsford — Rinks at Summit Center|Sat|08:00",
+    "Oct 09|Abbotsford — Rinks at Summit Center|Sat|08:15",
+    "Oct 09|Abbotsford — Rinks at Summit Center|Sat|10:30",
+    "Oct 09|Abbotsford — Rinks at Summit Center|Sat|10:45",
+    "Oct 09|Abbotsford — Rinks at Summit Center|Sat|13:00",
+    "Oct 09|Abbotsford — Rinks at Summit Center|Sat|13:15",
+    "Oct 09|Abbotsford — Rinks at Summit Center|Sat|15:30",
+    "Oct 09|Abbotsford — Rinks at Summit Center|Sat|15:45",
+    "Oct 09|Abbotsford — Rinks at Summit Center|Sat|18:15",
     "Oct 09|Aberdeen — Aberdeen Rec Center|Fri|09:15",
     "Oct 09|Aberdeen — Aberdeen Rec Center|Fri|11:45",
     "Oct 09|Aberdeen — Aberdeen Rec Center|Fri|14:15",
@@ -1653,13 +1710,13 @@
     "Oct 09|Aberdeen — Aberdeen Rec Center|Sun|11:15",
     "Oct 09|Aberdeen — Aberdeen Rec Center|Sun|13:45",
     "Oct 09|Canmore — Canmore Arena|Fri|14:00",
+    "Oct 09|Canmore — Canmore Arena|Fri|18:30",
     "Oct 09|Canmore — Canmore Arena|Sat|14:00",
     "Oct 09|Canmore — Canmore Arena|Sat|16:30",
     "Oct 09|Canmore — Canmore Arena|Sat|19:00",
-    "Oct 09|Canmore — Canmore Arena|Sun|08:30",
+    "Oct 09|Canmore — Canmore Arena|Sun|08:15",
     "Oct 09|Canmore — Canmore Arena|Sun|10:45",
     "Oct 09|Canmore — Canmore Arena|Sun|13:00",
-    "Oct 09|Canmore — Canmore Arena|Sun|16:30",
     "Oct 09|Lloydminster — Servus Sports Center|Fri|15:00",
     "Oct 09|Lloydminster — Servus Sports Center|Fri|17:15",
     "Oct 09|Lloydminster — Servus Sports Center|Fri|19:30",
@@ -1688,16 +1745,15 @@
     "Oct 09|Winnipeg — 7 Oaks Arena|Sun|08:00",
     "Oct 09|Winnipeg — 7 Oaks Arena|Sun|10:15",
     "Oct 09|Winnipeg — 7 Oaks Arena|Sun|12:30",
-    "Oct 16|Edmonton — Silent Ice Center (Hatch+Hesco)|Fri|08:45",
     "Oct 16|Edmonton — Silent Ice Center (Hatch+Hesco)|Fri|09:30",
-    "Oct 16|Edmonton — Silent Ice Center (Hatch+Hesco)|Fri|11:15",
+    "Oct 16|Edmonton — Silent Ice Center (Hatch+Hesco)|Fri|10:00",
     "Oct 16|Edmonton — Silent Ice Center (Hatch+Hesco)|Fri|11:45",
-    "Oct 16|Edmonton — Silent Ice Center (Hatch+Hesco)|Fri|13:45",
+    "Oct 16|Edmonton — Silent Ice Center (Hatch+Hesco)|Fri|12:30",
     "Oct 16|Edmonton — Silent Ice Center (Hatch+Hesco)|Fri|14:00",
-    "Oct 16|Edmonton — Silent Ice Center (Hatch+Hesco)|Fri|16:00",
+    "Oct 16|Edmonton — Silent Ice Center (Hatch+Hesco)|Fri|15:00",
     "Oct 16|Edmonton — Silent Ice Center (Hatch+Hesco)|Fri|16:15",
-    "Oct 16|Edmonton — Silent Ice Center (Hatch+Hesco)|Fri|18:15",
-    "Oct 16|Edmonton — Silent Ice Center (Hatch+Hesco)|Fri|20:30",
+    "Oct 16|Edmonton — Silent Ice Center (Hatch+Hesco)|Fri|17:30",
+    "Oct 16|Edmonton — Silent Ice Center (Hatch+Hesco)|Fri|20:00",
     "Oct 16|Edmonton — Silent Ice Center (Hatch+Hesco)|Sat|08:15",
     "Oct 16|Edmonton — Silent Ice Center (Hatch+Hesco)|Sat|09:30",
     "Oct 16|Edmonton — Silent Ice Center (Hatch+Hesco)|Sat|10:30",
@@ -1751,14 +1807,13 @@
     "Oct 23|Edmonton — Silent Ice Center (Hatch+Hesco)|Sun|10:15",
     "Oct 23|Edmonton — Silent Ice Center (Hatch+Hesco)|Sun|12:30",
     "Oct 23|Edmonton — Silent Ice Center (Hatch+Hesco)|Sun|14:45",
-    "Oct 23|Kimberley — Civic Centre|Fri|15:30",
-    "Oct 23|Kimberley — Civic Centre|Fri|18:00",
-    "Oct 23|Kimberley — Civic Centre|Fri|20:30",
+    "Oct 23|Kimberley — Civic Centre|Fri|08:30",
     "Oct 23|Kimberley — Civic Centre|Sat|09:30",
     "Oct 23|Kimberley — Civic Centre|Sat|12:00",
     "Oct 23|Kimberley — Civic Centre|Sat|14:30",
     "Oct 23|Kimberley — Civic Centre|Sun|08:00",
     "Oct 23|Kimberley — Civic Centre|Sun|10:30",
+    "Oct 23|Kimberley — Civic Centre|Sun|13:00",
     "Oct 30|Aberdeen — Aberdeen Rec Center|Fri|15:00",
     "Oct 30|Aberdeen — Aberdeen Rec Center|Fri|17:15",
     "Oct 30|Aberdeen — Aberdeen Rec Center|Fri|19:30",
@@ -1815,8 +1870,7 @@
     "Sep 11|Banff — Fenlands Arena|Sun|13:30",
     "Sep 11|Banff — Fenlands Arena|Sun|16:00",
     "Sep 11|Banff — Fenlands Arena|Sun|18:30",
-    "Sep 11|Calgary — Father David Bauer Arena|Fri|08:15",
-    "Sep 11|Calgary — Father David Bauer Arena|Fri|10:30",
+    "Sep 11|Calgary — Father David Bauer Arena|Fri|10:15",
     "Sep 11|Calgary — Father David Bauer Arena|Sat|11:00",
     "Sep 11|Calgary — Father David Bauer Arena|Sat|17:45",
     "Sep 11|Calgary — Father David Bauer Arena|Sat|20:00",
@@ -1825,7 +1879,6 @@
     "Sep 11|Canmore — Canmore Arena|Fri|11:00",
     "Sep 11|Canmore — Canmore Arena|Fri|13:30",
     "Sep 11|Canmore — Canmore Arena|Fri|15:45",
-    "Sep 11|Canmore — Canmore Arena|Fri|18:15",
     "Sep 11|Canmore — Canmore Arena|Sat|15:30",
     "Sep 11|Canmore — Canmore Arena|Sat|18:00",
     "Sep 11|Canmore — Canmore Arena|Sat|20:30",
@@ -1872,9 +1925,9 @@
     "Sep 18|Calgary — Calgary East Arena|Fri|18:15",
     "Sep 18|Calgary — Calgary East Arena|Sat|08:00",
     "Sep 18|Calgary — Calgary East Arena|Sat|10:15",
-    "Sep 18|Calgary — Calgary East Arena|Sat|12:30",
-    "Sep 18|Calgary — Calgary East Arena|Sat|15:00",
-    "Sep 18|Calgary — Calgary East Arena|Sat|17:15",
+    "Sep 18|Calgary — Calgary East Arena|Sat|12:45",
+    "Sep 18|Calgary — Calgary East Arena|Sat|15:15",
+    "Sep 18|Calgary — Calgary East Arena|Sat|17:30",
     "Sep 18|Calgary — Calgary East Arena|Sun|08:00",
     "Sep 18|Calgary — Calgary East Arena|Sun|10:15",
     "Sep 18|Canmore — Canmore Arena|Fri|10:30",
@@ -1888,26 +1941,22 @@
     "Sep 18|Canmore — Canmore Arena|Sat|14:45",
     "Sep 18|Canmore — Canmore Arena|Sat|17:15",
     "Sep 18|Canmore — Canmore Arena|Sat|19:45",
-    "Sep 18|Cochrane — SLS Center|Fri|15:15",
-    "Sep 18|Cochrane — SLS Center|Fri|15:45",
-    "Sep 18|Cochrane — SLS Center|Fri|17:30",
-    "Sep 18|Cochrane — SLS Center|Fri|18:00",
-    "Sep 18|Cochrane — SLS Center|Sat|07:45",
-    "Sep 18|Cochrane — SLS Center|Sat|08:15",
-    "Sep 18|Cochrane — SLS Center|Sat|10:00",
+    "Sep 18|Cochrane — SLS Center|Fri|12:00",
+    "Sep 18|Cochrane — SLS Center|Fri|12:15",
+    "Sep 18|Cochrane — SLS Center|Fri|14:30",
+    "Sep 18|Cochrane — SLS Center|Fri|14:45",
+    "Sep 18|Cochrane — SLS Center|Fri|17:00",
+    "Sep 18|Cochrane — SLS Center|Fri|17:15",
+    "Sep 18|Cochrane — SLS Center|Fri|19:30",
+    "Sep 18|Cochrane — SLS Center|Sat|08:00",
     "Sep 18|Cochrane — SLS Center|Sat|10:30",
-    "Sep 18|Cochrane — SLS Center|Sat|12:15",
-    "Sep 18|Cochrane — SLS Center|Sat|12:45",
-    "Sep 18|Cochrane — SLS Center|Sat|14:30",
+    "Sep 18|Cochrane — SLS Center|Sat|13:00",
     "Sep 18|Cochrane — SLS Center|Sat|16:15",
     "Sep 18|Cochrane — SLS Center|Sat|18:15",
-    "Sep 18|Cochrane — SLS Center|Sat|18:30",
+    "Sep 18|Cochrane — SLS Center|Sat|18:45",
     "Sep 18|Cochrane — SLS Center|Sun|08:00",
-    "Sep 18|Cochrane — SLS Center|Sun|08:15",
-    "Sep 18|Cochrane — SLS Center|Sun|10:15",
     "Sep 18|Cochrane — SLS Center|Sun|10:30",
-    "Sep 18|Cochrane — SLS Center|Sun|12:30",
-    "Sep 18|Cochrane — SLS Center|Sun|12:45",
+    "Sep 18|Cochrane — SLS Center|Sun|13:00",
     "Sep 25|Abbotsford — Rinks at Summit Center|Fri|10:15",
     "Sep 25|Abbotsford — Rinks at Summit Center|Fri|12:30",
     "Sep 25|Abbotsford — Rinks at Summit Center|Fri|12:45",
@@ -1929,15 +1978,12 @@
     "Sep 25|Abbotsford — Rinks at Summit Center|Sun|13:00",
     "Sep 25|Abbotsford — Rinks at Summit Center|Sun|13:15",
     "Sep 25|Canmore — Canmore Arena|Fri|08:30",
-    "Sep 25|Canmore — Canmore Arena|Fri|14:00",
-    "Sep 25|Canmore — Canmore Arena|Fri|15:30",
     "Sep 25|Canmore — Canmore Arena|Fri|16:15",
     "Sep 25|Canmore — Canmore Arena|Fri|17:45",
-    "Sep 25|Canmore — Canmore Arena|Fri|20:00",
-    "Sep 25|Canmore — Canmore Arena|Sat|08:30",
+    "Sep 25|Canmore — Canmore Arena|Sat|08:15",
     "Sep 25|Canmore — Canmore Arena|Sat|16:45",
     "Sep 25|Canmore — Canmore Arena|Sat|19:15",
-    "Sep 25|Canmore — Canmore Arena|Sun|08:30",
+    "Sep 25|Canmore — Canmore Arena|Sun|08:15",
     "Sep 25|Edmonton — Morinville Silent Ice Gardens|Fri|18:30",
     "Sep 25|Edmonton — Morinville Silent Ice Gardens|Sat|10:00",
     "Sep 25|Edmonton — Morinville Silent Ice Gardens|Sat|14:15",
@@ -1950,10 +1996,8 @@
     "Sep 25|Winnipeg — 7 Oaks Arena|Sun|08:30",
     "Sep 25|Winnipeg — 7 Oaks Arena|Sun|13:00"
   ],
-  "unmappedVenues": [
-    "Grande Prairie|Bonnetts Energy Centre"
-  ],
-  "outOfSeasonSkipped": 97,
+  "unmappedVenues": [],
+  "outOfSeasonSkipped": 151,
   "badRows": [],
   "assumptions": [
     "Both \"SISE HATCH CO\" and \"SISE HESCO\" map to \"Edmonton — Silent Ice Center (Hatch+Hesco)\".",

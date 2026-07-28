@@ -802,11 +802,12 @@ function detectConflicts(scope){
       const flightDests=[...new Set(gs.map(g=>clusterName(g.venue)).filter(c=>travelTypeFor(t,c)==='FLY'&&!HALFWAY.has(c)))];
       const driveDests=[...new Set(gs.map(g=>clusterName(g.venue)).filter(c=>{
         if(islandMainland(home,c)) return false;
+        if(HALFWAY.has(c)) return false; // neutral sites are owned by the neutral-trip rule below
         const tt=travelTypeFor(t,c);
         if(tt==='REGIONAL') return true;
-        // 5-HOUR RULE also covers LOCAL-tier (RDrv) pairs that exceed 5 hours by car
-        // (e.g. Calgary-area <-> Lloydminster at 5.5h — the rule's original example).
-        if(tt==='LOCAL'){ const h=driveHoursBetween(home,c); return h!=null&&h>5; }
+        // 3-HOUR RULE (2026-07-27) pulls in LOCAL-tier (RDrv) pairs driven over 3 hours
+        // one-way; 5h+ pairs keep the 4-game minimum.
+        if(tt==='LOCAL'){ const h=driveHoursBetween(home,c); return h!=null&&h>3; }
         return false;
       }))];
       if(flightDests.length){
@@ -826,15 +827,23 @@ function detectConflicts(scope){
           out.push({sev:'hard',rule:'Local rivalry on flight',
             msg:`${tm} (${div}) plays local rival(s) ${rivals.join(', ')} on a flight to ${flightDests.join(', ')} (${wk}) — no local rivalries on a fly weekend.`,wk});
       } else if(driveDests.length){
-        const dg=gs.filter(g=>driveDests.includes(clusterName(g.venue)));
         // 5-HOUR RULE (2026-07-20): a drive over 5 hours one-way must be a 4-game trip (19U: 3).
-        const over5=driveDests.some(c=>{const h=driveHoursBetween(home,c);return h!=null&&h>5;});
-        const driveMin=over5 ? ((div==='19U AAA')?3:4) : ((div==='19U AAA')?2:3);
-        if(dg.length<driveMin)
-          out.push({sev:'hard',rule:over5?'5h+ drive <4 games':'Long drive <3 games',
-            msg: over5
-              ? `${tm} (${div}) drives 5+ hours to ${driveDests.join(', ')} for only ${dg.length} game(s) in ${wk} — a drive over 5 hours must be at least ${driveMin} games.`
-              : `${tm} (${div}) drives 3h+ to ${driveDests.join(', ')} for only ${dg.length} game(s) in ${wk} — a 3h+ trip must be at least ${driveMin} games.`,wk});
+        // 3-HOUR RULE (2026-07-27, league): NO team may drive over 3 hours one-way for fewer than
+        // 3 games — floors the 19U long-drive minimum at 3 too (was 2). REGIONAL pairs without a
+        // DRIVE_HOURS entry count as 3h+ (long ground trips crossing regions by definition).
+        // Checked PER DESTINATION so a 3-5h stop can't pad an over-5h trip's 4-game quota.
+        driveDests.forEach(c=>{
+          const dg=gs.filter(g=>clusterName(g.venue)===c);
+          const h=driveHoursBetween(home,c);
+          const over5=h!=null&&h>5;
+          const over3=over5||h==null||h>3;
+          const driveMin=over5 ? ((div==='19U AAA')?3:4) : (over3 ? 3 : ((div==='19U AAA')?2:3));
+          if(dg.length<driveMin)
+            out.push({sev:'hard',rule:over5?'5h+ drive <4 games':'Long drive <3 games',
+              msg: over5
+                ? `${tm} (${div}) drives 5+ hours to ${c} for only ${dg.length} game(s) in ${wk} — a drive over 5 hours must be at least ${driveMin} games.`
+                : `${tm} (${div}) drives 3h+ to ${c} for only ${dg.length} game(s) in ${wk} — a 3h+ trip must be at least ${driveMin} games.`,wk});
+        });
       }
     });
 
@@ -973,14 +982,22 @@ function detectConflicts(scope){
     });
     Object.entries(ntCnt).forEach(([k,n])=>{ const [div,nm,wk,site]=k.split('␟');
       // 5-HOUR RULE (2026-07-20): a 5h+ drive to a neutral needs 4 games (19U: 3), not just 2
-      // (e.g. Calgary-area -> Midway is 6.5h). Under-5h visitors keep the 2-game neutral minimum.
+      // (e.g. Calgary-area -> Midway is 6.5h). 3-HOUR RULE (2026-07-27): a 3h+ drive to a neutral
+      // needs 3 games (e.g. Calgary-area -> Hardisty is 3.5h). Under-3h visitors keep the 2-game
+      // minimum. Exempt teams (Peace Country, Purcell) are exempt from ALL drive minimums, so they
+      // keep the plain 2-game floor here too — without this, Purcell at Midway is unsatisfiable
+      // (access cap 2 < escalated min 3). NOTE: the same math closes Midway to Lower Mainland
+      // teams entirely (their cap there is 2, but LM->Midway is 4.75h so they now need 3+).
       const t=DATA.teams.find(x=>x.name===nm&&x.division===div);
       const h=t?driveHoursBetween(t.homeCluster,site):null;
-      const over5=(h!=null&&h>5);
-      const min=over5 ? ((div==='19U AAA')?3:4) : 2;
-      if(n<min) out.push({sev:'hard',rule:over5?'5h+ drive <4 games':'Neutral trip <2 games',
+      const esc=!/purcell/i.test(nm); // same exemption as the trip rule's exemptTeam (scoped there)
+      const over5=esc&&h!=null&&h>5, over3=esc&&!over5&&(h==null||h>3);
+      const min=over5 ? ((div==='19U AAA')?3:4) : (over3 ? 3 : 2);
+      if(n<min) out.push({sev:'hard',rule:over5?'5h+ drive <4 games':(over3?'Long drive <3 games':'Neutral trip <2 games'),
         msg: over5
           ? `${nm} (${div}) drives 5+ hours to ${site} for only ${n} game(s) in ${wk} — a drive over 5 hours must be at least ${min} games.`
+          : over3
+          ? `${nm} (${div}) drives 3h+ to ${site} for only ${n} game(s) in ${wk} — a drive over 3 hours must be at least 3 games.`
           : `${nm} (${div}) travels to ${site} for only ${n} game in ${wk} — a neutral-site trip must be at least 2 games.`,wk:wk}); });
 
     /* ===== FSL rules added 2026-07-21 (user) =====
@@ -1262,9 +1279,10 @@ const TRAVEL_MATRIX={
 /* 5-HOUR DRIVE RULE (league, 2026-07-20): any trip a team drives that is OVER 5 hours by car
    one-way must be at least a 4-GAME trip (19U: 3, matching its one-less minimums). Applies to
    drive-tier cluster pairs AND the neutral midpoints by distance (e.g. Calgary-area -> Midway
-   or Lloydminster is 5h+ so those need 4 games; Lower Mainland -> Midway is under 5h so the
-   normal 2-game neutral minimum stands). Approximate one-way hours; pairs not listed keep the
-   standard 3h+ drive minimum of 3 games. */
+   or Lloydminster is 5h+ so those need 4 games). 3-HOUR RULE (league, 2026-07-27): NO team may
+   drive over 3 hours one-way for fewer than 3 games — covers LOCAL-tier pairs and neutral sites
+   between 3 and 5 hours (e.g. Calgary-area -> Hardisty at 3.5h) and floors the 19U long-drive
+   minimum at 3. Approximate one-way hours; REGIONAL pairs not listed count as 3h+. */
 const DRIVE_HOURS={
  'Calgary-area|Lloydminster':5.5,
  'Calgary-area|Aberdeen':6.5,
