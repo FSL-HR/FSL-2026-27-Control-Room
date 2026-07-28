@@ -5683,6 +5683,9 @@ const ACTIONS={
           else { games.forEach(g=>{ if(WK.includes(g.weekend) && (!g.venue||!String(g.venue).trim())){ PARKING[String(g.id)]={from:'',day:g.day||'',time:g.time||'',sheet:g.sheet||'',end:g.endTime||'',wk:g.weekend,division:g.division,home:g.home,away:g.away}; } }); }
           saveParking(); }catch(e){}
         try{applyManualTimes();}catch(e){}  // reapply any manually-locked day/time/sheet onto games
+        // UNDO SAFETY (2026-07-28): a Load replaces the whole schedule — undo snapshots from
+        // before the Load would restore the pre-Load world and wipe it. Reset the history.
+        try{ if(typeof UNDO_STACK!=='undefined'){ UNDO_STACK.length=0; REDO_STACK.length=0; } }catch(e){}
         try{ render(); }catch(e){ showToast('Loaded '+games.length+' games, but the view failed to redraw ('+e.message+'). Try switching tabs.','warn'); return; }
         const lockN=Object.keys(LOCKED||{}).length;
         showToast('Loaded '+games.length+' games'+(lockN?(' and '+lockN+' lock'+(lockN>1?'s':'')):'')+' from '+f.name+'.','good');
@@ -5913,6 +5916,12 @@ render();
       const L=window.__actLogGet?window.__actLogGet():[];
       if(L.length && typeof window.__actLogNote==='function') window.__actLogNote(L[L.length-1]);
     } }catch(e){}
+    // UNDO SAFETY (2026-07-28): any full-state apply — a Load, a cloud merge from another
+    // tab/device, or a first-connect adopt — makes every earlier undo snapshot a time bomb:
+    // pressing Undo afterwards would restore a PRE-apply snapshot and silently wipe all work
+    // that arrived in the apply (this is exactly the "undo undid everything" disaster). The
+    // history is only valid within one tab's own unbroken action stream, so reset it here.
+    try{ if(typeof UNDO_STACK!=='undefined'){ UNDO_STACK.length=0; REDO_STACK.length=0; } }catch(e){}
     try{ render(); }catch(e){}
     return true;
   }
