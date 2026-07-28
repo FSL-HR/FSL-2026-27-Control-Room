@@ -794,6 +794,17 @@ function detectConflicts(scope){
       [g.home,g.away].forEach(tm=>{ const k=g.division+SEP+tm+SEP+g.weekend; (trips[k]=trips[k]||[]).push(g); }); });
     Object.keys(trips).forEach(k=>{
       const [div,tm,wk]=k.split(SEP); const gs=trips[k];
+      // CALGARY 2-GAME MINIMUM (2026-07-27, user): Edmonton-based teams (Angels, Aurora, Jr. Ooks,
+      // Rustlers, ...) and Purcell never visit Calgary/Canmore for a single game — minimum 2.
+      // Checked BEFORE the exemption so it binds Purcell too (their one carve-out).
+      {
+        const t0=teamObj(tm,div);
+        if(t0&&(t0.homeCluster==='Edmonton'||/purcell/i.test(tm))){
+          const cal=gs.filter(g=>clusterName(g.venue)==='Calgary-area').length;
+          if(cal===1) out.push({sev:'hard',rule:'Calgary trip <2 games',
+            msg:`${tm} (${div}) goes to Calgary/Canmore for only 1 game in ${wk} — Edmonton-based teams and Purcell must play at least 2 games there.`,wk});
+        }
+      }
       if(exemptTeam(tm)) return;
       const t=teamObj(tm,div); if(!t) return;
       const home=t.homeCluster;
