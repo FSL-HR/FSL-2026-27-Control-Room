@@ -31,7 +31,8 @@ const VENUE_MAP = {
   'Lloydminster|Servus Sports Centre':'Lloydminster — Servus Sports Center',
   'Morinville|SISE Morinville':'Edmonton — Morinville Silent Ice Gardens',
   'Spruce Grove|Heavy Metal Place':'Spruce Grove - Heavy Metal Place',
-  'Winnipeg|7 Oaks':'Winnipeg — 7 Oaks Arena'
+  'Winnipeg|7 Oaks':'Winnipeg — 7 Oaks Arena',
+  'Winnipeg|Seven Oaks Sportsplex':'Winnipeg — 7 Oaks Arena'
 };
 const ASSUMPTIONS = [
   'Both "SISE HATCH CO" and "SISE HESCO" map to "Edmonton — Silent Ice Center (Hatch+Hesco)".',
