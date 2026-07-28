@@ -5998,6 +5998,31 @@ render();
   // would blind-overwrite un-synced local edits. With a persisted base, a reload does a real 3-way merge.
   try{ const _sb=JSON.parse(localStorage.getItem(_BASE_KEY)||'null'); if(_sb&&_sb.p){ BASE=_sb.p; BASE_VERSION=_sb.v||0; BASE_TIME=_sb.t||0; } }catch(e){}
 
+  /* ---- REHYDRATE THE SCHEDULE ON RELOAD (2026-07-28) — the real cause of "it reverts as soon as
+     I refresh" -------------------------------------------------------------------------------------
+     Only the side stores (times, parking, locks, acks, ice decisions…) are persisted to
+     localStorage. The `games` ARRAY never was: every page load rebuilt it from the schedule baked
+     into this file (the July published version). The side stores came back current, so the app
+     looked almost right — but `games` was months old.
+     merge3 then compared that against our persisted base and saw hundreds of "local changes". With
+     the server sitting at the same version as our base (rCh false, lCh true) the merge KEPT LOCAL,
+     applied the months-old baseline, and pushed it to the server. Every refresh silently rolled the
+     shared schedule back, then advertised "Synced ✓" — because it had faithfully synced the wrong
+     thing.
+     Fix: the persisted base IS our last-synced schedule, so adopt it before any merge can run. Local
+     then starts out equal to base, nothing looks locally changed, and the first snapshot cleanly
+     takes whatever the server has advanced to. (Un-synced game moves from a previous session were
+     already lost with the un-persisted array, so this discards nothing that survived a reload.) */
+  try{
+    if(BASE && Array.isArray(BASE.games) && BASE.games.length){
+      applyingRemote=true;                       // never let rehydration look like a user edit
+      try{ applyPayload(BASE); }catch(e){}
+      applyingRemote=false;
+      try{ if(typeof UNDO_STACK!=='undefined'){ UNDO_STACK.length=0; REDO_STACK.length=0; } }catch(e){}
+      try{ if(typeof render==='function') render(); }catch(e){}
+    }
+  }catch(e){ applyingRemote=false; }
+
   /* ---- STALE-CLIENT GUARD (2026-07-28) -------------------------------------------------------
      A tab left open (or reopened) with hours-old state used to WIN every merge conflict, because
      merge3 always kept LOCAL. That let a forgotten tab push ~11:30am placements back over an
