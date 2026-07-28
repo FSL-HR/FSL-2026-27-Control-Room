@@ -5630,6 +5630,10 @@ const ACTIONS={
           }
         }catch(e){ showToast('Could not load file: '+e.message,'bad'); return; }
         // File is valid — apply it. A later redraw error must NOT be reported as a load failure.
+        // Claim authority BEFORE touching any store: the save* wrappers below each trigger a cloud
+        // push, and those pushes must already know this state is a deliberate Load (see the second
+        // __fslMarkAuthoritative call after the stores settle — calling twice is harmless).
+        try{ window.__fslMarkAuthoritative && window.__fslMarkAuthoritative(); }catch(e){}
         games=arr.map(g=>({day:'',time:'',...g}));
         // Restore lock state (weekend + per-venue "pod" locks) and companion state
         // if the file carries it (files exported by this app do). Only when the JSON
