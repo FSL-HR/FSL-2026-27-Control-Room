@@ -229,6 +229,10 @@ button{font-family:inherit;cursor:pointer}
 .slotcell.empty:hover .slotpick,.slotcell.empty .slotpick:focus{opacity:1}
 .slotcell .ez{font-size:11.5px;color:var(--mut);font-style:italic}
 .slotcell.empty{color:var(--mut)}
+/* an empty slot reads as an actual drop target box, not just faint placeholder text */
+.slotcell.empty{border:1.5px dashed var(--line-l);border-radius:7px;padding:5px 9px}
+tr.slotdrop.dragok .slotcell.empty{border-color:#7fc79e;background:#F1FAF4}
+tr.slotdrop.dragover .slotcell.empty{border-color:var(--ok);border-style:solid}
 
 /* draggable game chip */
 .dragchip{display:inline-flex;align-items:center;gap:7px;cursor:grab;border:1px solid var(--line-l);border-radius:7px;
@@ -236,17 +240,26 @@ button{font-family:inherit;cursor:pointer}
   user-select:none;-webkit-user-select:none;transition:box-shadow .12s,border-color .12s,transform .06s;box-shadow:0 1px 2px rgba(0,0,0,.04)}
 .dragchip:hover{border-color:#3C3489;box-shadow:0 2px 8px rgba(60,52,137,.16)}
 .dragchip:active{cursor:grabbing;transform:scale(.98)}
-.dragchip.dragging{opacity:.35}
+/* lifted look while actually dragging (not just faded) — the chip itself stays put since the
+   browser draws its own drag image, but this signals "something is in motion" at a glance */
+.dragchip.dragging{opacity:.45;box-shadow:0 6px 16px rgba(60,52,137,.28);transform:scale(1.03) rotate(-1deg);border-color:#3C3489}
 .dragchip .grip{color:var(--line-l);font-size:11px;letter-spacing:-3px;line-height:1;flex-shrink:0}
 .dragchip:hover .grip{color:#9a95c8}
 .dragchip .cn{font-weight:800;color:var(--red);font-size:10.5px;flex-shrink:0;font-variant-numeric:tabular-nums}
 .dragchip .cm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
 /* drop-target feedback (rows + tray) */
-.slotdrop{transition:background .12s,box-shadow .12s}
+.slotdrop{transition:background .12s,box-shadow .12s,opacity .12s}
+/* valid target the moment a drag starts — a visible tint across the WHOLE row, not just a hairline
+   on one cell, so you can see every droppable slot at a glance without hovering each one */
+tr.slotdrop.dragok td{background:#F1FAF4}
 tr.slotdrop.dragok td:last-child{box-shadow:inset 0 0 0 1.5px #bfe6cd}
 tr.slotdrop.dragover td{background:#DBF4E3 !important}
 tr.slotdrop.dragover td:last-child{box-shadow:inset 0 0 0 2px var(--ok)}
+/* NOT a valid target for the game currently being dragged — dim it so it reads as "not here"
+   instead of silently doing nothing when you drop on it */
+tr.slotdrop.dragno td{opacity:.4}
+.dragpool.dragno{opacity:.4}
 
 /* MATCHUP EDITOR — drag a team onto the HOME or AWAY slot */
 .mmpanel{display:inline-flex;flex-direction:column;gap:7px;background:#F7FBFF;border:1px solid #d8e2ef;
@@ -477,6 +490,13 @@ function monCapFor(v){ if(!v) return 0;
   return (v.weekend==='Feb 12'&&String(v.venue).startsWith('Aberdeen'))?6:0; }
 function sheetsForVenueDay(wk,venue,day){
   if(String(venue).startsWith('Aberdeen')) return 1;   // Aberdeen is a single sheet, whatever the day cap says
+  // SILENT ICE RULE (user, 2026-07-29): Edmonton's Silent Ice Center is one arena with two
+  // named surfaces, Hatch and Hesco, always both available — never just one. Same idea as the
+  // Aberdeen exception above, but a floor of 2 instead of a fixed 1.
+  if(/Silent Ice Center \(Hatch\+Hesco\)/.test(venue)) return Math.max(2, sheetsForVenueDayRaw(wk,venue,day));
+  return sheetsForVenueDayRaw(wk,venue,day);
+}
+function sheetsForVenueDayRaw(wk,venue,day){
   // BIBLE FIRST (2026-07-29): if the ICE ALLOCATION BIBLE lists two slots at the SAME start time,
   // that venue-day demonstrably has two sheets. Inferring it from the daily slot COUNT instead
   // (sheetsForCap: 7+ slots => 2 sheets) mis-reads a rink that holds only a few hours on two
@@ -1432,8 +1452,15 @@ function showToast(msg,tone){
   clearTimeout(window.__toastT);
   window.__toastT=setTimeout(()=>{el.style.opacity='0';},4200);
 }
-/* Unique game number, ordered by division then matchup pairing then game id, so every
-   game has its own stable number and a matchup's repeat games land on consecutive numbers. */
+// Stable per-game display number (2026-07-29, user): "game #317" must mean the SAME game every
+// time, including after it's been dragged to a different weekend/venue/time. So this is read from
+// the persisted g.gameNo field wherever one exists — set once (see backfillGameNumbers) and then
+// carried through save/load like any other field, never recomputed from current sort order.
+// _matchNo below is ONLY a one-time-bootstrap fallback for games that somehow have no gameNo yet
+// (e.g. a fresh install before its first backfill) — it deliberately reuses the same ordering
+// (division, then matchup pair, then numeric id) so a bootstrapped number still looks sensible,
+// but it is NOT stable long-term: it shifts if the game set or a matchup changes. Once gameNo
+// exists on a game it always wins.
 let _matchNo=null;
 function matchupNumbers(){
   if(_matchNo) return _matchNo;
@@ -1443,7 +1470,41 @@ function matchupNumbers(){
   const map={};sorted.forEach((g,i)=>{map[String(g.id)]=i+1;});
   _matchNo=map;return map;
 }
-function matchNo(g){const n=matchupNumbers()[String(g.id)];return n?('#'+String(n).padStart(3,'0')):'';}
+function matchNo(g){
+  const n=(g&&g.gameNo)?g.gameNo:matchupNumbers()[String(g&&g.id)];
+  return n?('#'+String(n).padStart(3,'0')):'';
+}
+// One-time backfill: assign every game lacking gameNo the next free number (bootstrap games,
+// or any manually-added game that predates this feature). Safe to call on every boot — a no-op
+// once every game already has one. Reuses matchupNumbers()'s ordering for the FIRST assignment
+// only; after that, gameNo is permanent and this function only fills genuine gaps.
+function backfillGameNumbers(){
+  let mx=0; games.forEach(g=>{ if(g.gameNo>mx) mx=g.gameNo; });
+  const missing=games.filter(g=>!g.gameNo);
+  if(!missing.length) return false;
+  const mn=matchupNumbers();
+  // Assign missing games numbers past the current max, in the same sensible (division, matchup)
+  // order, so a partial backfill still reads top-to-bottom sensibly.
+  missing.slice().sort((a,b)=>(mn[String(a.id)]||0)-(mn[String(b.id)]||0)).forEach(g=>{ g.gameNo=++mx; });
+  return true;
+}
+// Every game needs an end time (2026-07-29, user) — this is the safety net: whatever code path
+// gave a game a real start time without an end (older data, a modal left blank, a partial manual
+// edit), fill it in from the division's slot length. Idempotent — a no-op once every timed game
+// already has one. Also mirrors the fix into GAME_TIMES[id].end when an entry already exists
+// (never creates one) — at least one code path (CSV import apply) reads GAME_TIMES.end back onto
+// g.endTime, so leaving the mirror stale would let the blank end quietly come back.
+function backfillEndTimes(){
+  const hhmm=x=>String(Math.floor((x%1440)/60)).padStart(2,'0')+':'+String(x%60).padStart(2,'0');
+  let n=0;
+  games.forEach(g=>{
+    if(!g.time || g.endTime) return;
+    const st=toMin(g.time); if(st==null) return;
+    g.endTime=hhmm(st+Math.round(slotHours(g.division)*60)); n++;
+    try{ if(typeof GAME_TIMES!=='undefined' && GAME_TIMES[String(g.id)]) GAME_TIMES[String(g.id)].end=g.endTime; }catch(e){}
+  });
+  return n;
+}
 function render(){
   _matchNo=null;
   const app=document.getElementById('app');
@@ -1475,14 +1536,16 @@ function attachDragDrop(){
       DRAG_GAME={id:chip.dataset.dragid, wk:chip.dataset.dragwk, venue:chip.dataset.dragvenue};
       chip.classList.add('dragging');
       try{ e.dataTransfer.effectAllowed='move'; e.dataTransfer.setData('text/plain', String(chip.dataset.dragid)); }catch(err){}
-      // Highlight every slot in THIS pod as a valid drop target.
+      // Highlight every slot in THIS pod as a valid drop target; dim everything else so it's
+      // obvious at a glance where this game CAN'T go, instead of dropping there and nothing happening.
       document.querySelectorAll('.slotdrop').forEach(t=>{
-        if(t.dataset.wk===DRAG_GAME.wk && t.dataset.venue===DRAG_GAME.venue) t.classList.add('dragok');
+        const ok=t.dataset.wk===DRAG_GAME.wk && t.dataset.venue===DRAG_GAME.venue;
+        t.classList.add(ok?'dragok':'dragno');
       });
     });
     chip.addEventListener('dragend', ()=>{
       chip.classList.remove('dragging');
-      document.querySelectorAll('.slotdrop').forEach(t=>t.classList.remove('dragok','dragover'));
+      document.querySelectorAll('.slotdrop').forEach(t=>t.classList.remove('dragok','dragover','dragno'));
       DRAG_GAME=null;
     });
   });
@@ -1658,13 +1721,13 @@ function tbdView(){
   Object.keys(byDiv).sort().forEach(dv=>{
     rows+=`<tr><td colspan="4" style="background:var(--blk3);color:#fff;font-weight:800;font-size:12px">${dv} — ${byDiv[dv].length} game${byDiv[dv].length>1?'s':''}</td></tr>`;
     byDiv[dv].forEach(g=>{
-      rows+=`<tr><td class="tm">${teamWithBadge(g.home)}</td><td class="tm">${teamWithBadge(g.away)}</td><td style="font-size:11px;color:var(--mut-d)">${g.id}</td><td style="font-size:11px;color:var(--mut)">${reason(g)}</td></tr>`;
+      rows+=`<tr><td style="font-size:11px;font-weight:800;color:var(--red)">${matchNo(g)}</td><td class="tm">${teamWithBadge(g.home)}</td><td class="tm">${teamWithBadge(g.away)}</td><td style="font-size:11px;color:var(--mut)">${reason(g)}</td></tr>`;
     });
   });
   return `
   <div class="conf-banner" style="background:var(--warnbg);border:1px solid #e8d9a8;color:#8a6d1a"><span class="ic">◷</span><div><b>${U.length} game${U.length>1?'s':''} awaiting placement.</b> These count toward every team's mandatory total and matchup counts, but have no weekend or venue yet. Drop them into any open slot when you have ice.</div></div>
   <div class="card"><h3><span class="ic">◷</span>Unplaced games</h3>
-  <table class="tbl"><thead><tr><th>Home</th><th>Away</th><th>ID</th><th>Why parked</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  <table class="tbl"><thead><tr><th>Game #</th><th>Home</th><th>Away</th><th>Why parked</th></tr></thead><tbody>${rows}</tbody></table></div>`;
 }
 
 /* ============ DASHBOARD ============ */
@@ -2069,7 +2132,7 @@ function iceToFindView(){
         <div class="slot"><div class="d">Real ice</div><div class="v">${b.real}</div></div>
         <div class="slot"><div class="d">Games</div><div class="v">${b.have}</div></div></div></div>
     <div class="venue-games"><div style="font-size:11px;color:var(--mut-d);padding:6px 0 4px">Games riding on this ice:</div>
-      ${b.games.map(g=>`<div class="gline"><span class="gd">${g.day||'\u2014'} ${g.time?clock12(g.time):''}</span><span class="gdiv">${g.division}</span><span class="gm">${teamWithBadge(g.home)}<span class="vs">vs</span>${teamWithBadge(g.away)}</span></div>`).join('')}
+      ${b.games.map(g=>`<div class="gline"><span style="color:var(--red);font-weight:800;font-size:11px;flex-shrink:0">${matchNo(g)}</span><span class="gd">${g.day||'\u2014'} ${g.time?clock12(g.time):''}</span><span class="gdiv">${g.division}</span><span class="gm">${teamWithBadge(g.home)}<span class="vs">vs</span>${teamWithBadge(g.away)}</span></div>`).join('')}
     </div></div>`).join('');
   return `<div class="wk-head"><h2>Ice to Find</h2><div class="dt">Games beyond your REAL contracted ice \u2014 the definitive sourcing list. Matches the master workbook's Ice_To_Source tab. Aberdeen weekends under 18 games are exempt${exemptSlots?` (${exemptSlots} slot${exemptSlots>1?'s':''} waived there)`:''}.</div></div>
     <div class="grid cards4" style="margin-bottom:18px">
@@ -2458,8 +2521,11 @@ function realSlotListFor(wk, venue){
 // Assign a pod's games into fixed real slots. Honors the real per-day slot COUNT (so it
 // can't over-fill Friday), keeps each slot's exact start/end + sheet, and avoids putting a
 // team in two overlapping slots or breaking the same-day rest floor / per-day game cap.
+// Day fill order is Sat -> Sun -> Fri (user preference, 2026-07-29): earlier-processed days get
+// first pick of candidate games, so Friday must go LAST or it silently soaks up most of the pod
+// while Sat/Sun slots sit empty. Matches hypoTimePod's own Sat->Sun->Fri priority.
 function placeIntoSlots(list, slots){
-  const DAYIDX={Fri:0,Sat:1,Sun:2,Mon:3}, REST=165, block=_SLV.block;
+  const DAYIDX={Sat:0,Sun:1,Fri:2,Mon:3}, REST=165, block=_SLV.block;
   const S=slots.filter(s=>DAYIDX[s.day]!=null).slice().sort((a,b)=>DAYIDX[a.day]-DAYIDX[b.day]||(a.start-b.start));
   const gm=list.map(g=>({id:String(g.id),division:g.division,home:g.home,away:g.away,_placed:false}));
   const out={Fri:[],Sat:[],Sun:[],Mon:[]}, unplaced=[], flags=[], repairs=[], warns=[];
@@ -3038,7 +3104,7 @@ function gameLine(g){
     : `<span class="gd" style="width:auto;min-width:54px;white-space:nowrap">${timeTxt}${locked?' <span title="You set this time manually — the app will not change it" style="color:#3C3489">\uD83D\uDD12</span>':''}</span>
        <button data-act="timeEdit" data-id="${id}" title="Edit start/end time (locks it so the app won't change it)" style="margin-left:4px;font-size:10px;padding:1px 5px;border:1px solid var(--line-l);border-radius:4px;background:#fff;color:#3C3489;cursor:pointer">\u270E</button>${locked?`<button data-act="timeUnlock" data-id="${id}" title="Unlock — let the auto-solver time this game again" style="margin-left:3px;font-size:10px;padding:1px 5px;border:1px solid var(--line-l);border-radius:4px;background:#fff;color:var(--mut-d);cursor:pointer">unlock</button>`:''}`;
   return `<div class="gline"${locked?' style="background:#F7F6FF"':''}>
-    <span class="gnum" title="Game number" style="font-variant-numeric:tabular-nums;font-weight:800;color:var(--mut-d);font-size:11px;margin-right:2px">${matchNo(g)}</span>
+    <span class="gnum" title="Game number — stays the same even after you move this game" style="font-variant-numeric:tabular-nums;font-weight:800;color:var(--red);font-size:11px;margin-right:2px">${matchNo(g)}</span>
     ${editor}
     ${slotTooShort(g)?`<span title="${g.division} needs ${slotHours(g.division)}h of ice but this slot is only 2h." style="margin-left:6px;font-size:9.5px;font-weight:800;color:#fff;background:var(--red);border-radius:4px;padding:1px 6px;white-space:nowrap">\u26A0 2h slot</span>`:''}
     <span class="gdiv">${g.division}</span>
@@ -3320,7 +3386,7 @@ function teamView(nm,div){
     let type=t.homeCluster===cl?'HOME':(t.region!==venueRegion(v)?'TRAVEL':'Local');
     if(type==='TRAVEL'&&t.flying) type='FLY';
     const tc=type==='HOME'?'background:var(--okbg);color:#0f6e56':(type==='TRAVEL'||type==='FLY')?'background:var(--warnbg);color:var(--warn)':'background:#eef;color:#3338a0';
-    const opps=gs.map(g=>{const opp=g.home===nm?g.away:g.home;const meta=[g.day,g.time?clock12(g.time):'',g.sheet].filter(Boolean).join(' \u00b7 ');return opp+(meta?` <span style="color:var(--mut-d);font-size:11px">(${iceEscA(meta)})</span>`:'');});
+    const opps=gs.map(g=>{const opp=g.home===nm?g.away:g.home;const meta=[g.day,g.time?clock12(g.time):'',g.sheet].filter(Boolean).join(' \u00b7 ');return `<span style="color:var(--red);font-weight:800;font-size:11px">${matchNo(g)}</span> `+opp+(meta?` <span style="color:var(--mut-d);font-size:11px">(${iceEscA(meta)})</span>`:'');});
     return `<tr><td><b>${wk}</b></td><td>${v.replace(/\s*\(NEW\)/i,'')}</td>
       <td><span class="pill" style="${tc}">${type}</span></td><td>${gs.length}</td>
       <td style="font-size:12px">${opps.join('<br>')}</td></tr>`+evHere;
@@ -3333,7 +3399,7 @@ function teamView(nm,div){
     return `<tr><td><span class="pill" style="background:#FFF3D6;color:#7a5b00">\u25F7 TBD</span></td>
       <td style="color:var(--mut-d)">Parking garage \u2014 no venue</td>
       <td><span class="pill" style="background:#f4f4f6;color:var(--mut-d)">\u2014</span></td><td>1</td>
-      <td style="font-size:12px">${iceEscA(opp)}</td></tr>`;
+      <td style="font-size:12px"><span style="color:var(--red);font-weight:800;font-size:11px">${matchNo(g)}</span> ${iceEscA(opp)}</td></tr>`;
   }).join('');
   const placedWk=[...new Set(placed.map(g=>g.weekend))].length;
   const bcTrips=placed.filter(g=>venueRegion(g.venue)==='BC').map(g=>clusterName(g.venue));
@@ -3503,34 +3569,48 @@ function openAddGame(wk,venue,opts){
       <div class="fld-row">
         <div class="fld"><label>Day</label><select id="m-day"><option>Fri</option><option selected>Sat</option><option>Sun</option></select></div>
         <div class="fld"><label>Start time</label><input id="m-time" type="time" value="13:00" min="08:00" max="22:45"></div>
+        <div class="fld"><label>End time</label><input id="m-end" type="time" min="08:00" max="23:59"></div>
       </div>
       <div class="live-warn" id="m-warn"></div>
     </div>
     <div class="modal-foot"><button class="btn" data-close>Cancel</button><button class="btn primary" id="m-save">Add game</button></div>
   </div>`;
   document.getElementById('app').appendChild(modal);
-  const divSel=modal.querySelector('#m-div'),homeSel=modal.querySelector('#m-home'),awaySel=modal.querySelector('#m-away');
+  const divSel=modal.querySelector('#m-div'),homeSel=modal.querySelector('#m-home'),awaySel=modal.querySelector('#m-away'),timeEl=modal.querySelector('#m-time'),endEl=modal.querySelector('#m-end');
+  // End time defaults from the division's slot length and re-defaults whenever division/start
+  // change — but only until the user actually edits End themselves (2026-07-29: every game
+  // needs an end time, but she should still be able to override the default).
+  let endTouched=false;
+  endEl.oninput=()=>{endTouched=true;checkWarn();};
+  function autoEnd(){
+    if(endTouched) return;
+    const hhmm=x=>String(Math.floor((x%1440)/60)).padStart(2,'0')+':'+String(x%60).padStart(2,'0');
+    const st=toMin(timeEl.value);
+    endEl.value=(st!=null)?hhmm(st+Math.round(slotHours(divSel.value)*60)):'';
+  }
   function fillTeams(){const tt=teamsByDiv(divSel.value);
     homeSel.innerHTML=tt.map(t=>`<option>${t}</option>`).join('');
     awaySel.innerHTML=tt.map((t,i)=>`<option ${i===1?'selected':''}>${t}</option>`).join('');
-    checkWarn();}
+    autoEnd();checkWarn();}
   divSel.onchange=fillTeams;fillTeams();
+  timeEl.oninput=()=>{autoEnd();checkWarn();};
   function gather(){return{weekend:wk,division:divSel.value,home:homeSel.value,away:awaySel.value,
-    venue:modal.querySelector('#m-venue').value,day:modal.querySelector('#m-day').value,time:modal.querySelector('#m-time').value};}
+    venue:modal.querySelector('#m-venue').value,day:modal.querySelector('#m-day').value,time:timeEl.value,endTime:endEl.value};}
   function checkWarn(){const g=gather();const w=modal.querySelector('#m-warn');
     if(g.home===g.away){w.className='live-warn show';w.innerHTML='<b>Home and away are the same team.</b>';return;}
     const warns=previewWarnings(g);
     if(warns.length){w.className='live-warn show';w.innerHTML='<b>This will create '+warns.length+' conflict'+(warns.length>1?'s':'')+':</b><br>'+warns.map(x=>'• '+x.msg).join('<br>');}
     else{w.className='live-warn';w.innerHTML='';}
   }
-  ['#m-home','#m-away','#m-venue','#m-day','#m-time'].forEach(s=>{const el=modal.querySelector(s);if(el)el.oninput=checkWarn;});
+  ['#m-home','#m-away','#m-venue','#m-day','#m-time','#m-end'].forEach(s=>{const el=modal.querySelector(s);if(el)el.oninput=checkWarn;});
   modal.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>modal.remove());
   modal.onclick=e=>{if(e.target===modal)modal.remove();};
   modal.querySelector('#m-save').onclick=()=>{const g=gather();
     if(g.home===g.away){return;}
     if(g.venue!=='__PARK__' && g.venue && String(g.venue).trim() && typeof iceDoesNotExist==='function' && iceDoesNotExist(g.weekend,g.venue) && !confirm('This ice does not exist. Do you want to proceed?'))return;
     pushUndo('add game');
-    const ng={id:'g'+(gid++),...g};if(ng.venue==='__PARK__'){ng.venue='';ng.day='';ng.time='';}games.push(ng);if(!ng.venue||!String(ng.venue).trim())PG.addParked(ng);modal.remove();render();};
+    const nextNo=Math.max(0,...games.map(x=>x.gameNo||0))+1;
+    const ng={id:'g'+(gid++),gameNo:nextNo,...g};if(ng.venue==='__PARK__'){ng.venue='';ng.day='';ng.time='';ng.endTime='';}games.push(ng);if(!ng.venue||!String(ng.venue).trim())PG.addParked(ng);modal.remove();render();};
 }
 
 /* ============ MODAL: ADD SLOT (extra ice on an existing venue-weekend) ============ */
@@ -3699,6 +3779,14 @@ function setManualTime(id, patch){
   try{ clearTbdNeed(id); }catch(e){}   // a manually-set real time supersedes the sourcing ask
   const cur=MANUAL_TIMES[String(id)]||{day:gg.day||'',time:gg.time||'',end:gg.endTime||'',sheet:gg.sheet||''};
   const next=Object.assign({}, cur, patch);
+  // Every game needs an end time (2026-07-29, user) — if a start got set/changed and there's still
+  // no end, default it to slotHours(division) later rather than leave it blank indefinitely (editing
+  // only the start box otherwise never touches end — see gameLine's two time inputs).
+  if(next.time && !next.end){
+    const hhmm=x=>String(Math.floor((x%1440)/60)).padStart(2,'0')+':'+String(x%60).padStart(2,'0');
+    const start=toMin(next.time);
+    if(start!=null) next.end=hhmm(start+Math.round(slotHours(gg.division)*60));
+  }
   MANUAL_TIMES[String(id)]=next;
   if(next.day!=null && next.day!=='') gg.day=next.day;
   if(next.time!=null) gg.time=next.time;
@@ -4939,23 +5027,31 @@ const PG=(function(){
       const day=iso?dayForIso(wk,iso):'';
       const warnEl=modal.querySelector('#ds-warn');
       if(end && start && end<=start){ warnEl.className='live-warn show'; warnEl.textContent='End time must be after the start time.'; return; }
+      // Every game needs an end time (2026-07-29, user) — default it from the division's slot
+      // length instead of saving it blank when a start was given but End was left empty.
+      let endFinal=end;
+      if(start && !endFinal){
+        const hhmm=x=>String(Math.floor((x%1440)/60)).padStart(2,'0')+':'+String(x%60).padStart(2,'0');
+        const st=toMin(start);
+        if(st!=null) endFinal=hhmm(st+Math.round(slotHours(g.division)*60));
+      }
       if(doSource){
         if(!iso){ warnEl.className='live-warn show'; warnEl.textContent='Pick a date to source ice for this slot.'; return; }
         if(!start){ warnEl.className='live-warn show'; warnEl.textContent='Set a start time to source this ice slot.'; return; }
         if(isEffLocked(wk,venue)){ showToast('\uD83D\uDD12 That venue/weekend is locked \u2014 unlock it to source ice.','warn'); return; }
       }
       // Persist date/time/surface onto the game + GAME_TIMES; lock via manual times so the solver won't stomp it.
-      g.date=iso; g.sheet=surface; if(day) g.day=day; g.time=start||''; g.endTime=end||'';
-      GAME_TIMES[String(id)]=Object.assign({}, GAME_TIMES[String(id)]||{}, {date:iso,weekend:wk,day:day||(GAME_TIMES[String(id)]||{}).day||'',time:start||'',end:end||'',sheet:surface,venue:venue});
-      try{ if(typeof setManualTime==='function') setManualTime(id,{day:day||undefined,time:start||undefined,end:end||undefined,sheet:surface}); }catch(e){}
+      g.date=iso; g.sheet=surface; if(day) g.day=day; g.time=start||''; g.endTime=endFinal||'';
+      GAME_TIMES[String(id)]=Object.assign({}, GAME_TIMES[String(id)]||{}, {date:iso,weekend:wk,day:day||(GAME_TIMES[String(id)]||{}).day||'',time:start||'',end:endFinal||'',sheet:surface,venue:venue});
+      try{ if(typeof setManualTime==='function') setManualTime(id,{day:day||undefined,time:start||undefined,end:endFinal||undefined,sheet:surface}); }catch(e){}
       try{ saveGameTimes(); }catch(e){}
       // If requested, register this as REAL sourced ice so the venue-weekend stops reading as unsourced.
       let sourced=false;
-      if(doSource) sourced=sourceSlotForGame(id, wk, venue, day, start, end, surface);
+      if(doSource) sourced=sourceSlotForGame(id, wk, venue, day, start, endFinal, surface);
       close(); render();
       const bits=[];
       if(iso) bits.push(iso+(day?(' ('+day+')'):''));
-      if(start) bits.push(start+(end?('\u2013'+end):''));
+      if(start) bits.push(start+(endFinal?('\u2013'+endFinal):''));
       if(surface) bits.push('surface '+surface);
       showToast((sourced?'\u2713 Sourced ice \u2014 ':'Assigned ')+g.home+' vs '+g.away+' \u2192 '+short(venue)+' \u00b7 '+wkDateShort(wk)+(bits.length?(' \u00b7 '+bits.join(' \u00b7 ')):''),'good');
     };
@@ -5238,7 +5334,7 @@ const PG=(function(){
     // Header checkbox = select / deselect every game in THIS section at once.
     const allChecked = ps.length && ps.every(g=>SEL.has(String(g.id)));
     const headChk=`<th style="width:28px;text-align:center"><input type="checkbox" data-actchange="pgSelGroup" data-wk="${escA(wk)}" ${allChecked?'checked':''} title="Select / deselect all ${ps.length} game${ps.length>1?'s':''} in this section" style="width:16px;height:16px;cursor:pointer;accent-color:#3C3489"></th>`;
-    const table=`<table class="tbl"><thead><tr>${headChk}<th>Division</th><th>Home</th><th>Away</th><th>Assign to venue</th><th></th></tr></thead><tbody>${ps.map(parkRow).join('')}</tbody></table>`;
+    const table=`<table class="tbl"><thead><tr>${headChk}<th>Game #</th><th>Division</th><th>Home</th><th>Away</th><th>Assign to venue</th><th></th></tr></thead><tbody>${ps.map(parkRow).join('')}</tbody></table>`;
     return chipBar + table + sugPanelFor(wk, ps);
   }
   function prefPanel(g){
@@ -5293,7 +5389,7 @@ const PG=(function(){
     const checked = SEL.has(String(g.id));
     const chk=`<td style="text-align:center"><input type="checkbox" data-actchange="pgSelToggle" data-id="${escA(g.id)}" ${checked?'checked':''} title="Select this game to move with others" style="width:16px;height:16px;cursor:pointer;accent-color:#3C3489"></td>`;
     const prefFlag = pref.length ? ` <span title="${pref.length} preferred venue-weekend${pref.length>1?'s':''} with open ice" style="font-size:10px;font-weight:800;color:#1E7F4F;background:#E7F6ED;border-radius:4px;padding:1px 6px;white-space:nowrap">\u2605 ${pref.length} open</span>` : (prefsSet?` <span title="No preferred spot is open right now" style="font-size:10px;font-weight:700;color:var(--mut-d);white-space:nowrap">\u2605 set</span>`:'');
-    return `<tr${checked?' style="background:#F3F1FF"':''}>${chk}<td><span class="pill">${esc(g.division)}</span></td><td class="tm"><span style="display:inline-flex;align-items:center;gap:5px">${teamBadge(g.home)}<span>${esc(g.home)}</span></span></td><td class="tm"><span style="display:inline-flex;align-items:center;gap:5px">${teamBadge(g.away)}<span>${esc(g.away)}${prefFlag}</span></span></td>
+    return `<tr${checked?' style="background:#F3F1FF"':''}>${chk}<td style="font-weight:800;color:var(--red);font-size:11px;white-space:nowrap">${matchNo(g)}</td><td><span class="pill">${esc(g.division)}</span></td><td class="tm"><span style="display:inline-flex;align-items:center;gap:5px">${teamBadge(g.home)}<span>${esc(g.home)}</span></span></td><td class="tm"><span style="display:inline-flex;align-items:center;gap:5px">${teamBadge(g.away)}<span>${esc(g.away)}${prefFlag}</span></span></td>
       <td><select data-actchange="pgAssign" data-id="${escA(g.id)}" style="font-size:12px;padding:3px 6px;border:1px solid var(--line-l);border-radius:6px;max-width:340px"><option value="">\u2014 move to a date &amp; venue \u2014</option>${vopts}<option value="__UNSOURCED__">\uD83C\uDD7F Move to a hypothetical unsourced weekend\u2026</option></select></td>
       <td style="white-space:nowrap">${prefBtn} ${sug} ${tbd} ${restore} <button data-act="pgRemove" data-id="${escA(g.id)}" style="font-size:11px;padding:2px 8px;border:1px solid var(--line-l);border-radius:5px;background:#fff;color:var(--red);cursor:pointer">\u2715</button></td></tr>${prefPanel(g)}`;
   }
@@ -5822,11 +5918,15 @@ if(DATA.published&&Array.isArray(DATA.published.games)&&DATA.published.games.len
   games=DATA.published.games.map(g=>({...g}));
   var mx=0;games.forEach(g=>{var n=parseInt(String(g.id).replace(/\D/g,''),10);if(n>mx)mx=n;});
   gid=mx+1;
+  try{backfillGameNumbers();}catch(e){}
 }
 try{applyRemovedGames();}catch(e){}  // item 5: drop games the user permanently removed (persists across versions)
 try{IMP.overlay();}catch(e){}
 try{PG.overlay();}catch(e){}
 try{applyManualTimes();}catch(e){}
+// Must run AFTER applyManualTimes — a stale MANUAL_TIMES record with end:'' (not null) would
+// otherwise re-blank whatever this just backfilled.
+try{backfillEndTimes();}catch(e){}
 render();
 (function(){var s=document.getElementById('pubstamp');if(s&&DATA.published&&DATA.published.stamp)s.textContent='Published '+DATA.published.stamp;})();
 
@@ -5962,6 +6062,7 @@ render();
     const arr = Array.isArray(o.games) ? o.games : null;
     if(!arr) return false;
     games = arr.map(g=>({day:'',time:'',...g}));
+    try{backfillGameNumbers();}catch(e){}
     try{
       if(o.locked && typeof o.locked==='object'){
         Object.keys(LOCKED).forEach(k=>delete LOCKED[k]);
@@ -6011,6 +6112,9 @@ render();
       else { games.forEach(g=>{ if(WK.includes(g.weekend) && (!g.venue||!String(g.venue).trim())){ PARKING[String(g.id)]={from:'',day:g.day||'',time:g.time||'',sheet:g.sheet||'',end:g.endTime||'',wk:g.weekend,division:g.division,home:g.home,away:g.away}; } }); }
       saveParking(); }catch(e){}
     try{applyManualTimes();}catch(e){}
+    // Must run AFTER applyManualTimes — a stale MANUAL_TIMES record with end:'' (not null) would
+    // otherwise re-blank whatever this just backfilled.
+    try{backfillEndTimes();}catch(e){}
     try{ if(Array.isArray(o.activityLog) && typeof window.__actLogMerge==='function'){
       window.__actLogMerge(o.activityLog);
       const L=window.__actLogGet?window.__actLogGet():[];
@@ -6034,7 +6138,7 @@ render();
     +'display:flex;align-items:center;gap:7px;cursor:default;user-select:none;transition:.2s';
   // BUILD MARKER: shown next to the sync status so "which version am I actually running?" is never a
   // guessing game again. Bump this string whenever the sync/boot logic changes.
-  const FSL_BUILD='2026-07-29a';
+  const FSL_BUILD='2026-07-29b';
   window.__fslBuild=FSL_BUILD;
   function setPill(txt,color){ pill.innerHTML='<span style="width:8px;height:8px;border-radius:50%;background:'+(color||'#8a8a90')+';display:inline-block"></span>'+txt+'<span style="opacity:.55;font-weight:600;margin-left:7px">build '+FSL_BUILD+'</span>'; }
   pill.style.cursor='pointer';
