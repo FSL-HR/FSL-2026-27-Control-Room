@@ -477,10 +477,23 @@ function monCapFor(v){ if(!v) return 0;
   return (v.weekend==='Feb 12'&&String(v.venue).startsWith('Aberdeen'))?6:0; }
 function sheetsForVenueDay(wk,venue,day){
   if(String(venue).startsWith('Aberdeen')) return 1;   // Aberdeen is a single sheet, whatever the day cap says
+  // BIBLE FIRST (2026-07-29): if the ICE ALLOCATION BIBLE lists two slots at the SAME start time,
+  // that venue-day demonstrably has two sheets. Inferring it from the daily slot COUNT instead
+  // (sheetsForCap: 7+ slots => 2 sheets) mis-reads a rink that holds only a few hours on two
+  // sheets — e.g. Cochrane Sunday, 6 slots but paired at 08:00/10:30/13:00, was read as one
+  // sheet and every legitimate second game there was flagged as a clash.
+  // Take the GREATER of the two signals — the Bible proves a lower bound on sheets, it never
+  // disproves one. Using it alone would wrongly tighten a day whose held slots happen to be
+  // sequential (Cochrane Friday: 7 slots, none concurrent) on a rink that really has two sheets.
+  let concurrent=0;
+  try{
+    const sl=(typeof realSlotListFor==='function')?(realSlotListFor(wk,venue)||[]):[];
+    const at={}; sl.filter(s=>s.day===day).forEach(s=>{ at[s.start]=(at[s.start]||0)+1; });
+    concurrent=Math.max(0,...Object.values(at));
+  }catch(e){}
   const v=DATA.venues.find(x=>x.weekend===wk && x.venue===venue);
-  if(!v) return 1;
-  const cap={Fri:v.capFri,Sat:v.capSat,Sun:v.capSun,Mon:monCapFor(v)}[day]||0;
-  return sheetsForCap(cap);
+  const cap=v?({Fri:v.capFri,Sat:v.capSat,Sun:v.capSun,Mon:monCapFor(v)}[day]||0):0;
+  return Math.max(1, concurrent, v?sheetsForCap(cap):1);
 }
 const venuesFor = wk => DATA.venues.filter(v=>v.weekend===wk);
 const gamesFor = wk => games.filter(g=>g.weekend===wk);
@@ -6021,7 +6034,7 @@ render();
     +'display:flex;align-items:center;gap:7px;cursor:default;user-select:none;transition:.2s';
   // BUILD MARKER: shown next to the sync status so "which version am I actually running?" is never a
   // guessing game again. Bump this string whenever the sync/boot logic changes.
-  const FSL_BUILD='2026-07-28h';
+  const FSL_BUILD='2026-07-29a';
   window.__fslBuild=FSL_BUILD;
   function setPill(txt,color){ pill.innerHTML='<span style="width:8px;height:8px;border-radius:50%;background:'+(color||'#8a8a90')+';display:inline-block"></span>'+txt+'<span style="opacity:.55;font-weight:600;margin-left:7px">build '+FSL_BUILD+'</span>'; }
   pill.style.cursor='pointer';
