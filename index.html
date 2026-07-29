@@ -4449,6 +4449,48 @@ const XP=(function(){
   const FLOOD2=new Set(['12U AAA','14U AA','14U AAA']);
   const FLOOD_NOTE='2-hour games (12U AAA, 14U AA, 14U AAA): flood after the 2nd period and post-game.  All other divisions (16U AA, 16U AAA, 19U AAA): flood after the 1st period, after the 2nd period, and post-game.  Row colour: white = 1-flood games (12U AAA, 14U AA, 14U AAA); yellow = 2-flood games (16U AA, 16U AAA, 19U AAA).';
   const floodFor=div=>FLOOD2.has(div)?'After 2nd, post-game':'After 1st, 2nd, post-game';
+  /* ===== BROADCAST PLAN (2026-07-29, user) =====
+     The broadcast crew films 14U and older, at these per-division target rates. 12U AAA is never
+     filmed. Two of the rates are stated as a RANGE, so expected-film counts are reported as a
+     low–high band rather than a single fake-precise number. Update BCAST_RATE (and the matching
+     BCAST_PCT label) if the crew changes a rate — everything else derives from these two maps. */
+  const BCAST_RATE={'19U AAA':[1,1],'16U AAA':[1,1],'14U AAA':[.75,.75],'16U AA':[.5,.75],'14U AA':[.5,.75],'12U AAA':[0,0]};
+  const BCAST_PCT={'19U AAA':'100%','16U AAA':'100%','14U AAA':'75%','16U AA':'50–75%','14U AA':'50–75%','12U AAA':'not filmed'};
+  const bcRate=div=>BCAST_RATE[div]||[0,0];
+  // Priority tiers, ranked by expected films at that arena that weekend (midpoint of the band).
+  // Thresholds were picked against the live schedule so the five tiers actually separate the
+  // ~102 arena-weekends (roughly 21/20/28/20/13) instead of dumping most of them in one bucket.
+  const BCAST_TIERS=[
+    {min:8,    rank:1,label:'1 — Critical',   fill:'#C81E28',fg:'#ffffff',hint:'Full crew weekend — 8+ games expected to film'},
+    {min:5,    rank:2,label:'2 — High',       fill:'#E8703A',fg:'#ffffff',hint:'Heavy — 5–8 games expected to film'},
+    {min:2.5,  rank:3,label:'3 — Medium',     fill:'#F2C744',fg:'#3d2f00',hint:'Worth a crew — 2.5–5 games expected to film'},
+    {min:0.01, rank:4,label:'4 — Low',        fill:'#DDEBF7',fg:'#1f3864',hint:'Light — under 2.5 games expected to film'},
+    {min:-1,   rank:5,label:'5 — No filming', fill:'#EDEDED',fg:'#8a8a90',hint:'12U AAA only — nothing on the film list here'}
+  ];
+  const bcastTier=mid=>BCAST_TIERS.find(t=>mid>=t.min)||BCAST_TIERS[BCAST_TIERS.length-1];
+  const bcastBand=(lo,hi)=>{const f=n=>String(Math.round(n*10)/10).replace(/\.0$/,'');return lo===hi?f(lo):f(lo)+'–'+f(hi);};
+  // One row per arena at a weekend, ranked most-important first. Day counts are FILMABLE games only
+  // (that is what the crew staffs against) and use the effective day — a real day if the game has
+  // one, otherwise the hypothetical/planning day. Filmable games with no day yet land in "TBD" so
+  // Fri+Sat+Sun+TBD always reconciles to the Filmable column.
+  function bcastArenaRows(wk){
+    const gs=gamesFor(wk).filter(g=>g.venue&&String(g.venue).trim());
+    return [...new Set(gs.map(g=>g.venue))].map(v=>{
+      const vg=gs.filter(g=>g.venue===v);
+      let lo=0,hi=0,must=0,filmable=0;
+      const byDiv={},perDay={Fri:0,Sat:0,Sun:0,TBD:0};
+      vg.forEach(g=>{
+        byDiv[g.division]=(byDiv[g.division]||0)+1;
+        const r=bcRate(g.division); lo+=r[0]; hi+=r[1];
+        if(r[0]===1) must++;
+        if(r[1]>0){ filmable++; const d=eDayS(g); perDay[perDay[d]!=null?d:'TBD']++; }
+      });
+      const mix=DIVORDER.filter(d=>byDiv[d]).map(d=>d+' '+byDiv[d]).join('  ·  ');
+      return {wk,venue:v,arena:arenaOf(v),city:cityOf(v),total:vg.length,filmable,must,lo,hi,
+        mid:(lo+hi)/2,perDay,byDiv,mix,tier:bcastTier((lo+hi)/2)};
+    }).sort((a,b)=>b.mid-a.mid||b.must-a.must||b.total-a.total||a.city.localeCompare(b.city));
+  }
+  function bcastAllRows(){ let out=[]; WK.forEach(wk=>{out=out.concat(bcastArenaRows(wk));}); return out; }
   function parseMin(s){s=(s||'').trim().toLowerCase();const m=s.match(/^(\d{1,2}):?(\d{2})?\s*(am|pm)?/);if(!m)return null;let h=+m[1],mn=+(m[2]||0),ap=m[3];if(ap==='pm'&&h<12)h+=12;if(ap==='am'&&h===12)h=0;return h*60+mn;}
   function dur(g){const a=parseMin(g.time),b=parseMin(g.endTime);if(a==null||b==null)return '';let d=b-a;if(d<0)d+=1440;const h=Math.floor(d/60),m=d%60;return ((h?h+'h':'')+(m?(h?' ':'')+m+'m':'')) || '0m';}
   const needsWk=k=>k==='arenawknd';
@@ -4537,6 +4579,7 @@ const XP=(function(){
   function itemsFor(kind){
     if(kind==='league')return [['ALL','All divisions \u2014 whole league schedule']];
     if(kind==='itineraries')return [['ALL','All teams \u2014 grouped by division']];
+    if(kind==='broadcast')return [['ALL','All weekends \u2014 arenas ranked by film value']];
     if(kind==='sourced')return [['ALL','All ice that needs sourcing (incl. over-capacity)']];
     if(kind==='unused')return [['ALL','All unused / spare real ice']];
     if(kind==='team')return DATA.teams.slice().sort((a,b)=>DIVORDER.indexOf(a.division)-DIVORDER.indexOf(b.division)||a.name.localeCompare(b.name)).map(t=>[t.division+'|||'+t.name,t.name+'  \u2014  '+t.division]);
@@ -4552,7 +4595,7 @@ const XP=(function(){
       .map(w=>{const n=games.filter(g=>g.venue===STATE.key&&g.weekend===w).length;
         return [w,w+'  ('+(WKDATE[w]||'')+')  \u2014  '+n+' game'+(n===1?'':'s')];});
   }
-  const kindLabel=k=>({league:'Scope',itineraries:'Scope',sourced:'Scope',unused:'Scope',team:'Team',division:'Division',weekend:'Weekend',city:'City',arena:'Arena / building',arenawknd:'Arena / building'}[k]||'Item');
+  const kindLabel=k=>({league:'Scope',itineraries:'Scope',broadcast:'Scope',sourced:'Scope',unused:'Scope',team:'Team',division:'Division',weekend:'Weekend',city:'City',arena:'Arena / building',arenawknd:'Arena / building'}[k]||'Item');
   function spec(kind,key,key2){
     let title='',cols=[],rows=[],color=()=>'#ffffff',legend='',note='';
     if(kind==='league'){
@@ -4778,8 +4821,87 @@ const XP=(function(){
     const a=document.createElement('a');a.href=URL.createObjectURL(blob);
     a.download='FSL_Team_Itineraries.xls';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},0);
   }
+  // --- Broadcast plan export: which arenas each weekend, how many games, ranked by film value ---
+  // One table per weekend (arenas ranked most-important first), preceded by a season summary so the
+  // crew can see which weekends are heaviest before drilling in. Same markup for screen and Excel.
+  const BCAST_COLS=['Priority','Arena','City','Fri','Sat','Sun','TBD','Total games','Filmable 14U+','Must-film 100%','Expected films','Divisions present'];
+  function bcastInner(forXls){
+    const nc=BCAST_COLS.length, bd=forXls?'#999999':'#556', cbd=forXls?'#cccccc':'#d9d9e3';
+    const pad=forXls?'4px':'3px 8px', nf=forXls?"mso-number-format:'\\@'":'';
+    const th=c=>`<th style="background:#2f3b5c;color:#ffffff;padding:4px 6px;border:1px solid ${bd};font-size:11px;text-align:left;white-space:nowrap">${esc(c)}</th>`;
+    const band=r=>bcastBand(r.lo,r.hi);
+    let out='';
+    // ---- season summary: one row per weekend ----
+    const SUM=['Weekend','Date','Arenas','Total games','Filmable 14U+','Must-film 100%','Expected films','Busiest arena (expected films)'];
+    out+=`<tr><td colspan="${nc}" style="background:#111111;color:#ffffff;font-weight:bold;font-size:13pt;padding:6px;border:1px solid ${bd}">Season summary \u2014 broadcast load by weekend</td></tr>`;
+    out+='<tr>'+SUM.map(th).join('')+`<td colspan="${nc-SUM.length}" style="border:none"></td></tr>`;
+    WK.forEach(wk=>{
+      const rs=bcastArenaRows(wk);
+      const tot=rs.reduce((s,r)=>s+r.total,0), fl=rs.reduce((s,r)=>s+r.filmable,0);
+      const mu=rs.reduce((s,r)=>s+r.must,0), lo=rs.reduce((s,r)=>s+r.lo,0), hi=rs.reduce((s,r)=>s+r.hi,0);
+      const top=rs.find(r=>r.mid>0);
+      const cells=[wk,(WKDATE[wk]||''),String(rs.length),String(tot),String(fl),String(mu),
+        rs.length?bcastBand(lo,hi):'0', top?(top.arena+'  ('+bcastBand(top.lo,top.hi)+')'):'\u2014'];
+      // Colour the weekend by its BUSIEST arena's tier \u2014 the tier bands are per-arena values, so
+      // applying them to a weekend TOTAL would read "critical" almost everywhere and mean nothing.
+      const wkTier=top?top.tier:BCAST_TIERS[BCAST_TIERS.length-1];
+      out+='<tr>'+cells.map((x,i)=>`<td style="background:${i===0?wkTier.fill:'#ffffff'};${i===0?'color:'+wkTier.fg+';font-weight:bold;':''}padding:${pad};border:1px solid ${cbd};font-size:12px;white-space:nowrap;${nf}">${esc(x)}</td>`).join('')
+        +`<td colspan="${nc-SUM.length}" style="border:none"></td></tr>`;
+    });
+    out+=`<tr><td colspan="${nc}" style="border:none;padding:6px"></td></tr>`;
+    // ---- one table per weekend ----
+    WK.forEach(wk=>{
+      const rs=bcastArenaRows(wk);
+      const tot=rs.reduce((s,r)=>s+r.total,0), fl=rs.reduce((s,r)=>s+r.filmable,0);
+      const lo=rs.reduce((s,r)=>s+r.lo,0), hi=rs.reduce((s,r)=>s+r.hi,0);
+      const hdr=`${wk}  (${WKDATE[wk]||''})  \u2014  ${rs.length} arena${rs.length===1?'':'s'}  \u00b7  ${tot} game${tot===1?'':'s'}  \u00b7  ${fl} filmable  \u00b7  ${rs.length?bcastBand(lo,hi):'0'} expected films`;
+      out+=`<tr><td colspan="${nc}" style="background:#1f2a44;color:#ffffff;font-weight:bold;font-size:12pt;padding:5px;border:1px solid ${bd}">${esc(hdr)}</td></tr>`;
+      if(!rs.length){
+        out+=`<tr><td colspan="${nc}" style="background:#F7F7F8;color:#8a8a90;font-style:italic;padding:${pad};border:1px solid ${cbd};font-size:12px">No games this weekend \u2014 nothing to staff.</td></tr>`;
+        out+=`<tr><td colspan="${nc}" style="border:none;padding:4px"></td></tr>`;
+        return;
+      }
+      out+='<tr>'+BCAST_COLS.map(th).join('')+'</tr>';
+      rs.forEach(r=>{
+        const cells=[r.tier.label,r.arena,r.city,
+          String(r.perDay.Fri||''),String(r.perDay.Sat||''),String(r.perDay.Sun||''),String(r.perDay.TBD||''),
+          String(r.total),String(r.filmable),String(r.must),band(r),r.mix];
+        out+='<tr>'+cells.map((x,i)=>{
+          const isPri=i===0;
+          const bgc=isPri?r.tier.fill:(i>=7&&i<=10?'#F7F9FC':'#ffffff');
+          const fgc=isPri?r.tier.fg:'#000000';
+          const wt=(isPri||i===9||i===10)?'font-weight:bold;':'';
+          return `<td${isPri?` title="${escA(r.tier.hint)}"`:''} style="background:${bgc};color:${fgc};${wt}padding:${pad};border:1px solid ${cbd};font-size:12px;white-space:${i===11?'normal':'nowrap'};${nf}">${esc(x)}</td>`;
+        }).join('')+'</tr>';
+      });
+      out+=`<tr><td colspan="${nc}" style="border:none;padding:4px"></td></tr>`;
+    });
+    // ---- legend: rates + tier meanings ----
+    out+=`<tr><td colspan="${nc}" style="background:#1f2a44;color:#ffffff;font-weight:bold;font-size:12pt;padding:5px;border:1px solid ${bd}">Legend</td></tr>`;
+    out+=`<tr><td colspan="${nc}" style="background:#ffffff;padding:${pad};border:1px solid ${cbd};font-size:12px"><b>Filming rates by division:</b> ${esc(DIVORDER.slice().reverse().map(d=>d+' = '+(BCAST_PCT[d]||'\u2014')).join('   \u00b7   '))}</td></tr>`;
+    BCAST_TIERS.forEach(t=>{
+      out+=`<tr><td style="background:${t.fill};color:${t.fg};font-weight:bold;padding:${pad};border:1px solid ${cbd};font-size:12px;white-space:nowrap">${esc(t.label)}</td>`
+        +`<td colspan="${nc-1}" style="background:#ffffff;padding:${pad};border:1px solid ${cbd};font-size:12px">${esc(t.hint)}</td></tr>`;
+    });
+    out+=`<tr><td colspan="${nc}" style="background:#ffffff;padding:${pad};border:1px solid ${cbd};font-size:11px;color:#555555">Fri / Sat / Sun / TBD count <b>filmable</b> games only (14U and older) and always add up to the Filmable column. TBD = a filmable game whose day is not set yet, so it cannot be assigned to a crew day. Expected films is a band because 16U AA and 14U AA are filmed at 50\u201375%. In the season summary at the top, each weekend is coloured by its <b>busiest</b> arena's tier (the tiers are per-arena figures, so colouring a weekend total would read Critical almost everywhere). Day and time come from the live schedule, using planning times where real ice is not sourced yet.</td></tr>`;
+    return out;
+  }
+  function bcastPreview(){
+    return `<div style="max-height:62vh;overflow:auto;border:1px solid var(--line-l);border-radius:8px"><table style="border-collapse:collapse;min-width:100%">${bcastInner(false)}</table></div>`;
+  }
+  function bcastXls(){
+    const title='FSL \u2014 Broadcast Plan (arenas by weekend, ranked by film value)';
+    let h='<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel"><head><meta charset="utf-8"><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>Broadcast Plan</x:Name><x:WorksheetOptions><x:FreezePanes/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--></head><body>';
+    h+='<table border="1" style="border-collapse:collapse;font-family:Calibri,Arial;font-size:11pt">';
+    h+=`<tr><td colspan="${BCAST_COLS.length}" style="background:#C81E28;color:#ffffff;font-weight:bold;font-size:14pt;padding:6px;text-align:center">${esc(title)}</td></tr>`;
+    h+=bcastInner(true)+'</table></body></html>';
+    const blob=new Blob(['\ufeff'+h],{type:'application/vnd.ms-excel'});
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+    a.download='FSL_Broadcast_Plan.xls';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},0);
+  }
   function doExport(){ensureKey();
     if(STATE.kind==='itineraries'){ const n=DATA.teams.length; itinXls(); showToast('Exported '+n+' team itineraries (grouped by division) \u2014 FSL_Team_Itineraries.xls','good'); return; }
+    if(STATE.kind==='broadcast'){ const n=bcastAllRows().length; bcastXls(); showToast('Exported the broadcast plan \u2014 '+n+' arena-weekend'+(n===1?'':'s')+' ranked by film value \u2014 FSL_Broadcast_Plan.xls','good'); return; }
     if(STATE.key==null||(needsWk(STATE.kind)&&STATE.key2==null)){showToast('Nothing to export for this report.','warn');return;}
     const sp=spec(STATE.kind,STATE.key,STATE.key2);
     const unit=(sp.kind==='sourced'||sp.kind==='unused')?'row':'game';
@@ -4789,15 +4911,22 @@ const XP=(function(){
     ensureKey();
     const prim='padding:6px 14px;border-radius:8px;border:1px solid transparent;background:var(--ok);color:#fff;font-size:12px;font-weight:700;cursor:pointer;';
     const selSty='margin-top:3px;padding:4px 8px;border:1px solid var(--line-l);border-radius:7px;font-size:12px;max-width:340px';
-    const typeOpts=[['league','\uD83C\uDFD2 Whole league (all divisions)'],['itineraries','\uD83D\uDCCB Team itineraries (all teams by division)'],['team','Team schedule'],['division','Division schedule'],['weekend','Weekend schedule'],['city','Venue schedule (by city)'],['arena','Arena schedule (by building)'],['arenawknd','Arena \u2014 one weekend (send to the arena)'],['sourced','\uD83D\uDD34 Ice to source (incl. over-capacity)'],['unused','\uD83D\uDFE2 Unused ice (spare real slots)']];
+    const typeOpts=[['league','\uD83C\uDFD2 Whole league (all divisions)'],['itineraries','\uD83D\uDCCB Team itineraries (all teams by division)'],['broadcast','\uD83C\uDFA5 Broadcast plan (arenas by weekend, ranked)'],['team','Team schedule'],['division','Division schedule'],['weekend','Weekend schedule'],['city','Venue schedule (by city)'],['arena','Arena schedule (by building)'],['arenawknd','Arena \u2014 one weekend (send to the arena)'],['sourced','\uD83D\uDD34 Ice to source (incl. over-capacity)'],['unused','\uD83D\uDFE2 Unused ice (spare real slots)']];
     const items=itemsFor(STATE.kind);
     const isItin=STATE.kind==='itineraries';
-    const sp=(!isItin&&STATE.key!=null&&(!needsWk(STATE.kind)||STATE.key2!=null))?spec(STATE.kind,STATE.key,STATE.key2):null;
+    const isBcast=STATE.kind==='broadcast';
+    const isMulti=isItin||isBcast;   // multi-table reports build their own markup, not via spec()
+    const sp=(!isMulti&&STATE.key!=null&&(!needsWk(STATE.kind)||STATE.key2!=null))?spec(STATE.kind,STATE.key,STATE.key2):null;
     const wkSel=needsWk(STATE.kind)?`<label style="font-size:12px;font-weight:700">Weekend<br><select data-actchange="xpKey2" style="${selSty}">${itemsFor2().map(([v,l])=>`<option value="${escA(v)}" ${v===STATE.key2?'selected':''}>${esc(l)}</option>`).join('')}</select></label>`:'';
     const info=isItin
       ? `<div style="font-size:12px;color:var(--mut-d)"><b>${DATA.teams.length}</b> teams \u00b7 one table each, grouped by division \u00b7 includes Alpine Cup &amp; playoffs</div>`
+      : isBcast
+      ? (function(){const rs=bcastAllRows();const fl=rs.reduce((s,r)=>s+r.filmable,0);
+          const lo=rs.reduce((s,r)=>s+r.lo,0),hi=rs.reduce((s,r)=>s+r.hi,0);
+          const crit=rs.filter(r=>r.tier.rank<=2).length;
+          return `<div style="font-size:12px;color:var(--mut-d)"><b>${rs.length}</b> arena-weekends \u00b7 <b>${fl}</b> filmable games \u00b7 <b>${bcastBand(lo,hi)}</b> expected films \u00b7 <b>${crit}</b> high/critical arena-weekends</div>`;})()
       : (sp?`<div style="font-size:12px;color:var(--mut-d)"><b>${sp.rows.length}</b> ${(sp.kind==='sourced'||sp.kind==='unused')?'venue-weekend'+(sp.rows.length===1?'':'s'):'games'} \u00b7 ${esc(sp.legend)}</div>`:'');
-    const preview=isItin?itinPreview():(sp?renderTable(sp):'<div class="dt">No selection.</div>');
+    const preview=isItin?itinPreview():isBcast?bcastPreview():(sp?renderTable(sp):'<div class="dt">No selection.</div>');
     return `<div class="wk-head"><h2>\uD83D\uDCE4 Schedule exports</h2>
       <div class="dt">Pick a report and an item, preview it, and download a color-coded Excel file. Reflects the live schedule, including any times you have applied. (Excel may say the file type differs from the extension on open \u2014 that is normal for this styled format; click Yes.)</div></div>
       <div class="card" style="padding:14px;display:flex;gap:16px;flex-wrap:wrap;align-items:flex-end">
@@ -4809,7 +4938,8 @@ const XP=(function(){
       </div>
       <div style="margin-top:14px">${preview}</div>`;
   }
-  return {view,spec,itemsFor,itemsFor2,xlsHtml,toXls,setKind,setKey,setKey2,doExport,_state:()=>STATE};
+  return {view,spec,itemsFor,itemsFor2,xlsHtml,toXls,setKind,setKey,setKey2,doExport,_state:()=>STATE,
+    bcastArenaRows,bcastAllRows,bcastTier,bcastXls,BCAST_RATE,BCAST_TIERS};
 })();
 window.XP=XP;
 
@@ -6138,7 +6268,7 @@ render();
     +'display:flex;align-items:center;gap:7px;cursor:default;user-select:none;transition:.2s';
   // BUILD MARKER: shown next to the sync status so "which version am I actually running?" is never a
   // guessing game again. Bump this string whenever the sync/boot logic changes.
-  const FSL_BUILD='2026-07-29b';
+  const FSL_BUILD='2026-07-29c';
   window.__fslBuild=FSL_BUILD;
   function setPill(txt,color){ pill.innerHTML='<span style="width:8px;height:8px;border-radius:50%;background:'+(color||'#8a8a90')+';display:inline-block"></span>'+txt+'<span style="opacity:.55;font-weight:600;margin-left:7px">build '+FSL_BUILD+'</span>'; }
   pill.style.cursor='pointer';
