@@ -1,7 +1,7 @@
 {
-  "generatedAt": "2026-07-28T13:29:22-06:00",
+  "generatedAt": "2026-07-29T23:40:43-06:00",
   "source": "ICE ALLOCATION BIBLE.xlsx",
-  "totalSlots": 695,
+  "totalSlots": 739,
   "weekends": {
     "Oct 02": {
       "Delta — Planet Ice Delta": {
@@ -180,6 +180,22 @@
         "Sun": [
           "08:30"
         ]
+      },
+      "Cowichan — Shawnigan Lake Arena": {
+        "Fri": [
+          "16:30",
+          "18:45"
+        ],
+        "Sat": [
+          "10:00",
+          "12:15",
+          "17:00",
+          "19:30"
+        ],
+        "Sun": [
+          "09:00",
+          "11:30"
+        ]
       }
     },
     "Feb 19": {
@@ -249,6 +265,22 @@
           "08:30",
           "10:45",
           "13:00"
+        ]
+      },
+      "Cowichan — Shawnigan Lake Arena": {
+        "Fri": [
+          "18:15",
+          "20:30"
+        ],
+        "Sat": [
+          "09:30",
+          "11:45",
+          "17:30",
+          "19:45"
+        ],
+        "Sun": [
+          "09:00",
+          "11:15"
         ]
       }
     },
@@ -573,7 +605,6 @@
         "Fri": [
           "15:00",
           "17:15",
-          "19:30",
           "19:30"
         ],
         "Sat": [
@@ -608,6 +639,20 @@
           "10:45",
           "13:30",
           "15:15"
+        ]
+      },
+      "Cowichan — Shawnigan Lake Arena": {
+        "Fri": [
+          "16:30",
+          "18:45"
+        ],
+        "Sat": [
+          "10:00",
+          "12:15",
+          "19:30"
+        ],
+        "Sun": [
+          "10:00"
         ]
       }
     },
@@ -1028,7 +1073,8 @@
           "13:15",
           "15:30",
           "15:45",
-          "18:15"
+          "18:15",
+          "20:45"
         ],
         "Sun": []
       },
@@ -1048,6 +1094,20 @@
         "Sun": [
           "09:00",
           "11:15"
+        ]
+      },
+      "Cowichan — Shawnigan Lake Arena": {
+        "Fri": [
+          "19:45"
+        ],
+        "Sat": [
+          "10:30",
+          "13:45",
+          "18:00"
+        ],
+        "Sun": [
+          "09:00",
+          "11:30"
         ]
       }
     },
@@ -1230,87 +1290,117 @@
           "15:30",
           "15:45"
         ]
+      },
+      "Cowichan — Shawnigan Lake Arena": {
+        "Fri": [
+          "18:45"
+        ],
+        "Sat": [
+          "09:00",
+          "19:45"
+        ],
+        "Sun": [
+          "10:30"
+        ]
+      }
+    },
+    "Dec 04": {
+      "Cowichan — Shawnigan Lake Arena": {
+        "Fri": [
+          "14:00",
+          "16:15",
+          "19:30"
+        ],
+        "Sat": [
+          "08:00",
+          "10:15",
+          "12:45",
+          "15:00",
+          "17:15",
+          "19:45"
+        ],
+        "Sun": [
+          "09:00",
+          "11:15",
+          "13:30"
+        ]
       }
     }
   },
   "newThisSync": [
-    "Dec 11|Edmonton — Downtown Community Arena|Sat|13:30",
-    "Feb 05|Kimberley — Civic Centre|Sun|08:30",
-    "Nov 06|Winnipeg — 7 Oaks Arena|Fri|13:00",
-    "Nov 06|Winnipeg — 7 Oaks Arena|Fri|15:30",
-    "Nov 06|Winnipeg — 7 Oaks Arena|Fri|18:00",
-    "Nov 06|Winnipeg — 7 Oaks Arena|Fri|20:30",
-    "Nov 06|Winnipeg — 7 Oaks Arena|Sat|08:45",
-    "Nov 06|Winnipeg — 7 Oaks Arena|Sat|13:15",
-    "Nov 06|Winnipeg — 7 Oaks Arena|Sat|15:00",
-    "Nov 06|Winnipeg — 7 Oaks Arena|Sat|15:30",
-    "Nov 06|Winnipeg — 7 Oaks Arena|Sat|17:45",
-    "Nov 06|Winnipeg — 7 Oaks Arena|Sat|20:00",
-    "Nov 06|Winnipeg — 7 Oaks Arena|Sun|10:45",
-    "Nov 06|Winnipeg — 7 Oaks Arena|Sun|13:30",
-    "Nov 06|Winnipeg — 7 Oaks Arena|Sun|15:15",
-    "Oct 09|Winnipeg — 7 Oaks Arena|Fri|14:00",
-    "Oct 09|Winnipeg — 7 Oaks Arena|Fri|17:30",
-    "Oct 09|Winnipeg — 7 Oaks Arena|Fri|19:45",
-    "Oct 09|Winnipeg — 7 Oaks Arena|Sat|10:30",
-    "Oct 09|Winnipeg — 7 Oaks Arena|Sat|12:45",
-    "Oct 09|Winnipeg — 7 Oaks Arena|Sat|15:00",
-    "Oct 09|Winnipeg — 7 Oaks Arena|Sat|17:15",
-    "Oct 09|Winnipeg — 7 Oaks Arena|Sat|19:30",
-    "Oct 09|Winnipeg — 7 Oaks Arena|Sun|09:00",
-    "Oct 09|Winnipeg — 7 Oaks Arena|Sun|11:15",
-    "Sep 25|Winnipeg — 7 Oaks Arena|Fri|14:00",
-    "Sep 25|Winnipeg — 7 Oaks Arena|Fri|19:30",
-    "Sep 25|Winnipeg — 7 Oaks Arena|Sat|09:30",
-    "Sep 25|Winnipeg — 7 Oaks Arena|Sat|11:45",
-    "Sep 25|Winnipeg — 7 Oaks Arena|Sat|15:15",
-    "Sep 25|Winnipeg — 7 Oaks Arena|Sat|20:30",
-    "Sep 25|Winnipeg — 7 Oaks Arena|Sun|09:00"
+    "Dec 04|Cowichan — Shawnigan Lake Arena|Fri|14:00",
+    "Dec 04|Cowichan — Shawnigan Lake Arena|Fri|16:15",
+    "Dec 04|Cowichan — Shawnigan Lake Arena|Fri|19:30",
+    "Dec 04|Cowichan — Shawnigan Lake Arena|Sat|08:00",
+    "Dec 04|Cowichan — Shawnigan Lake Arena|Sat|10:15",
+    "Dec 04|Cowichan — Shawnigan Lake Arena|Sat|12:45",
+    "Dec 04|Cowichan — Shawnigan Lake Arena|Sat|15:00",
+    "Dec 04|Cowichan — Shawnigan Lake Arena|Sat|17:15",
+    "Dec 04|Cowichan — Shawnigan Lake Arena|Sat|19:45",
+    "Dec 04|Cowichan — Shawnigan Lake Arena|Sun|09:00",
+    "Dec 04|Cowichan — Shawnigan Lake Arena|Sun|11:15",
+    "Dec 04|Cowichan — Shawnigan Lake Arena|Sun|13:30",
+    "Feb 05|Cowichan — Shawnigan Lake Arena|Fri|16:30",
+    "Feb 05|Cowichan — Shawnigan Lake Arena|Fri|18:45",
+    "Feb 05|Cowichan — Shawnigan Lake Arena|Sat|10:00",
+    "Feb 05|Cowichan — Shawnigan Lake Arena|Sat|12:15",
+    "Feb 05|Cowichan — Shawnigan Lake Arena|Sat|17:00",
+    "Feb 05|Cowichan — Shawnigan Lake Arena|Sat|19:30",
+    "Feb 05|Cowichan — Shawnigan Lake Arena|Sun|09:00",
+    "Feb 05|Cowichan — Shawnigan Lake Arena|Sun|11:30",
+    "Feb 19|Cowichan — Shawnigan Lake Arena|Fri|18:15",
+    "Feb 19|Cowichan — Shawnigan Lake Arena|Fri|20:30",
+    "Feb 19|Cowichan — Shawnigan Lake Arena|Sat|09:30",
+    "Feb 19|Cowichan — Shawnigan Lake Arena|Sat|11:45",
+    "Feb 19|Cowichan — Shawnigan Lake Arena|Sat|17:30",
+    "Feb 19|Cowichan — Shawnigan Lake Arena|Sat|19:45",
+    "Feb 19|Cowichan — Shawnigan Lake Arena|Sun|09:00",
+    "Feb 19|Cowichan — Shawnigan Lake Arena|Sun|11:15",
+    "Nov 06|Cowichan — Shawnigan Lake Arena|Fri|16:30",
+    "Nov 06|Cowichan — Shawnigan Lake Arena|Fri|18:45",
+    "Nov 06|Cowichan — Shawnigan Lake Arena|Sat|10:00",
+    "Nov 06|Cowichan — Shawnigan Lake Arena|Sat|12:15",
+    "Nov 06|Cowichan — Shawnigan Lake Arena|Sat|19:30",
+    "Nov 06|Cowichan — Shawnigan Lake Arena|Sun|10:00",
+    "Nov 13|Cowichan — Shawnigan Lake Arena|Fri|18:45",
+    "Nov 13|Cowichan — Shawnigan Lake Arena|Sat|09:00",
+    "Nov 13|Cowichan — Shawnigan Lake Arena|Sat|19:45",
+    "Nov 13|Cowichan — Shawnigan Lake Arena|Sun|10:30",
+    "Oct 09|Abbotsford — Rinks at Summit Center|Sat|20:45",
+    "Oct 09|Cowichan — Shawnigan Lake Arena|Fri|19:45",
+    "Oct 09|Cowichan — Shawnigan Lake Arena|Sat|10:30",
+    "Oct 09|Cowichan — Shawnigan Lake Arena|Sat|13:45",
+    "Oct 09|Cowichan — Shawnigan Lake Arena|Sat|18:00",
+    "Oct 09|Cowichan — Shawnigan Lake Arena|Sun|09:00",
+    "Oct 09|Cowichan — Shawnigan Lake Arena|Sun|11:30"
   ],
-  "removedThisSync": [
-    "Feb 05|Kimberley — Civic Centre|Sat|08:00",
-    "Feb 05|Kimberley — Civic Centre|Sat|10:30",
-    "Feb 05|Kimberley — Civic Centre|Sat|13:00",
-    "Feb 05|Kimberley — Civic Centre|Sat|18:00",
-    "Feb 05|Kimberley — Civic Centre|Sun|08:00",
-    "Feb 05|Kimberley — Civic Centre|Sun|10:30",
-    "Nov 06|Winnipeg — Seven Oaks Sportsplex|Fri|13:00",
-    "Nov 06|Winnipeg — Seven Oaks Sportsplex|Fri|15:30",
-    "Nov 06|Winnipeg — Seven Oaks Sportsplex|Fri|18:00",
-    "Nov 06|Winnipeg — Seven Oaks Sportsplex|Fri|20:30",
-    "Nov 06|Winnipeg — Seven Oaks Sportsplex|Sat|08:45",
-    "Nov 06|Winnipeg — Seven Oaks Sportsplex|Sat|13:15",
-    "Nov 06|Winnipeg — Seven Oaks Sportsplex|Sat|15:00",
-    "Nov 06|Winnipeg — Seven Oaks Sportsplex|Sat|15:30",
-    "Nov 06|Winnipeg — Seven Oaks Sportsplex|Sat|17:45",
-    "Nov 06|Winnipeg — Seven Oaks Sportsplex|Sat|20:00",
-    "Nov 06|Winnipeg — Seven Oaks Sportsplex|Sun|10:45",
-    "Nov 06|Winnipeg — Seven Oaks Sportsplex|Sun|13:30",
-    "Nov 06|Winnipeg — Seven Oaks Sportsplex|Sun|15:15",
-    "Oct 09|Winnipeg — Seven Oaks Sportsplex|Fri|14:00",
-    "Oct 09|Winnipeg — Seven Oaks Sportsplex|Fri|17:30",
-    "Oct 09|Winnipeg — Seven Oaks Sportsplex|Fri|19:45",
-    "Oct 09|Winnipeg — Seven Oaks Sportsplex|Sat|10:30",
-    "Oct 09|Winnipeg — Seven Oaks Sportsplex|Sat|12:45",
-    "Oct 09|Winnipeg — Seven Oaks Sportsplex|Sat|15:00",
-    "Oct 09|Winnipeg — Seven Oaks Sportsplex|Sat|17:15",
-    "Oct 09|Winnipeg — Seven Oaks Sportsplex|Sat|19:30",
-    "Oct 09|Winnipeg — Seven Oaks Sportsplex|Sun|09:00",
-    "Oct 09|Winnipeg — Seven Oaks Sportsplex|Sun|11:15",
-    "Sep 25|Winnipeg — Seven Oaks Sportsplex|Fri|14:00",
-    "Sep 25|Winnipeg — Seven Oaks Sportsplex|Fri|19:30",
-    "Sep 25|Winnipeg — Seven Oaks Sportsplex|Sat|09:30",
-    "Sep 25|Winnipeg — Seven Oaks Sportsplex|Sat|11:45",
-    "Sep 25|Winnipeg — Seven Oaks Sportsplex|Sat|15:15",
-    "Sep 25|Winnipeg — Seven Oaks Sportsplex|Sat|20:30",
-    "Sep 25|Winnipeg — Seven Oaks Sportsplex|Sun|09:00"
-  ],
+  "removedThisSync": [],
   "contentChanged": true,
   "isBaseline": false,
   "slotKeys": [
+    "Dec 04|Cowichan — Shawnigan Lake Arena|Fri|14:00",
+    "Dec 04|Cowichan — Shawnigan Lake Arena|Fri|16:15",
+    "Dec 04|Cowichan — Shawnigan Lake Arena|Fri|19:30",
+    "Dec 04|Cowichan — Shawnigan Lake Arena|Sat|08:00",
+    "Dec 04|Cowichan — Shawnigan Lake Arena|Sat|10:15",
+    "Dec 04|Cowichan — Shawnigan Lake Arena|Sat|12:45",
+    "Dec 04|Cowichan — Shawnigan Lake Arena|Sat|15:00",
+    "Dec 04|Cowichan — Shawnigan Lake Arena|Sat|17:15",
+    "Dec 04|Cowichan — Shawnigan Lake Arena|Sat|19:45",
+    "Dec 04|Cowichan — Shawnigan Lake Arena|Sun|09:00",
+    "Dec 04|Cowichan — Shawnigan Lake Arena|Sun|11:15",
+    "Dec 04|Cowichan — Shawnigan Lake Arena|Sun|13:30",
     "Dec 11|Edmonton — Downtown Community Arena|Sat|13:30",
     "Dec 11|Edmonton — Morinville Silent Ice Gardens|Sun|08:00",
     "Dec 11|Edmonton — Morinville Silent Ice Gardens|Sun|10:30",
+    "Feb 05|Cowichan — Shawnigan Lake Arena|Fri|16:30",
+    "Feb 05|Cowichan — Shawnigan Lake Arena|Fri|18:45",
+    "Feb 05|Cowichan — Shawnigan Lake Arena|Sat|10:00",
+    "Feb 05|Cowichan — Shawnigan Lake Arena|Sat|12:15",
+    "Feb 05|Cowichan — Shawnigan Lake Arena|Sat|17:00",
+    "Feb 05|Cowichan — Shawnigan Lake Arena|Sat|19:30",
+    "Feb 05|Cowichan — Shawnigan Lake Arena|Sun|09:00",
+    "Feb 05|Cowichan — Shawnigan Lake Arena|Sun|11:30",
     "Feb 05|Delta — Planet Ice Delta|Fri|18:45",
     "Feb 05|Delta — Planet Ice Delta|Fri|20:00",
     "Feb 05|Delta — Planet Ice Delta|Sat|16:15",
@@ -1383,6 +1473,14 @@
     "Feb 19|Aberdeen — Aberdeen Rec Center|Sun|08:30",
     "Feb 19|Aberdeen — Aberdeen Rec Center|Sun|10:45",
     "Feb 19|Aberdeen — Aberdeen Rec Center|Sun|13:00",
+    "Feb 19|Cowichan — Shawnigan Lake Arena|Fri|18:15",
+    "Feb 19|Cowichan — Shawnigan Lake Arena|Fri|20:30",
+    "Feb 19|Cowichan — Shawnigan Lake Arena|Sat|09:30",
+    "Feb 19|Cowichan — Shawnigan Lake Arena|Sat|11:45",
+    "Feb 19|Cowichan — Shawnigan Lake Arena|Sat|17:30",
+    "Feb 19|Cowichan — Shawnigan Lake Arena|Sat|19:45",
+    "Feb 19|Cowichan — Shawnigan Lake Arena|Sun|09:00",
+    "Feb 19|Cowichan — Shawnigan Lake Arena|Sun|11:15",
     "Feb 19|Delta — Planet Ice Delta|Fri|18:45",
     "Feb 19|Delta — Planet Ice Delta|Fri|19:15",
     "Feb 19|Delta — Planet Ice Delta|Fri|20:00",
@@ -1546,6 +1644,12 @@
     "Nov 06|Aberdeen — Aberdeen Rec Center|Sun|08:30",
     "Nov 06|Aberdeen — Aberdeen Rec Center|Sun|10:45",
     "Nov 06|Aberdeen — Aberdeen Rec Center|Sun|13:00",
+    "Nov 06|Cowichan — Shawnigan Lake Arena|Fri|16:30",
+    "Nov 06|Cowichan — Shawnigan Lake Arena|Fri|18:45",
+    "Nov 06|Cowichan — Shawnigan Lake Arena|Sat|10:00",
+    "Nov 06|Cowichan — Shawnigan Lake Arena|Sat|12:15",
+    "Nov 06|Cowichan — Shawnigan Lake Arena|Sat|19:30",
+    "Nov 06|Cowichan — Shawnigan Lake Arena|Sun|10:00",
     "Nov 06|Edmonton — Morinville Silent Ice Gardens|Sat|20:15",
     "Nov 06|Winnipeg — 7 Oaks Arena|Fri|13:00",
     "Nov 06|Winnipeg — 7 Oaks Arena|Fri|15:30",
@@ -1589,6 +1693,10 @@
     "Nov 13|Calgary — 7 Chiefs Sportsplex (JPHL Contract)|Sun|13:15",
     "Nov 13|Calgary — 7 Chiefs Sportsplex (JPHL Contract)|Sun|15:30",
     "Nov 13|Calgary — 7 Chiefs Sportsplex (JPHL Contract)|Sun|15:45",
+    "Nov 13|Cowichan — Shawnigan Lake Arena|Fri|18:45",
+    "Nov 13|Cowichan — Shawnigan Lake Arena|Sat|09:00",
+    "Nov 13|Cowichan — Shawnigan Lake Arena|Sat|19:45",
+    "Nov 13|Cowichan — Shawnigan Lake Arena|Sun|10:30",
     "Nov 13|Lloydminster — Servus Sports Center|Fri|15:15",
     "Nov 13|Lloydminster — Servus Sports Center|Fri|15:30",
     "Nov 13|Lloydminster — Servus Sports Center|Fri|17:45",
@@ -1672,6 +1780,7 @@
     "Oct 09|Abbotsford — Rinks at Summit Center|Sat|15:30",
     "Oct 09|Abbotsford — Rinks at Summit Center|Sat|15:45",
     "Oct 09|Abbotsford — Rinks at Summit Center|Sat|18:15",
+    "Oct 09|Abbotsford — Rinks at Summit Center|Sat|20:45",
     "Oct 09|Aberdeen — Aberdeen Rec Center|Fri|09:15",
     "Oct 09|Aberdeen — Aberdeen Rec Center|Fri|11:45",
     "Oct 09|Aberdeen — Aberdeen Rec Center|Fri|14:15",
@@ -1693,6 +1802,12 @@
     "Oct 09|Canmore — Canmore Arena|Sun|08:15",
     "Oct 09|Canmore — Canmore Arena|Sun|10:45",
     "Oct 09|Canmore — Canmore Arena|Sun|13:00",
+    "Oct 09|Cowichan — Shawnigan Lake Arena|Fri|19:45",
+    "Oct 09|Cowichan — Shawnigan Lake Arena|Sat|10:30",
+    "Oct 09|Cowichan — Shawnigan Lake Arena|Sat|13:45",
+    "Oct 09|Cowichan — Shawnigan Lake Arena|Sat|18:00",
+    "Oct 09|Cowichan — Shawnigan Lake Arena|Sun|09:00",
+    "Oct 09|Cowichan — Shawnigan Lake Arena|Sun|11:30",
     "Oct 09|Lloydminster — Servus Sports Center|Fri|15:00",
     "Oct 09|Lloydminster — Servus Sports Center|Fri|17:15",
     "Oct 09|Lloydminster — Servus Sports Center|Fri|19:30",
@@ -1974,9 +2089,11 @@
     "Sep 25|Winnipeg — 7 Oaks Arena|Sun|09:00"
   ],
   "unmappedVenues": [
+    "Calgary|Calgary East Arena",
+    "Cowichan|Shawnigan Lake Arena",
     "Edmonton|Downtown Community Arena"
   ],
-  "outOfSeasonSkipped": 156,
+  "outOfSeasonSkipped": 151,
   "badRows": [],
   "assumptions": [
     "Both \"SISE HATCH CO\" and \"SISE HESCO\" map to \"Edmonton — Silent Ice Center (Hatch+Hesco)\".",
