@@ -4459,47 +4459,54 @@ const XP=(function(){
   const FLOOD_NOTE='2-hour games (12U AAA, 14U AA, 14U AAA): flood after the 2nd period and post-game.  All other divisions (16U AA, 16U AAA, 19U AAA): flood after the 1st period, after the 2nd period, and post-game.  Row colour: white = 1-flood games (12U AAA, 14U AA, 14U AAA); yellow = 2-flood games (16U AA, 16U AAA, 19U AAA).';
   const floodFor=div=>FLOOD2.has(div)?'After 2nd, post-game':'After 1st, 2nd, post-game';
   /* ===== BROADCAST PLAN (2026-07-29, user) =====
-     The broadcast crew films 14U and older, at these per-division target rates. 12U AAA is never
-     filmed. Two of the rates are stated as a RANGE, so expected-film counts are reported as a
-     low–high band rather than a single fake-precise number. Update BCAST_RATE (and the matching
-     BCAST_PCT label) if the crew changes a rate — everything else derives from these two maps. */
-  const BCAST_RATE={'19U AAA':[1,1],'16U AAA':[1,1],'14U AAA':[.75,.75],'16U AA':[.5,.75],'14U AA':[.5,.75],'12U AAA':[0,0]};
-  const BCAST_PCT={'19U AAA':'100%','16U AAA':'100%','14U AAA':'75%','16U AA':'50–75%','14U AA':'50–75%','12U AAA':'not filmed'};
-  const bcRate=div=>BCAST_RATE[div]||[0,0];
-  // Priority tiers, ranked by expected films at that arena that weekend (midpoint of the band).
-  // Thresholds were picked against the live schedule so the five tiers actually separate the
-  // ~102 arena-weekends (roughly 21/20/28/20/13) instead of dumping most of them in one bucket.
+     The crew films 14U and older: 19U AAA and 16U AAA every game, 14U AAA most, 16U AA and 14U AA
+     roughly half to three-quarters. 12U AAA is never filmed.
+     SIMPLIFIED on user request (2026-07-29): WHOLE NUMBERS ONLY. An earlier version multiplied game
+     counts by those rates into an "expected films" figure, which produced decimals like 16.3–16.8 —
+     false precision, and you cannot roster a crew against two-thirds of a game. Two plain integer
+     counts do the job instead: games the crew CAN film, and the subset they MUST film. The rate
+     percentages survive only as descriptive text in the legend (BCAST_PCT), never as arithmetic.
+     One row per ICE SURFACE, not per arena, because a crew covers a sheet — two sheets running at
+     the same time needs two crews, which a per-arena total hides. */
+  const BCAST_FILM=new Set(['19U AAA','16U AAA','14U AAA','16U AA','14U AA']);
+  const BCAST_MUST=new Set(['19U AAA','16U AAA']);
+  const BCAST_PCT={'19U AAA':'every game','16U AAA':'every game','14U AAA':'most games','16U AA':'about half to three-quarters','14U AA':'about half to three-quarters','12U AAA':'never filmed'};
+  const NO_SHEET='— not assigned yet —';
+  // Tiers by how many filmable games sit on that ONE sheet that weekend. Integer thresholds, checked
+  // against the live schedule so the four tiers actually split the 152 sheet-weekends (48/38/43/23).
   const BCAST_TIERS=[
-    {min:8,    rank:1,label:'1 — Critical',   fill:'#C81E28',fg:'#ffffff',hint:'Full crew weekend — 8+ games expected to film'},
-    {min:5,    rank:2,label:'2 — High',       fill:'#E8703A',fg:'#ffffff',hint:'Heavy — 5–8 games expected to film'},
-    {min:2.5,  rank:3,label:'3 — Medium',     fill:'#F2C744',fg:'#3d2f00',hint:'Worth a crew — 2.5–5 games expected to film'},
-    {min:0.01, rank:4,label:'4 — Low',        fill:'#DDEBF7',fg:'#1f3864',hint:'Light — under 2.5 games expected to film'},
-    {min:-1,   rank:5,label:'5 — No filming', fill:'#EDEDED',fg:'#8a8a90',hint:'12U AAA only — nothing on the film list here'}
+    {min:6,rank:1,label:'1 — Priority',  fill:'#C81E28',fg:'#ffffff',hint:'6 or more games to film on this sheet — plan a crew here'},
+    {min:3,rank:2,label:'2 — Standard',  fill:'#E8703A',fg:'#ffffff',hint:'3 to 5 games to film on this sheet'},
+    {min:1,rank:3,label:'3 — Light',     fill:'#F2C744',fg:'#3d2f00',hint:'1 or 2 games to film on this sheet'},
+    {min:0,rank:4,label:'4 — No filming',fill:'#EDEDED',fg:'#8a8a90',hint:'Nothing on the film list here — 12U AAA only'}
   ];
-  const bcastTier=mid=>BCAST_TIERS.find(t=>mid>=t.min)||BCAST_TIERS[BCAST_TIERS.length-1];
-  const bcastBand=(lo,hi)=>{const f=n=>String(Math.round(n*10)/10).replace(/\.0$/,'');return lo===hi?f(lo):f(lo)+'–'+f(hi);};
-  // One row per arena at a weekend, ranked most-important first. Day counts are FILMABLE games only
-  // (that is what the crew staffs against) and use the effective day — a real day if the game has
-  // one, otherwise the hypothetical/planning day. Filmable games with no day yet land in "TBD" so
-  // Fri+Sat+Sun+TBD always reconciles to the Filmable column.
-  function bcastArenaRows(wk){
+  const bcastTier=film=>BCAST_TIERS.find(t=>film>=t.min)||BCAST_TIERS[BCAST_TIERS.length-1];
+  // One row per arena + ice surface at a weekend, heaviest sheet first. Day columns count FILMABLE
+  // games only (that is what the crew staffs against) and use the effective day — the real day if the
+  // game has one, otherwise the hypothetical/planning day. A filmable game with no day yet lands in
+  // TBD, so Fri+Sat+Sun+TBD always reconciles to the "To film" column instead of quietly under-counting.
+  function bcastSheetRows(wk){
     const gs=gamesFor(wk).filter(g=>g.venue&&String(g.venue).trim());
-    return [...new Set(gs.map(g=>g.venue))].map(v=>{
+    const out=[];
+    [...new Set(gs.map(g=>g.venue))].forEach(v=>{
       const vg=gs.filter(g=>g.venue===v);
-      let lo=0,hi=0,must=0,filmable=0;
-      const byDiv={},perDay={Fri:0,Sat:0,Sun:0,TBD:0};
-      vg.forEach(g=>{
-        byDiv[g.division]=(byDiv[g.division]||0)+1;
-        const r=bcRate(g.division); lo+=r[0]; hi+=r[1];
-        if(r[0]===1) must++;
-        if(r[1]>0){ filmable++; const d=eDayS(g); perDay[perDay[d]!=null?d:'TBD']++; }
+      [...new Set(vg.map(g=>(g.sheet||'').trim()))].forEach(sh=>{
+        const sg=vg.filter(g=>(g.sheet||'').trim()===sh);
+        const day={Fri:0,Sat:0,Sun:0,TBD:0};
+        let film=0,must=0;
+        sg.forEach(g=>{
+          if(!BCAST_FILM.has(g.division)) return;
+          film++; if(BCAST_MUST.has(g.division)) must++;
+          const d=eDayS(g); day[day[d]!=null?d:'TBD']++;
+        });
+        out.push({wk,venue:v,arena:arenaOf(v),city:cityOf(v),sheet:sh||NO_SHEET,
+          games:sg.length,film,must,day,tier:bcastTier(film)});
       });
-      const mix=DIVORDER.filter(d=>byDiv[d]).map(d=>d+' '+byDiv[d]).join('  ·  ');
-      return {wk,venue:v,arena:arenaOf(v),city:cityOf(v),total:vg.length,filmable,must,lo,hi,
-        mid:(lo+hi)/2,perDay,byDiv,mix,tier:bcastTier((lo+hi)/2)};
-    }).sort((a,b)=>b.mid-a.mid||b.must-a.must||b.total-a.total||a.city.localeCompare(b.city));
+    });
+    return out.sort((a,b)=>b.film-a.film||b.must-a.must||b.games-a.games
+      ||a.city.localeCompare(b.city)||a.arena.localeCompare(b.arena)||a.sheet.localeCompare(b.sheet));
   }
-  function bcastAllRows(){ let out=[]; WK.forEach(wk=>{out=out.concat(bcastArenaRows(wk));}); return out; }
+  function bcastAllRows(){ let out=[]; WK.forEach(wk=>{out=out.concat(bcastSheetRows(wk));}); return out; }
   function parseMin(s){s=(s||'').trim().toLowerCase();const m=s.match(/^(\d{1,2}):?(\d{2})?\s*(am|pm)?/);if(!m)return null;let h=+m[1],mn=+(m[2]||0),ap=m[3];if(ap==='pm'&&h<12)h+=12;if(ap==='am'&&h===12)h=0;return h*60+mn;}
   function dur(g){const a=parseMin(g.time),b=parseMin(g.endTime);if(a==null||b==null)return '';let d=b-a;if(d<0)d+=1440;const h=Math.floor(d/60),m=d%60;return ((h?h+'h':'')+(m?(h?' ':'')+m+'m':'')) || '0m';}
   const needsWk=k=>k==='arenawknd';
@@ -4830,29 +4837,28 @@ const XP=(function(){
     const a=document.createElement('a');a.href=URL.createObjectURL(blob);
     a.download='FSL_Team_Itineraries.xls';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},0);
   }
-  // --- Broadcast plan export: which arenas each weekend, how many games, ranked by film value ---
-  // One table per weekend (arenas ranked most-important first), preceded by a season summary so the
-  // crew can see which weekends are heaviest before drilling in. Same markup for screen and Excel.
-  const BCAST_COLS=['Priority','Arena','City','Fri','Sat','Sun','TBD','Total games','Filmable 14U+','Must-film 100%','Expected films','Divisions present'];
+  // --- Broadcast plan export: which arenas + ice surfaces each weekend, and how many games ---
+  // One table per weekend, one row per ICE SURFACE (a crew covers a sheet), heaviest sheet first,
+  // preceded by a short season summary. Whole numbers throughout. Same markup for screen and Excel.
+  const BCAST_COLS=['Priority','Arena','Ice surface','Fri','Sat','Sun','TBD','Games on sheet','To film','Must film'];
   function bcastInner(forXls){
     const nc=BCAST_COLS.length, bd=forXls?'#999999':'#556', cbd=forXls?'#cccccc':'#d9d9e3';
     const pad=forXls?'4px':'3px 8px', nf=forXls?"mso-number-format:'\\@'":'';
     const th=c=>`<th style="background:#2f3b5c;color:#ffffff;padding:4px 6px;border:1px solid ${bd};font-size:11px;text-align:left;white-space:nowrap">${esc(c)}</th>`;
-    const band=r=>bcastBand(r.lo,r.hi);
+    const sum=(rs,f)=>rs.reduce((s,r)=>s+f(r),0);
     let out='';
     // ---- season summary: one row per weekend ----
-    const SUM=['Weekend','Date','Arenas','Total games','Filmable 14U+','Must-film 100%','Expected films','Busiest arena (expected films)'];
-    out+=`<tr><td colspan="${nc}" style="background:#111111;color:#ffffff;font-weight:bold;font-size:13pt;padding:6px;border:1px solid ${bd}">Season summary \u2014 broadcast load by weekend</td></tr>`;
+    const SUM=['Weekend','Date','Arenas','Sheets','Games','To film','Must film'];
+    out+=`<tr><td colspan="${nc}" style="background:#111111;color:#ffffff;font-weight:bold;font-size:13pt;padding:6px;border:1px solid ${bd}">Season summary \u2014 how much there is to film each weekend</td></tr>`;
     out+='<tr>'+SUM.map(th).join('')+`<td colspan="${nc-SUM.length}" style="border:none"></td></tr>`;
     WK.forEach(wk=>{
-      const rs=bcastArenaRows(wk);
-      const tot=rs.reduce((s,r)=>s+r.total,0), fl=rs.reduce((s,r)=>s+r.filmable,0);
-      const mu=rs.reduce((s,r)=>s+r.must,0), lo=rs.reduce((s,r)=>s+r.lo,0), hi=rs.reduce((s,r)=>s+r.hi,0);
-      const top=rs.find(r=>r.mid>0);
-      const cells=[wk,(WKDATE[wk]||''),String(rs.length),String(tot),String(fl),String(mu),
-        rs.length?bcastBand(lo,hi):'0', top?(top.arena+'  ('+bcastBand(top.lo,top.hi)+')'):'\u2014'];
-      // Colour the weekend by its BUSIEST arena's tier \u2014 the tier bands are per-arena values, so
-      // applying them to a weekend TOTAL would read "critical" almost everywhere and mean nothing.
+      const rs=bcastSheetRows(wk);
+      const nArenas=new Set(rs.map(r=>r.venue)).size;
+      const cells=[wk,(WKDATE[wk]||''),String(nArenas),String(rs.length),
+        String(sum(rs,r=>r.games)),String(sum(rs,r=>r.film)),String(sum(rs,r=>r.must))];
+      // Colour the weekend by its BUSIEST sheet's tier \u2014 the tiers are per-sheet counts, so applying
+      // them to a weekend TOTAL would read "Priority" almost everywhere and tell you nothing.
+      const top=rs.find(r=>r.film>0);
       const wkTier=top?top.tier:BCAST_TIERS[BCAST_TIERS.length-1];
       out+='<tr>'+cells.map((x,i)=>`<td style="background:${i===0?wkTier.fill:'#ffffff'};${i===0?'color:'+wkTier.fg+';font-weight:bold;':''}padding:${pad};border:1px solid ${cbd};font-size:12px;white-space:nowrap;${nf}">${esc(x)}</td>`).join('')
         +`<td colspan="${nc-SUM.length}" style="border:none"></td></tr>`;
@@ -4860,10 +4866,9 @@ const XP=(function(){
     out+=`<tr><td colspan="${nc}" style="border:none;padding:6px"></td></tr>`;
     // ---- one table per weekend ----
     WK.forEach(wk=>{
-      const rs=bcastArenaRows(wk);
-      const tot=rs.reduce((s,r)=>s+r.total,0), fl=rs.reduce((s,r)=>s+r.filmable,0);
-      const lo=rs.reduce((s,r)=>s+r.lo,0), hi=rs.reduce((s,r)=>s+r.hi,0);
-      const hdr=`${wk}  (${WKDATE[wk]||''})  \u2014  ${rs.length} arena${rs.length===1?'':'s'}  \u00b7  ${tot} game${tot===1?'':'s'}  \u00b7  ${fl} filmable  \u00b7  ${rs.length?bcastBand(lo,hi):'0'} expected films`;
+      const rs=bcastSheetRows(wk);
+      const nArenas=new Set(rs.map(r=>r.venue)).size;
+      const hdr=`${wk}  (${WKDATE[wk]||''})  \u2014  ${nArenas} arena${nArenas===1?'':'s'}  \u00b7  ${rs.length} sheet${rs.length===1?'':'s'}  \u00b7  ${sum(rs,r=>r.film)} to film (${sum(rs,r=>r.must)} must)`;
       out+=`<tr><td colspan="${nc}" style="background:#1f2a44;color:#ffffff;font-weight:bold;font-size:12pt;padding:5px;border:1px solid ${bd}">${esc(hdr)}</td></tr>`;
       if(!rs.length){
         out+=`<tr><td colspan="${nc}" style="background:#F7F7F8;color:#8a8a90;font-style:italic;padding:${pad};border:1px solid ${cbd};font-size:12px">No games this weekend \u2014 nothing to staff.</td></tr>`;
@@ -4872,27 +4877,29 @@ const XP=(function(){
       }
       out+='<tr>'+BCAST_COLS.map(th).join('')+'</tr>';
       rs.forEach(r=>{
-        const cells=[r.tier.label,r.arena,r.city,
-          String(r.perDay.Fri||''),String(r.perDay.Sat||''),String(r.perDay.Sun||''),String(r.perDay.TBD||''),
-          String(r.total),String(r.filmable),String(r.must),band(r),r.mix];
+        // Some venue strings are stored without the " — " city/arena separator, so cityOf() and
+        // arenaOf() both return the whole string — show it once instead of "X  (X)".
+        const place=(r.arena===r.city)?r.arena:(r.arena+'  ('+r.city+')');
+        const cells=[r.tier.label,place,r.sheet,
+          String(r.day.Fri||''),String(r.day.Sat||''),String(r.day.Sun||''),String(r.day.TBD||''),
+          String(r.games),String(r.film),String(r.must)];
         out+='<tr>'+cells.map((x,i)=>{
           const isPri=i===0;
-          const bgc=isPri?r.tier.fill:(i>=7&&i<=10?'#F7F9FC':'#ffffff');
-          const fgc=isPri?r.tier.fg:'#000000';
-          const wt=(isPri||i===9||i===10)?'font-weight:bold;':'';
-          return `<td${isPri?` title="${escA(r.tier.hint)}"`:''} style="background:${bgc};color:${fgc};${wt}padding:${pad};border:1px solid ${cbd};font-size:12px;white-space:${i===11?'normal':'nowrap'};${nf}">${esc(x)}</td>`;
+          const bgc=isPri?r.tier.fill:(i>=7?'#F7F9FC':'#ffffff');
+          const wt=(isPri||i===8||i===9)?'font-weight:bold;':'';
+          return `<td${isPri?` title="${escA(r.tier.hint)}"`:''} style="background:${bgc};color:${isPri?r.tier.fg:'#000000'};${wt}padding:${pad};border:1px solid ${cbd};font-size:12px;white-space:nowrap;${nf}">${esc(x)}</td>`;
         }).join('')+'</tr>';
       });
       out+=`<tr><td colspan="${nc}" style="border:none;padding:4px"></td></tr>`;
     });
-    // ---- legend: rates + tier meanings ----
+    // ---- legend: what gets filmed + tier meanings ----
     out+=`<tr><td colspan="${nc}" style="background:#1f2a44;color:#ffffff;font-weight:bold;font-size:12pt;padding:5px;border:1px solid ${bd}">Legend</td></tr>`;
-    out+=`<tr><td colspan="${nc}" style="background:#ffffff;padding:${pad};border:1px solid ${cbd};font-size:12px"><b>Filming rates by division:</b> ${esc(DIVORDER.slice().reverse().map(d=>d+' = '+(BCAST_PCT[d]||'\u2014')).join('   \u00b7   '))}</td></tr>`;
+    out+=`<tr><td colspan="${nc}" style="background:#ffffff;padding:${pad};border:1px solid ${cbd};font-size:12px"><b>What gets filmed:</b> ${esc(DIVORDER.slice().reverse().map(d=>d+' \u2014 '+(BCAST_PCT[d]||'\u2014')).join('   \u00b7   '))}</td></tr>`;
     BCAST_TIERS.forEach(t=>{
       out+=`<tr><td style="background:${t.fill};color:${t.fg};font-weight:bold;padding:${pad};border:1px solid ${cbd};font-size:12px;white-space:nowrap">${esc(t.label)}</td>`
         +`<td colspan="${nc-1}" style="background:#ffffff;padding:${pad};border:1px solid ${cbd};font-size:12px">${esc(t.hint)}</td></tr>`;
     });
-    out+=`<tr><td colspan="${nc}" style="background:#ffffff;padding:${pad};border:1px solid ${cbd};font-size:11px;color:#555555">Fri / Sat / Sun / TBD count <b>filmable</b> games only (14U and older) and always add up to the Filmable column. TBD = a filmable game whose day is not set yet, so it cannot be assigned to a crew day. Expected films is a band because 16U AA and 14U AA are filmed at 50\u201375%. In the season summary at the top, each weekend is coloured by its <b>busiest</b> arena's tier (the tiers are per-arena figures, so colouring a weekend total would read Critical almost everywhere). Day and time come from the live schedule, using planning times where real ice is not sourced yet.</td></tr>`;
+    out+=`<tr><td colspan="${nc}" style="background:#ffffff;padding:${pad};border:1px solid ${cbd};font-size:11px;color:#555555"><b>One row per ice surface</b>, because a crew covers one sheet \u2014 an arena running two sheets at once needs two crews. <b>Games on sheet</b> is every game there; <b>To film</b> is the 14U-and-older subset; <b>Must film</b> is the 19U AAA / 16U AAA games inside that. <b>Fri / Sat / Sun / TBD</b> count games to film only, and always add up to the To film column \u2014 TBD means the day is not set yet, so it cannot be given to a crew day. Where the ice surface reads "${esc(NO_SHEET)}" the schedule has not been assigned a surface at that arena yet. In the season summary, each weekend is coloured by its <b>busiest sheet</b> (the tiers are per-sheet counts, so colouring a weekend total would read Priority almost everywhere). Days come from the live schedule, using planning days where real ice is not sourced yet.</td></tr>`;
     return out;
   }
   function bcastPreview(){
@@ -4930,10 +4937,10 @@ const XP=(function(){
     const info=isItin
       ? `<div style="font-size:12px;color:var(--mut-d)"><b>${DATA.teams.length}</b> teams \u00b7 one table each, grouped by division \u00b7 includes Alpine Cup &amp; playoffs</div>`
       : isBcast
-      ? (function(){const rs=bcastAllRows();const fl=rs.reduce((s,r)=>s+r.filmable,0);
-          const lo=rs.reduce((s,r)=>s+r.lo,0),hi=rs.reduce((s,r)=>s+r.hi,0);
-          const crit=rs.filter(r=>r.tier.rank<=2).length;
-          return `<div style="font-size:12px;color:var(--mut-d)"><b>${rs.length}</b> arena-weekends \u00b7 <b>${fl}</b> filmable games \u00b7 <b>${bcastBand(lo,hi)}</b> expected films \u00b7 <b>${crit}</b> high/critical arena-weekends</div>`;})()
+      ? (function(){const rs=bcastAllRows();
+          const fl=rs.reduce((s,r)=>s+r.film,0), mu=rs.reduce((s,r)=>s+r.must,0);
+          const pri=rs.filter(r=>r.tier.rank===1).length;
+          return `<div style="font-size:12px;color:var(--mut-d)"><b>${rs.length}</b> sheets across the season \u00b7 <b>${fl}</b> games to film (<b>${mu}</b> must) \u00b7 <b>${pri}</b> priority sheet-weekends</div>`;})()
       : (sp?`<div style="font-size:12px;color:var(--mut-d)"><b>${sp.rows.length}</b> ${(sp.kind==='sourced'||sp.kind==='unused')?'venue-weekend'+(sp.rows.length===1?'':'s'):'games'} \u00b7 ${esc(sp.legend)}</div>`:'');
     const preview=isItin?itinPreview():isBcast?bcastPreview():(sp?renderTable(sp):'<div class="dt">No selection.</div>');
     return `<div class="wk-head"><h2>\uD83D\uDCE4 Schedule exports</h2>
@@ -4948,7 +4955,7 @@ const XP=(function(){
       <div style="margin-top:14px">${preview}</div>`;
   }
   return {view,spec,itemsFor,itemsFor2,xlsHtml,toXls,setKind,setKey,setKey2,doExport,_state:()=>STATE,
-    bcastArenaRows,bcastAllRows,bcastTier,bcastXls,BCAST_RATE,BCAST_TIERS};
+    bcastSheetRows,bcastAllRows,bcastTier,bcastXls,BCAST_FILM,BCAST_MUST,BCAST_TIERS};
 })();
 window.XP=XP;
 
@@ -6278,7 +6285,7 @@ render();
     +'display:flex;align-items:center;gap:7px;cursor:default;user-select:none;transition:.2s';
   // BUILD MARKER: shown next to the sync status so "which version am I actually running?" is never a
   // guessing game again. Bump this string whenever the sync/boot logic changes.
-  const FSL_BUILD='2026-07-29c';
+  const FSL_BUILD='2026-07-29d';
   window.__fslBuild=FSL_BUILD;
   function setPill(txt,color){ pill.innerHTML='<span style="width:8px;height:8px;border-radius:50%;background:'+(color||'#8a8a90')+';display:inline-block"></span>'+txt+'<span style="opacity:.55;font-weight:600;margin-left:7px">build '+FSL_BUILD+'</span>'; }
   pill.style.cursor='pointer';
