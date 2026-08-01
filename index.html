@@ -4594,6 +4594,11 @@ const XP=(function(){
     if(kind==='league')return [['ALL','All divisions \u2014 whole league schedule']];
     if(kind==='itineraries')return [['ALL','All teams \u2014 grouped by division']];
     if(kind==='broadcast')return [['ALL','All weekends \u2014 arenas ranked by film value']];
+    // Rep plan: whole season, or drill into a single weekend.
+    if(kind==='reps')return [['ALL','Whole season \u2014 every weekend']].concat(
+      WK.map(w=>{const n=gamesFor(w).filter(g=>g.venue&&String(g.venue).trim()).length;
+        const a=new Set(gamesFor(w).filter(g=>g.venue&&String(g.venue).trim()).map(g=>g.venue)).size;
+        return [w, w+'  ('+(WKDATE[w]||'')+')  \u2014  '+a+' arena'+(a===1?'':'s')+', '+n+' game'+(n===1?'':'s')];}));
     if(kind==='sourced')return [['ALL','All ice that needs sourcing (incl. over-capacity)']];
     if(kind==='unused')return [['ALL','All unused / spare real ice']];
     if(kind==='team')return DATA.teams.slice().sort((a,b)=>DIVORDER.indexOf(a.division)-DIVORDER.indexOf(b.division)||a.name.localeCompare(b.name)).map(t=>[t.division+'|||'+t.name,t.name+'  \u2014  '+t.division]);
@@ -4609,7 +4614,7 @@ const XP=(function(){
       .map(w=>{const n=games.filter(g=>g.venue===STATE.key&&g.weekend===w).length;
         return [w,w+'  ('+(WKDATE[w]||'')+')  \u2014  '+n+' game'+(n===1?'':'s')];});
   }
-  const kindLabel=k=>({league:'Scope',itineraries:'Scope',broadcast:'Scope',sourced:'Scope',unused:'Scope',team:'Team',division:'Division',weekend:'Weekend',city:'City',arena:'Arena / building',arenawknd:'Arena / building'}[k]||'Item');
+  const kindLabel=k=>({league:'Scope',itineraries:'Scope',broadcast:'Scope',reps:'Scope',sourced:'Scope',unused:'Scope',team:'Team',division:'Division',weekend:'Weekend',city:'City',arena:'Arena / building',arenawknd:'Arena / building'}[k]||'Item');
   function spec(kind,key,key2){
     let title='',cols=[],rows=[],color=()=>'#ffffff',legend='',note='';
     if(kind==='league'){
@@ -4913,9 +4918,99 @@ const XP=(function(){
     const a=document.createElement('a');a.href=URL.createObjectURL(blob);
     a.download='FSL_Broadcast_Plan.xls';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},0);
   }
+  /* ===== REP PLAN (2026-07-31, user) =====
+     One rep is needed per ARENA (building), not per ice surface — so an arena running two sheets
+     at once still needs one rep, and the reps-needed figure for a weekend is simply how many
+     arenas have games. Per arena we report the days in play, the game count, how many ice sheets
+     are running, and which divisions are there. Scope is either the whole season or one weekend. */
+  const REPS_COLS=['Arena','City','Days','Games','Ice sheets','Divisions'];
+  // Distinct arenas with games that weekend. "Ice sheets" is the greater of (a) how many distinct
+  // named surfaces the games sit on and (b) the most games running at the same day+time — so an
+  // arena whose games have no surface recorded still reports 2 when two games genuinely overlap.
+  function repsRows(wk){
+    const gs=gamesFor(wk).filter(g=>g.venue&&String(g.venue).trim());
+    return [...new Set(gs.map(g=>g.venue))].map(v=>{
+      const vg=gs.filter(g=>g.venue===v);
+      const named=new Set(vg.map(g=>String(g.sheet||'').trim()).filter(Boolean));
+      const at={}; vg.forEach(g=>{ const d=eDayS(g), t=eTimeS(g); if(d&&t){ const k=d+' '+t; at[k]=(at[k]||0)+1; } });
+      const concurrent=Object.keys(at).length?Math.max(...Object.values(at)):0;
+      const day={Fri:0,Sat:0,Sun:0,TBD:0};
+      vg.forEach(g=>{ const d=eDayS(g); day[day[d]!=null?d:'TBD']++; });
+      const days=['Fri','Sat','Sun'].filter(d=>day[d]).map(d=>d+' '+day[d]).concat(day.TBD?['TBD '+day.TBD]:[]).join('  ·  ');
+      const divs=DIVORDER.filter(d=>vg.some(g=>g.division===d));
+      return {wk, venue:v, arena:arenaOf(v), city:cityOf(v), games:vg.length,
+        sheets:Math.max(1,named.size,concurrent), days:days||'—', divisions:divs};
+    }).sort((a,b)=>b.games-a.games||a.city.localeCompare(b.city)||a.arena.localeCompare(b.arena));
+  }
+  function repsScopeWks(){ return (STATE.key&&STATE.key!=='ALL')?[STATE.key]:WK.slice(); }
+  function repsInner(forXls){
+    const nc=REPS_COLS.length, bd=forXls?'#999999':'#556', cbd=forXls?'#cccccc':'#d9d9e3';
+    const pad=forXls?'4px':'3px 8px', nf=forXls?"mso-number-format:'\\@'":'';
+    const th=c=>`<th style="background:#2f3b5c;color:#ffffff;padding:4px 6px;border:1px solid ${bd};font-size:11px;text-align:left;white-space:nowrap">${esc(c)}</th>`;
+    const wks=repsScopeWks(), whole=wks.length>1;
+    let out='';
+    if(whole){
+      // Season roll-up: one line per weekend. Reps needed = number of arenas in play.
+      const SUM=['Weekend','Date','Arenas = reps','Games','Ice sheets','Divisions'];
+      out+=`<tr><td colspan="${nc}" style="background:#111111;color:#ffffff;font-weight:bold;font-size:13pt;padding:6px;border:1px solid ${bd}">Season summary — reps needed each weekend</td></tr>`;
+      out+='<tr>'+SUM.map(th).join('')+'</tr>';
+      let repTot=0, gameTot=0;
+      wks.forEach(wk=>{
+        const rs=repsRows(wk);
+        repTot+=rs.length; gameTot+=rs.reduce((s,r)=>s+r.games,0);
+        const divs=DIVORDER.filter(d=>rs.some(r=>r.divisions.includes(d)));
+        const cells=[wk,(WKDATE[wk]||''),String(rs.length),String(rs.reduce((s,r)=>s+r.games,0)),
+          String(rs.reduce((s,r)=>s+r.sheets,0)),divs.join(', ')||'—'];
+        out+='<tr>'+cells.map((x,i)=>`<td style="background:${i===2?'#EEEDFE':'#ffffff'};${i===2?'font-weight:bold;':''}padding:${pad};border:1px solid ${cbd};font-size:12px;white-space:${i===5?'normal':'nowrap'};${nf}">${esc(x)}</td>`).join('')+'</tr>';
+      });
+      out+=`<tr><td style="background:#1f2a44;color:#ffffff;font-weight:bold;padding:${pad};border:1px solid ${bd};font-size:12px">SEASON TOTAL</td>`
+        +`<td style="background:#1f2a44;border:1px solid ${bd}"></td>`
+        +`<td style="background:#1f2a44;color:#ffffff;font-weight:bold;padding:${pad};border:1px solid ${bd};font-size:12px">${repTot} rep-weekends</td>`
+        +`<td style="background:#1f2a44;color:#ffffff;font-weight:bold;padding:${pad};border:1px solid ${bd};font-size:12px">${gameTot}</td>`
+        +`<td colspan="2" style="background:#1f2a44;border:1px solid ${bd}"></td></tr>`;
+      out+=`<tr><td colspan="${nc}" style="border:none;padding:6px"></td></tr>`;
+    }
+    wks.forEach(wk=>{
+      const rs=repsRows(wk);
+      const hdr=`${wk}  (${WKDATE[wk]||''})  —  ${rs.length} arena${rs.length===1?'':'s'} = ${rs.length} rep${rs.length===1?'':'s'}  ·  ${rs.reduce((s,r)=>s+r.games,0)} game${rs.reduce((s,r)=>s+r.games,0)===1?'':'s'}`;
+      out+=`<tr><td colspan="${nc}" style="background:#1f2a44;color:#ffffff;font-weight:bold;font-size:12pt;padding:5px;border:1px solid ${bd}">${esc(hdr)}</td></tr>`;
+      if(!rs.length){
+        out+=`<tr><td colspan="${nc}" style="background:#F7F7F8;color:#8a8a90;font-style:italic;padding:${pad};border:1px solid ${cbd};font-size:12px">No games this weekend — no rep needed.</td></tr>`;
+        out+=`<tr><td colspan="${nc}" style="border:none;padding:4px"></td></tr>`;
+        return;
+      }
+      out+='<tr>'+REPS_COLS.map(th).join('')+'</tr>';
+      rs.forEach(r=>{
+        // Some venues are stored without the " — " city/arena separator, so cityOf() and arenaOf()
+        // both return the whole string — leave City blank rather than printing the name twice.
+        const cells=[r.arena,(r.arena===r.city?'':r.city),r.days,String(r.games),String(r.sheets),r.divisions.join(', ')];
+        out+='<tr>'+cells.map((x,i)=>`<td style="background:${(i===3||i===4)?'#F7F9FC':'#ffffff'};${i===3?'font-weight:bold;':''}padding:${pad};border:1px solid ${cbd};font-size:12px;white-space:${i===5?'normal':'nowrap'};${nf}">${esc(x)}</td>`).join('')+'</tr>';
+      });
+      out+=`<tr><td colspan="${nc}" style="border:none;padding:4px"></td></tr>`;
+    });
+    out+=`<tr><td colspan="${nc}" style="background:#ffffff;padding:${pad};border:1px solid ${cbd};font-size:11px;color:#555555"><b>One rep per arena</b>, not per ice surface — an arena running two sheets at once still needs one rep, so a weekend's rep count is simply how many arenas have games. <b>Ice sheets</b> is how many surfaces are running: the number of distinct named surfaces, or the most games at the same time if surfaces are not recorded. <b>Days</b> counts games per day; TBD means the day is not set yet. Reflects the live schedule, using planning days where real ice is not sourced yet.</td></tr>`;
+    return out;
+  }
+  function repsPreview(){
+    return `<div style="max-height:62vh;overflow:auto;border:1px solid var(--line-l);border-radius:8px"><table style="border-collapse:collapse;min-width:100%">${repsInner(false)}</table></div>`;
+  }
+  function repsXls(){
+    const one=(STATE.key&&STATE.key!=='ALL')?STATE.key:null;
+    const title='FSL — Rep Plan'+(one?('  ·  '+one+'  ('+(WKDATE[one]||'')+')'):'  ·  whole season');
+    let h='<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel"><head><meta charset="utf-8"><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>Rep Plan</x:Name><x:WorksheetOptions><x:FreezePanes/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--></head><body>';
+    h+='<table border="1" style="border-collapse:collapse;font-family:Calibri,Arial;font-size:11pt">';
+    h+=`<tr><td colspan="${REPS_COLS.length}" style="background:#3C3489;color:#ffffff;font-weight:bold;font-size:14pt;padding:6px;text-align:center">${esc(title)}</td></tr>`;
+    h+=repsInner(true)+'</table></body></html>';
+    const blob=new Blob(['﻿'+h],{type:'application/vnd.ms-excel'});
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+    a.download='FSL_Rep_Plan'+(one?('_'+one.replace(/[^A-Za-z0-9]+/g,'_')):'')+'.xls';
+    document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},0);
+  }
   function doExport(){ensureKey();
     if(STATE.kind==='itineraries'){ const n=DATA.teams.length; itinXls(); showToast('Exported '+n+' team itineraries (grouped by division) \u2014 FSL_Team_Itineraries.xls','good'); return; }
     if(STATE.kind==='broadcast'){ const n=bcastAllRows().length; bcastXls(); showToast('Exported the broadcast plan \u2014 '+n+' arena-weekend'+(n===1?'':'s')+' ranked by film value \u2014 FSL_Broadcast_Plan.xls','good'); return; }
+    if(STATE.kind==='reps'){ const wks=repsScopeWks(); let reps=0; wks.forEach(w=>{reps+=repsRows(w).length;});
+      repsXls(); showToast('Exported the rep plan \u2014 '+reps+' rep'+(reps===1?'':'s')+' across '+wks.length+' weekend'+(wks.length===1?'':'s')+' \u2014 FSL_Rep_Plan.xls','good'); return; }
     if(STATE.key==null||(needsWk(STATE.kind)&&STATE.key2==null)){showToast('Nothing to export for this report.','warn');return;}
     const sp=spec(STATE.kind,STATE.key,STATE.key2);
     const unit=(sp.kind==='sourced'||sp.kind==='unused')?'row':'game';
@@ -4925,11 +5020,12 @@ const XP=(function(){
     ensureKey();
     const prim='padding:6px 14px;border-radius:8px;border:1px solid transparent;background:var(--ok);color:#fff;font-size:12px;font-weight:700;cursor:pointer;';
     const selSty='margin-top:3px;padding:4px 8px;border:1px solid var(--line-l);border-radius:7px;font-size:12px;max-width:340px';
-    const typeOpts=[['league','\uD83C\uDFD2 Whole league (all divisions)'],['itineraries','\uD83D\uDCCB Team itineraries (all teams by division)'],['broadcast','\uD83C\uDFA5 Broadcast plan (arenas by weekend, ranked)'],['team','Team schedule'],['division','Division schedule'],['weekend','Weekend schedule'],['city','Venue schedule (by city)'],['arena','Arena schedule (by building)'],['arenawknd','Arena \u2014 one weekend (send to the arena)'],['sourced','\uD83D\uDD34 Ice to source (incl. over-capacity)'],['unused','\uD83D\uDFE2 Unused ice (spare real slots)']];
+    const typeOpts=[['league','\uD83C\uDFD2 Whole league (all divisions)'],['itineraries','\uD83D\uDCCB Team itineraries (all teams by division)'],['broadcast','\uD83C\uDFA5 Broadcast plan (arenas by weekend, ranked)'],['reps','\uD83E\uDDCD Rep plan (one rep per arena, by weekend)'],['team','Team schedule'],['division','Division schedule'],['weekend','Weekend schedule'],['city','Venue schedule (by city)'],['arena','Arena schedule (by building)'],['arenawknd','Arena \u2014 one weekend (send to the arena)'],['sourced','\uD83D\uDD34 Ice to source (incl. over-capacity)'],['unused','\uD83D\uDFE2 Unused ice (spare real slots)']];
     const items=itemsFor(STATE.kind);
     const isItin=STATE.kind==='itineraries';
     const isBcast=STATE.kind==='broadcast';
-    const isMulti=isItin||isBcast;   // multi-table reports build their own markup, not via spec()
+    const isReps=STATE.kind==='reps';
+    const isMulti=isItin||isBcast||isReps;   // multi-table reports build their own markup, not via spec()
     const sp=(!isMulti&&STATE.key!=null&&(!needsWk(STATE.kind)||STATE.key2!=null))?spec(STATE.kind,STATE.key,STATE.key2):null;
     const wkSel=needsWk(STATE.kind)?`<label style="font-size:12px;font-weight:700">Weekend<br><select data-actchange="xpKey2" style="${selSty}">${itemsFor2().map(([v,l])=>`<option value="${escA(v)}" ${v===STATE.key2?'selected':''}>${esc(l)}</option>`).join('')}</select></label>`:'';
     const info=isItin
@@ -4939,8 +5035,12 @@ const XP=(function(){
           const fl=rs.reduce((s,r)=>s+r.film,0), mu=rs.reduce((s,r)=>s+r.must,0);
           const pri=rs.filter(r=>r.tier.rank===1).length;
           return `<div style="font-size:12px;color:var(--mut-d)"><b>${rs.length}</b> sheets across the season \u00b7 <b>${fl}</b> games to film (<b>${mu}</b> must) \u00b7 <b>${pri}</b> priority sheet-weekends</div>`;})()
+      : isReps
+      ? (function(){const wks=repsScopeWks();
+          let reps=0, gms=0; wks.forEach(w=>{const rs=repsRows(w); reps+=rs.length; gms+=rs.reduce((s,r)=>s+r.games,0);});
+          return `<div style="font-size:12px;color:var(--mut-d)">${wks.length>1?('<b>'+wks.length+'</b> weekends \u00b7 '):''}<b>${reps}</b> rep${reps===1?'':'s'} needed \u00b7 <b>${gms}</b> game${gms===1?'':'s'} \u00b7 one rep per arena</div>`;})()
       : (sp?`<div style="font-size:12px;color:var(--mut-d)"><b>${sp.rows.length}</b> ${(sp.kind==='sourced'||sp.kind==='unused')?'venue-weekend'+(sp.rows.length===1?'':'s'):'games'} \u00b7 ${esc(sp.legend)}</div>`:'');
-    const preview=isItin?itinPreview():isBcast?bcastPreview():(sp?renderTable(sp):'<div class="dt">No selection.</div>');
+    const preview=isItin?itinPreview():isBcast?bcastPreview():isReps?repsPreview():(sp?renderTable(sp):'<div class="dt">No selection.</div>');
     return `<div class="wk-head"><h2>\uD83D\uDCE4 Schedule exports</h2>
       <div class="dt">Pick a report and an item, preview it, and download a color-coded Excel file. Reflects the live schedule, including any times you have applied. (Excel may say the file type differs from the extension on open \u2014 that is normal for this styled format; click Yes.)</div></div>
       <div class="card" style="padding:14px;display:flex;gap:16px;flex-wrap:wrap;align-items:flex-end">
@@ -4953,7 +5053,8 @@ const XP=(function(){
       <div style="margin-top:14px">${preview}</div>`;
   }
   return {view,spec,itemsFor,itemsFor2,xlsHtml,toXls,setKind,setKey,setKey2,doExport,_state:()=>STATE,
-    bcastSheetRows,bcastAllRows,bcastTier,bcastXls,BCAST_FILM,BCAST_MUST,BCAST_TIERS};
+    bcastSheetRows,bcastAllRows,bcastTier,bcastXls,BCAST_FILM,BCAST_MUST,BCAST_TIERS,
+    repsRows,repsScopeWks,repsXls};
 })();
 window.XP=XP;
 
@@ -6282,7 +6383,7 @@ render();
     +'display:flex;align-items:center;gap:7px;cursor:default;user-select:none;transition:.2s';
   // BUILD MARKER: shown next to the sync status so "which version am I actually running?" is never a
   // guessing game again. Bump this string whenever the sync/boot logic changes.
-  const FSL_BUILD='2026-07-31b';
+  const FSL_BUILD='2026-08-01a';
   window.__fslBuild=FSL_BUILD;
   function setPill(txt,color){ pill.innerHTML='<span style="width:8px;height:8px;border-radius:50%;background:'+(color||'#8a8a90')+';display:inline-block"></span>'+txt+'<span style="opacity:.55;font-weight:600;margin-left:7px">build '+FSL_BUILD+'</span>'; }
   pill.style.cursor='pointer';
