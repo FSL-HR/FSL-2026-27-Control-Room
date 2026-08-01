@@ -4933,6 +4933,18 @@ const XP=(function(){
      arenas have games. Per arena we report the days in play, the game count, how many ice sheets
      are running, and which divisions are there. Scope is either the whole season or one weekend. */
   const REPS_COLS=['Arena','City','Days','Games','Ice sheets','Divisions'];
+  // A rep has to know WHERE to go, so the location column must be populated wherever possible.
+  // The shared cityOf/arenaOf split only on an em dash, but a good number of venues are stored with
+  // a plain hyphen ("Cochrane - SLS Centre", "Spruce Grove - Heavy Metal Place"), which left 26 of
+  // 96 rows with no city even though the city was sitting right there in the string. Split on the
+  // FIRST separator of either kind — that keeps "Edmonton — Silent Ice Center - Hesco" as
+  // Edmonton / Silent Ice Center - Hesco rather than chopping at the inner hyphen.
+  function repsPlace(v){
+    const s=String(v||'').replace(/\s*\(NEW\)/i,'').trim();
+    const m=/\s[—–-]\s/.exec(s);
+    if(!m) return {city:s, arena:s};                       // no separator — one name, shown once
+    return {city:s.slice(0,m.index).trim(), arena:s.slice(m.index+m[0].length).trim()};
+  }
   // Distinct arenas with games that weekend. "Ice sheets" is the greater of (a) how many distinct
   // named surfaces the games sit on and (b) the most games running at the same day+time — so an
   // arena whose games have no surface recorded still reports 2 when two games genuinely overlap.
@@ -4947,7 +4959,8 @@ const XP=(function(){
       vg.forEach(g=>{ const d=eDayS(g); day[day[d]!=null?d:'TBD']++; });
       const days=['Fri','Sat','Sun'].filter(d=>day[d]).map(d=>d+' '+day[d]).concat(day.TBD?['TBD '+day.TBD]:[]).join('  ·  ');
       const divs=DIVORDER.filter(d=>vg.some(g=>g.division===d));
-      return {wk, venue:v, arena:arenaOf(v), city:cityOf(v), games:vg.length,
+      const pl=repsPlace(v);
+      return {wk, venue:v, arena:pl.arena, city:pl.city, games:vg.length,
         sheets:Math.max(1,named.size,concurrent), days:days||'—', divisions:divs};
     }).sort((a,b)=>b.games-a.games||a.city.localeCompare(b.city)||a.arena.localeCompare(b.arena));
   }
