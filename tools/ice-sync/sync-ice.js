@@ -108,13 +108,27 @@ for(const r of rows){
   if(!venue){ venue=city+' — '+arena; unmappedVenues.add(vk); }
   const time=parseTime(startVal);
   (alloc[wd.weekend]=alloc[wd.weekend]||{});
-  (alloc[wd.weekend][venue]=alloc[wd.weekend][venue]||{Fri:[],Sat:[],Sun:[]});
-  alloc[wd.weekend][venue][wd.day].push(time);
+  (alloc[wd.weekend][venue]=alloc[wd.weekend][venue]||{Fri:[],Sat:[],Sun:[],surfaces:{Fri:[],Sat:[],Sun:[]}});
+  const rec=alloc[wd.weekend][venue];
+  if(!rec.surfaces) rec.surfaces={Fri:[],Sat:[],Sun:[]};   // tolerate a record made before this field existed
+  rec[wd.day].push(time);
+  // Carry the Bible's ICE SURFACE through (2026-07-31). Previously only start times were emitted,
+  // so the app had to guess a slot's surface by matching a baked snapshot at the same day+time —
+  // which yields nothing for a brand-new venue. Coquitlam's two 2:00 PM Saturday slots (Rink 3 and
+  // Rink 4) both came through blank because of that. Index-aligned with the day's time array.
+  rec.surfaces[wd.day].push(String(iceSurface==null?'':iceSurface).trim());
   slotKeys.add(wd.weekend+'|'+venue+'|'+wd.day+'|'+time);
   placed++;
 }
-// sort slot times within each day
-for(const w in alloc) for(const v in alloc[w]) for(const d of DAYNAMES) alloc[w][v][d].sort();
+// Sort each day's slots by time, keeping every surface aligned with its own start time.
+for(const w in alloc) for(const v in alloc[w]) for(const d of DAYNAMES){
+  const rec=alloc[w][v];
+  if(!rec.surfaces) rec.surfaces={Fri:[],Sat:[],Sun:[]};
+  const pairs=rec[d].map((t,i)=>({t:t, s:rec.surfaces[d][i]||''}));
+  pairs.sort((a,b)=> a.t<b.t?-1 : a.t>b.t?1 : (a.s<b.s?-1 : a.s>b.s?1 : 0));
+  rec[d]=pairs.map(p=>p.t);
+  rec.surfaces[d]=pairs.map(p=>p.s);
+}
 
 // --- Diff against previous sync to find NEW slots. First run = baseline (nothing flagged). ---
 let prevKeys=new Set(), isBaseline=true;

@@ -2462,8 +2462,12 @@ function realSlotListFor(wk, venue){
   let base=null;
   // BIBLE FIRST (2026-07-28): times synced from the ICE ALLOCATION BIBLE outrank every baked-in
   // source. Those bakes are point-in-time snapshots that drift as the Bible is edited, which is how
-  // a pod could show the right slot COUNT on times the rink never gave us. Only start times come
-  // over, so borrow the ice surface from a baked slot at the same day+time when one lines up.
+  // a pod could show the right slot COUNT on times the rink never gave us.
+  // ICE SURFACE (2026-07-31): the sync now carries the Bible's own surface per slot, in
+  // bs.surfaces[day][i] aligned to bs[day][i] — use it. Older ice-allocation.json files predate
+  // that field, so fall back to the previous behaviour of borrowing a surface from a baked slot at
+  // the same day+time. That borrow finds nothing for a venue with no baked snapshot, which is why
+  // Coquitlam's two 2:00 PM Saturday slots (Rink 3 / Rink 4) both showed blank.
   try{
     const bs=DATA.bibleSlots && DATA.bibleSlots[wk+'|||'+venue];
     if(bs){
@@ -2473,9 +2477,12 @@ function realSlotListFor(wk, venue){
       if(!baked){ try{ const v2=DATA.realSlotsV2 && DATA.realSlotsV2[wk+'|||'+venue];
         if(v2&&v2.length) baked=v2.map(s=>({day:s.d,start:hm(s.s),sheet:s.sheet||''})); }catch(e){} }
       const sheetAt=(d,st)=>{ try{ const hit=(baked||[]).find(s=>s.day===d&&s.start===st); return hit?(hit.sheet||''):''; }catch(e){ return ''; } };
+      const surf=(bs.surfaces&&typeof bs.surfaces==='object')?bs.surfaces:null;
       const out=[];
-      ['Fri','Sat','Sun'].forEach(d=>{ (bs[d]||[]).forEach(t=>{ const v=hm(t);
-        if(v!=null) out.push({day:d,start:v,end:null,sheet:sheetAt(d,v),bible:true}); }); });
+      ['Fri','Sat','Sun'].forEach(d=>{ (bs[d]||[]).forEach((t,i)=>{ const v=hm(t);
+        if(v==null) return;
+        const fromBible=surf&&surf[d]?String(surf[d][i]||'').trim():'';
+        out.push({day:d,start:v,end:null,sheet:fromBible||sheetAt(d,v),bible:true}); }); });
       if(out.length) base=out;
     }
   }catch(e){}
@@ -6275,7 +6282,7 @@ render();
     +'display:flex;align-items:center;gap:7px;cursor:default;user-select:none;transition:.2s';
   // BUILD MARKER: shown next to the sync status so "which version am I actually running?" is never a
   // guessing game again. Bump this string whenever the sync/boot logic changes.
-  const FSL_BUILD='2026-07-31a';
+  const FSL_BUILD='2026-07-31b';
   window.__fslBuild=FSL_BUILD;
   function setPill(txt,color){ pill.innerHTML='<span style="width:8px;height:8px;border-radius:50%;background:'+(color||'#8a8a90')+';display:inline-block"></span>'+txt+'<span style="opacity:.55;font-weight:600;margin-left:7px">build '+FSL_BUILD+'</span>'; }
   pill.style.cursor='pointer';
@@ -6936,11 +6943,18 @@ render();
       for(const wk in j.weekends){
         const vmap=j.weekends[wk];
         for(const venue in vmap){
-          const d=vmap[venue], keep={Fri:[],Sat:[],Sun:[]};
-          DAYS.forEach(day=>{ (d[day]||[]).forEach(t=>{
-            if(/^\d{1,2}:\d{2}$/.test(String(t).trim())) keep[day].push(String(t).trim());  // skip TBD / ??:??
+          const d=vmap[venue], keep={Fri:[],Sat:[],Sun:[]}, keepS={Fri:[],Sat:[],Sun:[]};
+          const src=(d.surfaces&&typeof d.surfaces==='object')?d.surfaces:null;   // absent on pre-2026-07-31 files
+          DAYS.forEach(day=>{ (d[day]||[]).forEach((t,i)=>{
+            if(!/^\d{1,2}:\d{2}$/.test(String(t).trim())) return;                 // skip TBD / ??:??
+            keep[day].push(String(t).trim());
+            // push the surface in the SAME step so the two arrays stay index-aligned even though
+            // unparseable times are dropped here.
+            keepS[day].push(src&&src[day]?String(src[day][i]==null?'':src[day][i]).trim():'');
           }); });
-          if(keep.Fri.length||keep.Sat.length||keep.Sun.length) bs[wk+'|||'+venue]=keep;
+          if(keep.Fri.length||keep.Sat.length||keep.Sun.length){
+            keep.surfaces=keepS; bs[wk+'|||'+venue]=keep;
+          }
         }
       }
       DATA.bibleSlots=bs;
