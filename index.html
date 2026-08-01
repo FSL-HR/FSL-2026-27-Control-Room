@@ -4923,7 +4923,7 @@ const XP=(function(){
      at once still needs one rep, and the reps-needed figure for a weekend is simply how many
      arenas have games. Per arena we report the days in play, the game count, how many ice sheets
      are running, and which divisions are there. Scope is either the whole season or one weekend. */
-  const REPS_COLS=['Arena','City','Days','Games','Ice sheets','Divisions'];
+  const REPS_COLS=['City','Arena','Days','Games','Ice sheets','Divisions'];
   // A rep has to know WHERE to go, so the location column must be populated wherever possible.
   // The shared cityOf/arenaOf split only on an em dash, but a good number of venues are stored with
   // a plain hyphen ("Cochrane - SLS Centre", "Spruce Grove - Heavy Metal Place"), which left 26 of
@@ -4994,9 +4994,11 @@ const XP=(function(){
       }
       out+='<tr>'+REPS_COLS.map(th).join('')+'</tr>';
       rs.forEach(r=>{
-        // Some venues are stored without the " — " city/arena separator, so cityOf() and arenaOf()
-        // both return the whole string — leave City blank rather than printing the name twice.
-        const cells=[r.arena,(r.arena===r.city?'':r.city),r.days,String(r.games),String(r.sheets),r.divisions.join(', ')];
+        // City leads, arena second. A venue stored with no separator at all (Lashburn,
+        // Calgary (JPHL)) has arena === city, so put that single name under City — it is the
+        // location — and leave Arena blank rather than printing the same text twice.
+        const one=(r.arena===r.city);
+        const cells=[r.city,(one?'':r.arena),r.days,String(r.games),String(r.sheets),r.divisions.join(', ')];
         out+='<tr>'+cells.map((x,i)=>`<td style="background:${(i===3||i===4)?'#F7F9FC':'#ffffff'};${i===3?'font-weight:bold;':''}padding:${pad};border:1px solid ${cbd};font-size:12px;white-space:${i===5?'normal':'nowrap'};${nf}">${esc(x)}</td>`).join('')+'</tr>';
       });
       out+=`<tr><td colspan="${nc}" style="border:none;padding:4px"></td></tr>`;
