@@ -4944,6 +4944,11 @@ const XP=(function(){
           if(h){bump(r.wk,r.venue,h.day+'|'+lenOf(g.division)+'|'+winOf(h.time));counted++;}
           else if(t){bump(r.wk,r.venue,t.day+'|'+lenOf(g.division)+'|'+t.win);counted++;}
           else if(!g.time&&isUnsourcedPod(r.wk,r.venue)){bump(r.wk,r.venue,'?|'+lenOf(g.division)+'|ANY');counted++;}
+          // A game that already HAS a real time but sits on ice we do not hold: ask for that
+          // exact day and window rather than falling through to "day and time flexible".
+          // Every branch above requires !g.time, so timing the Aberdeen games turned their asks
+          // vague at the very moment they became concrete. (2026-08-02, user)
+          else if(g.time&&g.day){bump(r.wk,r.venue,g.day+'|'+lenOf(g.division)+'|'+winOf(g.time));counted++;}
         });
         const rest=r.need-counted;
         for(let i=0;i<rest;i++){bump(r.wk,r.venue,'?|?|ANY');}
@@ -7223,7 +7228,7 @@ render();
     +'display:flex;align-items:center;gap:7px;cursor:default;user-select:none;transition:.2s';
   // BUILD MARKER: shown next to the sync status so "which version am I actually running?" is never a
   // guessing game again. Bump this string whenever the sync/boot logic changes.
-  const FSL_BUILD='2026-08-02j';
+  const FSL_BUILD='2026-08-02k';
   window.__fslBuild=FSL_BUILD;
   function setPill(txt,color){ pill.innerHTML='<span style="width:8px;height:8px;border-radius:50%;background:'+(color||'#8a8a90')+';display:inline-block"></span>'+txt+'<span style="opacity:.55;font-weight:600;margin-left:7px">build '+FSL_BUILD+'</span>'; }
   pill.style.cursor='pointer';
