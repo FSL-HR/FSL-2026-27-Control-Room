@@ -1,7 +1,7 @@
 {
-  "generatedAt": "2026-07-31T15:05:00-06:00",
+  "generatedAt": "2026-08-02T13:38:10-0600",
   "source": "ICE ALLOCATION BIBLE.xlsx",
-  "totalSlots": 749,
+  "totalSlots": 876,
   "weekends": {
     "Oct 02": {
       "Delta — Planet Ice Delta": {
@@ -21,18 +21,18 @@
         ],
         "surfaces": {
           "Fri": [
-            "Canadian Rink",
-            "American Rink"
+            "Planet Ice - Delta - Canadian",
+            "Planet Ice - Delta - American"
           ],
           "Sat": [
-            "American Rink",
-            "Canadian Rink",
-            "American Rink",
-            "Canadian Rink"
+            "Planet Ice - Delta - American",
+            "Planet Ice - Delta - Canadian",
+            "Planet Ice - Delta - American",
+            "Planet Ice - Delta - Canadian"
           ],
           "Sun": [
-            "Canadian Rink",
-            "American Rink"
+            "Planet Ice - Delta - Canadian",
+            "Planet Ice - Delta - American"
           ]
         }
       },
@@ -101,22 +101,22 @@
         ],
         "surfaces": {
           "Fri": [
-            "Ice Surface TBD",
-            "Ice Surface TBD",
-            "Ice Surface TBD",
-            "Ice Surface TBD"
+            "Aberdeen Recreation Complex",
+            "Aberdeen Recreation Complex",
+            "Aberdeen Recreation Complex",
+            "Aberdeen Recreation Complex"
           ],
           "Sat": [
-            "Ice Surface TBD",
-            "Ice Surface TBD",
-            "Ice Surface TBD",
-            "Ice Surface TBD",
-            "Ice Surface TBD"
+            "Aberdeen Recreation Complex",
+            "Aberdeen Recreation Complex",
+            "Aberdeen Recreation Complex",
+            "Aberdeen Recreation Complex",
+            "Aberdeen Recreation Complex"
           ],
           "Sun": [
-            "Ice Surface TBD",
-            "Ice Surface TBD",
-            "Ice Surface TBD"
+            "Aberdeen Recreation Complex",
+            "Aberdeen Recreation Complex",
+            "Aberdeen Recreation Complex"
           ]
         }
       },
@@ -133,14 +133,64 @@
         ],
         "surfaces": {
           "Fri": [
-            "Fenlands Arena 1",
-            "Fenlands Arena 1"
+            "Banff Recreation Centre - Arena 1",
+            "Banff Recreation Centre - Arena 1"
           ],
           "Sat": [
-            "Fenlands Arena 1"
+            "Banff Recreation Centre - Arena 1"
           ],
           "Sun": [
-            "Fenlands Arena 1"
+            "Banff Recreation Centre - Arena 1"
+          ]
+        }
+      },
+      "Abbotsford — Rinks at Summit Center": {
+        "Fri": [
+          "12:45",
+          "15:15",
+          "17:45",
+          "20:15"
+        ],
+        "Sat": [
+          "08:00",
+          "08:15",
+          "10:45",
+          "13:00",
+          "13:15",
+          "15:45",
+          "18:15"
+        ],
+        "Sun": [
+          "08:00",
+          "08:15",
+          "10:30",
+          "13:00",
+          "13:15",
+          "15:30"
+        ],
+        "surfaces": {
+          "Fri": [
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre West Rink"
+          ],
+          "Sat": [
+            "The Rinks at Summit Centre East Rink",
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre East Rink",
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre West Rink"
+          ],
+          "Sun": [
+            "The Rinks at Summit Centre East Rink",
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre East Rink",
+            "The Rinks at Summit Centre East Rink",
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre East Rink"
           ]
         }
       }
@@ -160,15 +210,29 @@
         "Sun": [],
         "surfaces": {
           "Fri": [
-            "Canadian Rink",
-            "Canadian Rink",
-            "Canadian Rink",
-            "Canadian Rink"
+            "Planet Ice - Delta - Canadian",
+            "Planet Ice - Delta - Canadian",
+            "Planet Ice - Delta - Canadian",
+            "Planet Ice - Delta - Canadian"
           ],
           "Sat": [
-            "International Rink",
-            "International Rink"
+            "Planet Ice - Delta - International",
+            "Planet Ice - Delta - International"
           ],
+          "Sun": []
+        }
+      },
+      "Edmonton — Morinville Silent Ice Gardens": {
+        "Fri": [
+          "20:15"
+        ],
+        "Sat": [],
+        "Sun": [],
+        "surfaces": {
+          "Fri": [
+            "Morinville Silent Ice Gardens"
+          ],
+          "Sat": [],
           "Sun": []
         }
       }
@@ -189,21 +253,22 @@
         ],
         "surfaces": {
           "Fri": [
-            "International Rink"
+            "Planet Ice - Delta - International"
           ],
           "Sat": [
-            "Legends Rink",
-            "Legends Rink",
-            "Legends Rink"
+            "Planet Ice - Delta - Legends",
+            "Planet Ice - Delta - Legends",
+            "Planet Ice - Delta - Legends"
           ],
           "Sun": [
-            "Legends Rink",
-            "Legends Rink"
+            "Planet Ice - Delta - Legends",
+            "Planet Ice - Delta - Legends"
           ]
         }
       },
       "Edmonton — Morinville Silent Ice Gardens": {
         "Fri": [
+          "11:00",
           "16:00",
           "18:15",
           "20:30"
@@ -223,6 +288,7 @@
         ],
         "surfaces": {
           "Fri": [
+            "Morinville Silent Ice Gardens",
             "Morinville Silent Ice Gardens",
             "Morinville Silent Ice Gardens",
             "Morinville Silent Ice Gardens"
@@ -263,22 +329,22 @@
         ],
         "surfaces": {
           "Fri": [
-            "East Rink",
-            "West Rink",
-            "West Rink"
+            "The Rinks at Summit Centre East Rink",
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre West Rink"
           ],
           "Sat": [
-            "West Rink",
-            "East Rink",
-            "West Rink",
-            "West Rink",
-            "West Rink",
-            "West Rink"
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre East Rink",
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre West Rink"
           ],
           "Sun": [
-            "West Rink",
-            "East Rink",
-            "West Rink"
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre East Rink",
+            "The Rinks at Summit Centre West Rink"
           ]
         }
       }
@@ -301,34 +367,38 @@
         ],
         "surfaces": {
           "Fri": [
-            "Canadian Rink",
-            "American Rink"
+            "Planet Ice - Delta - Canadian",
+            "Planet Ice - Delta - American"
           ],
           "Sat": [
-            "American Rink",
-            "International Rink",
-            "Canadian Rink",
-            "American Rink"
+            "Planet Ice - Delta - American",
+            "Planet Ice - Delta - International",
+            "Planet Ice - Delta - Canadian",
+            "Planet Ice - Delta - American"
           ],
           "Sun": [
-            "Canadian Rink",
-            "Canadian Rink"
+            "Planet Ice - Delta - Canadian",
+            "Planet Ice - Delta - Canadian"
           ]
         }
       },
       "Edmonton — Morinville Silent Ice Gardens": {
         "Fri": [
+          "18:15",
           "21:15"
         ],
         "Sat": [
+          "14:15",
           "20:15"
         ],
         "Sun": [],
         "surfaces": {
           "Fri": [
+            "Morinville Silent Ice Gardens",
             "Morinville Silent Ice Gardens"
           ],
           "Sat": [
+            "Morinville Silent Ice Gardens",
             "Morinville Silent Ice Gardens"
           ],
           "Sun": []
@@ -345,10 +415,10 @@
         "surfaces": {
           "Fri": [],
           "Sat": [
-            "Kimberley Civic Center"
+            "Kimberley Civic Centre"
           ],
           "Sun": [
-            "Kimberley Civic Center"
+            "Kimberley Civic Centre"
           ]
         }
       },
@@ -369,18 +439,18 @@
         ],
         "surfaces": {
           "Fri": [
-            "",
-            ""
+            "Shawnigan Lake School Arena",
+            "Shawnigan Lake School Arena"
           ],
           "Sat": [
-            "",
-            "",
-            "",
-            ""
+            "Shawnigan Lake School Arena",
+            "Shawnigan Lake School Arena",
+            "Shawnigan Lake School Arena",
+            "Shawnigan Lake School Arena"
           ],
           "Sun": [
-            "",
-            ""
+            "Shawnigan Lake School Arena",
+            "Shawnigan Lake School Arena"
           ]
         }
       }
@@ -404,19 +474,19 @@
         ],
         "surfaces": {
           "Fri": [
-            "Canadian Rink",
-            "International Rink",
-            "American Rink"
+            "Planet Ice - Delta - Canadian",
+            "Planet Ice - Delta - International",
+            "Planet Ice - Delta - American"
           ],
           "Sat": [
-            "American Rink",
-            "Canadian Rink",
-            "American Rink"
+            "Planet Ice - Delta - American",
+            "Planet Ice - Delta - Canadian",
+            "Planet Ice - Delta - American"
           ],
           "Sun": [
-            "Canadian Rink",
-            "Canadian Rink",
-            "American Rink"
+            "Planet Ice - Delta - Canadian",
+            "Planet Ice - Delta - Canadian",
+            "Planet Ice - Delta - American"
           ]
         }
       },
@@ -477,7 +547,7 @@
             "Morinville Silent Ice Gardens"
           ],
           "Sat": [
-            "Silent Ice Center - Morinville Gardens"
+            "Morinville Silent Ice Gardens"
           ],
           "Sun": []
         }
@@ -503,22 +573,22 @@
         ],
         "surfaces": {
           "Fri": [
-            "Ice Surface TBD",
-            "Ice Surface TBD",
-            "Ice Surface TBD"
+            "Aberdeen Recreation Complex",
+            "Aberdeen Recreation Complex",
+            "Aberdeen Recreation Complex"
           ],
           "Sat": [
-            "Ice Surface TBD",
-            "Ice Surface TBD",
-            "Ice Surface TBD",
-            "Ice Surface TBD",
-            "Ice Surface TBD",
-            "Ice Surface TBD"
+            "Aberdeen Recreation Complex",
+            "Aberdeen Recreation Complex",
+            "Aberdeen Recreation Complex",
+            "Aberdeen Recreation Complex",
+            "Aberdeen Recreation Complex",
+            "Aberdeen Recreation Complex"
           ],
           "Sun": [
-            "Ice Surface TBD",
-            "Ice Surface TBD",
-            "Ice Surface TBD"
+            "Aberdeen Recreation Complex",
+            "Aberdeen Recreation Complex",
+            "Aberdeen Recreation Complex"
           ]
         }
       },
@@ -539,18 +609,18 @@
         ],
         "surfaces": {
           "Fri": [
-            "",
-            ""
+            "Shawnigan Lake School Arena",
+            "Shawnigan Lake School Arena"
           ],
           "Sat": [
-            "",
-            "",
-            "",
-            ""
+            "Shawnigan Lake School Arena",
+            "Shawnigan Lake School Arena",
+            "Shawnigan Lake School Arena",
+            "Shawnigan Lake School Arena"
           ],
           "Sun": [
-            "",
-            ""
+            "Shawnigan Lake School Arena",
+            "Shawnigan Lake School Arena"
           ]
         }
       }
@@ -567,17 +637,18 @@
         "Sun": [],
         "surfaces": {
           "Fri": [
-            "Silent Ice Center - Morinville Gardens",
-            "Silent Ice Center - Morinville Gardens"
+            "Morinville Silent Ice Gardens",
+            "Morinville Silent Ice Gardens"
           ],
           "Sat": [
-            "Silent Ice Center - Morinville Gardens"
+            "Morinville Silent Ice Gardens"
           ],
           "Sun": []
         }
       },
       "Abbotsford — Rinks at Summit Center": {
         "Fri": [
+          "08:15",
           "13:30",
           "14:00",
           "16:30"
@@ -597,22 +668,23 @@
         ],
         "surfaces": {
           "Fri": [
-            "East Rink",
-            "West Rink",
-            "West Rink"
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre East Rink",
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre West Rink"
           ],
           "Sat": [
-            "West Rink",
-            "East Rink",
-            "West Rink",
-            "West Rink",
-            "East Rink",
-            "West Rink"
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre East Rink",
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre East Rink",
+            "The Rinks at Summit Centre West Rink"
           ],
           "Sun": [
-            "West Rink",
-            "East Rink",
-            "West Rink"
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre East Rink",
+            "The Rinks at Summit Centre West Rink"
           ]
         }
       },
@@ -628,13 +700,13 @@
         ],
         "surfaces": {
           "Fri": [
-            "Rink 2"
+            "Great Plains Arena 2"
           ],
           "Sat": [
-            "Rink 2"
+            "Great Plains Arena 2"
           ],
           "Sun": [
-            "Rink 1"
+            "Great Plains Arena 1"
           ]
         }
       },
@@ -654,17 +726,53 @@
         ],
         "surfaces": {
           "Fri": [
-            "CBRA",
-            "TFA"
+            "Community Arena - Heavy Metal Place",
+            "Thompson Family Arena - Heavy Metal Place"
           ],
           "Sat": [
-            "TFA",
-            "CBRA",
-            "TFA"
+            "Thompson Family Arena - Heavy Metal Place",
+            "Community Arena - Heavy Metal Place",
+            "Thompson Family Arena - Heavy Metal Place"
           ],
           "Sun": [
-            "CBRA",
-            "TFA"
+            "Community Arena - Heavy Metal Place",
+            "Thompson Family Arena - Heavy Metal Place"
+          ]
+        }
+      },
+      "Kimberley — Civic Centre": {
+        "Fri": [
+          "08:30",
+          "16:30",
+          "19:00"
+        ],
+        "Sat": [
+          "08:30",
+          "11:00",
+          "13:30",
+          "16:00",
+          "18:45"
+        ],
+        "Sun": [
+          "08:30",
+          "11:00"
+        ],
+        "surfaces": {
+          "Fri": [
+            "Kimberley Civic Centre",
+            "Kimberley Civic Centre",
+            "Kimberley Civic Centre"
+          ],
+          "Sat": [
+            "Kimberley Civic Centre",
+            "Kimberley Civic Centre",
+            "Kimberley Civic Centre",
+            "Kimberley Civic Centre",
+            "Kimberley Civic Centre"
+          ],
+          "Sun": [
+            "Kimberley Civic Centre",
+            "Kimberley Civic Centre"
           ]
         }
       }
@@ -736,6 +844,22 @@
             "Silent Ice Center - Hesco Arena",
             "Silent Ice Center - Hatch Co. Arena"
           ]
+        }
+      },
+      "Edmonton — Downtown Community Arena": {
+        "Fri": [],
+        "Sat": [
+          "10:15",
+          "12:30"
+        ],
+        "Sun": [],
+        "surfaces": {
+          "Fri": [],
+          "Sat": [
+            "Downtown Community Arena",
+            "Downtown Community Arena"
+          ],
+          "Sun": []
         }
       }
     },
@@ -827,22 +951,22 @@
         ],
         "surfaces": {
           "Fri": [
-            "Ice Surface TBD",
-            "Ice Surface TBD",
-            "Ice Surface TBD"
+            "Aberdeen Recreation Complex",
+            "Aberdeen Recreation Complex",
+            "Aberdeen Recreation Complex"
           ],
           "Sat": [
-            "Ice Surface TBD",
-            "Ice Surface TBD",
-            "Ice Surface TBD",
-            "Ice Surface TBD",
-            "Ice Surface TBD",
-            "Ice Surface TBD"
+            "Aberdeen Recreation Complex",
+            "Aberdeen Recreation Complex",
+            "Aberdeen Recreation Complex",
+            "Aberdeen Recreation Complex",
+            "Aberdeen Recreation Complex",
+            "Aberdeen Recreation Complex"
           ],
           "Sun": [
-            "Ice Surface TBD",
-            "Ice Surface TBD",
-            "Ice Surface TBD"
+            "Aberdeen Recreation Complex",
+            "Aberdeen Recreation Complex",
+            "Aberdeen Recreation Complex"
           ]
         }
       },
@@ -892,17 +1016,53 @@
         ],
         "surfaces": {
           "Fri": [
-            "Kimberley Civic Center"
+            "Kimberley Civic Centre"
           ],
           "Sat": [
-            "Kimberley Civic Center",
-            "Kimberley Civic Center",
-            "Kimberley Civic Center"
+            "Kimberley Civic Centre",
+            "Kimberley Civic Centre",
+            "Kimberley Civic Centre"
           ],
           "Sun": [
-            "Kimberley Civic Center",
-            "Kimberley Civic Center",
-            "Kimberley Civic Center"
+            "Kimberley Civic Centre",
+            "Kimberley Civic Centre",
+            "Kimberley Civic Centre"
+          ]
+        }
+      },
+      "Abbotsford — Rinks at Summit Center": {
+        "Fri": [
+          "17:00",
+          "19:30"
+        ],
+        "Sat": [
+          "08:00",
+          "10:30",
+          "13:00",
+          "15:15",
+          "17:45"
+        ],
+        "Sun": [
+          "08:00",
+          "10:30",
+          "13:00"
+        ],
+        "surfaces": {
+          "Fri": [
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre West Rink"
+          ],
+          "Sat": [
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre West Rink"
+          ],
+          "Sun": [
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre West Rink"
           ]
         }
       }
@@ -968,6 +1128,8 @@
       },
       "Cochrane — SLS Center": {
         "Fri": [
+          "14:00",
+          "14:30",
           "15:30",
           "15:45",
           "18:00",
@@ -992,27 +1154,29 @@
         ],
         "surfaces": {
           "Fri": [
-            "Totem 2",
-            "Totem 1",
-            "Totem 2",
-            "Totem 3",
-            "Totem 2"
+            "SLS Centre - Totem 2",
+            "SLS Centre - Totem 3",
+            "SLS Centre - Totem 2",
+            "SLS Centre - Totem 1",
+            "SLS Centre - Totem 2",
+            "SLS Centre - Totem 3",
+            "SLS Centre - Totem 2"
           ],
           "Sat": [
-            "Totem 2",
-            "Totem 2",
-            "Totem 2",
-            "Totem 2",
-            "Totem 2",
-            "Totem 2"
+            "SLS Centre - Totem 2",
+            "SLS Centre - Totem 2",
+            "SLS Centre - Totem 2",
+            "SLS Centre - Totem 2",
+            "SLS Centre - Totem 2",
+            "SLS Centre - Totem 2"
           ],
           "Sun": [
-            "Totem 2",
-            "Totem 1",
-            "Totem 2",
-            "Totem 1",
-            "Totem 2",
-            "Totem 1"
+            "SLS Centre - Totem 2",
+            "SLS Centre - Totem 1",
+            "SLS Centre - Totem 2",
+            "SLS Centre - Totem 1",
+            "SLS Centre - Totem 2",
+            "SLS Centre - Totem 1"
           ]
         }
       },
@@ -1035,20 +1199,20 @@
         ],
         "surfaces": {
           "Fri": [
-            "Ice Surface TBD",
-            "Ice Surface TBD",
-            "Ice Surface TBD"
+            "Aberdeen Recreation Complex",
+            "Aberdeen Recreation Complex",
+            "Aberdeen Recreation Complex"
           ],
           "Sat": [
-            "Ice Surface TBD",
-            "Ice Surface TBD",
-            "Ice Surface TBD",
-            "Ice Surface TBD",
-            "Ice Surface TBD"
+            "Aberdeen Recreation Complex",
+            "Aberdeen Recreation Complex",
+            "Aberdeen Recreation Complex",
+            "Aberdeen Recreation Complex",
+            "Aberdeen Recreation Complex"
           ],
           "Sun": [
-            "Ice Surface TBD",
-            "Ice Surface TBD"
+            "Aberdeen Recreation Complex",
+            "Aberdeen Recreation Complex"
           ]
         }
       }
@@ -1069,25 +1233,29 @@
         "surfaces": {
           "Fri": [],
           "Sat": [
-            "TFA",
-            "CBRA",
-            "CBRA",
-            "TFA"
+            "Thompson Family Arena - Heavy Metal Place",
+            "Community Arena - Heavy Metal Place",
+            "Community Arena - Heavy Metal Place",
+            "Thompson Family Arena - Heavy Metal Place"
           ],
           "Sun": [
-            "CBRA",
-            "TFA"
+            "Community Arena - Heavy Metal Place",
+            "Thompson Family Arena - Heavy Metal Place"
           ]
         }
       },
       "Edmonton — Morinville Silent Ice Gardens": {
         "Fri": [
+          "11:30",
+          "13:45",
           "13:45"
         ],
         "Sat": [],
         "Sun": [],
         "surfaces": {
           "Fri": [
+            "Morinville Silent Ice Gardens",
+            "Morinville Silent Ice Gardens",
             "Morinville Silent Ice Gardens"
           ],
           "Sat": [],
@@ -1114,6 +1282,7 @@
     "Nov 27": {
       "Edmonton — Morinville Silent Ice Gardens": {
         "Fri": [
+          "15:15",
           "18:00",
           "20:15"
         ],
@@ -1128,6 +1297,7 @@
         "Sun": [],
         "surfaces": {
           "Fri": [
+            "Morinville Silent Ice Gardens",
             "Morinville Silent Ice Gardens",
             "Morinville Silent Ice Gardens"
           ],
@@ -1145,6 +1315,7 @@
       "Edmonton — Silent Ice Center (Hatch+Hesco)": {
         "Fri": [],
         "Sat": [
+          "08:15",
           "08:30",
           "18:15",
           "20:30"
@@ -1155,7 +1326,40 @@
           "Sat": [
             "Silent Ice Center - Hesco Arena",
             "Silent Ice Center - Hesco Arena",
+            "Silent Ice Center - Hesco Arena",
             "Silent Ice Center - Hesco Arena"
+          ],
+          "Sun": []
+        }
+      },
+      "Abbotsford — Rinks at Summit Center": {
+        "Fri": [],
+        "Sat": [],
+        "Sun": [
+          "16:00"
+        ],
+        "surfaces": {
+          "Fri": [],
+          "Sat": [],
+          "Sun": [
+            "The Rinks at Summit Centre East Rink"
+          ]
+        }
+      },
+      "Kimberley — Civic Centre": {
+        "Fri": [
+          "18:30"
+        ],
+        "Sat": [
+          "08:30"
+        ],
+        "Sun": [],
+        "surfaces": {
+          "Fri": [
+            "Kimberley Civic Centre"
+          ],
+          "Sat": [
+            "Kimberley Civic Centre"
           ],
           "Sun": []
         }
@@ -1171,7 +1375,7 @@
         "surfaces": {
           "Fri": [],
           "Sat": [
-            "Silent Ice Center - Morinville Gardens"
+            "Morinville Silent Ice Gardens"
           ],
           "Sun": []
         }
@@ -1196,21 +1400,21 @@
         ],
         "surfaces": {
           "Fri": [
-            "Ice Surface TBD",
-            "Ice Surface TBD",
-            "Ice Surface TBD"
+            "Aberdeen Recreation Complex",
+            "Aberdeen Recreation Complex",
+            "Aberdeen Recreation Complex"
           ],
           "Sat": [
-            "Ice Surface TBD",
-            "Ice Surface TBD",
-            "Ice Surface TBD",
-            "Ice Surface TBD",
-            "Ice Surface TBD"
+            "Aberdeen Recreation Complex",
+            "Aberdeen Recreation Complex",
+            "Aberdeen Recreation Complex",
+            "Aberdeen Recreation Complex",
+            "Aberdeen Recreation Complex"
           ],
           "Sun": [
-            "Ice Surface TBD",
-            "Ice Surface TBD",
-            "Ice Surface TBD"
+            "Aberdeen Recreation Complex",
+            "Aberdeen Recreation Complex",
+            "Aberdeen Recreation Complex"
           ]
         }
       },
@@ -1236,23 +1440,23 @@
         ],
         "surfaces": {
           "Fri": [
-            "Blue Rink",
-            "Blue Rink",
-            "Red Rink",
-            "Red Rink"
+            "Seven Oaks Arena - Blue",
+            "Seven Oaks Arena - Blue",
+            "Seven Oaks Arena - Red",
+            "Seven Oaks Arena - Red"
           ],
           "Sat": [
-            "Red Rink",
-            "Red Rink",
-            "Blue Rink",
-            "Red Rink",
-            "Red Rink",
-            "Red Rink"
+            "Seven Oaks Arena - Red",
+            "Seven Oaks Arena - Red",
+            "Seven Oaks Arena - Blue",
+            "Seven Oaks Arena - Red",
+            "Seven Oaks Arena - Red",
+            "Seven Oaks Arena - Red"
           ],
           "Sun": [
-            "Blue Rink",
-            "Red Rink",
-            "Blue Rink"
+            "Seven Oaks Arena - Blue",
+            "Seven Oaks Arena - Red",
+            "Seven Oaks Arena - Blue"
           ]
         }
       },
@@ -1271,16 +1475,16 @@
         ],
         "surfaces": {
           "Fri": [
-            "",
-            ""
+            "Shawnigan Lake School Arena",
+            "Shawnigan Lake School Arena"
           ],
           "Sat": [
-            "",
-            "",
-            ""
+            "Shawnigan Lake School Arena",
+            "Shawnigan Lake School Arena",
+            "Shawnigan Lake School Arena"
           ],
           "Sun": [
-            ""
+            "Shawnigan Lake School Arena"
           ]
         }
       }
@@ -1297,21 +1501,67 @@
           "Fri": [],
           "Sat": [],
           "Sun": [
-            "Silent Ice Center - Morinville Gardens",
-            "Silent Ice Center - Morinville Gardens"
+            "Morinville Silent Ice Gardens",
+            "Morinville Silent Ice Gardens"
           ]
         }
       },
       "Edmonton — Downtown Community Arena": {
         "Fri": [],
         "Sat": [
+          "11:15",
           "13:30"
         ],
         "Sun": [],
         "surfaces": {
           "Fri": [],
           "Sat": [
+            "Downtown Community Arena",
             "Downtown Community Arena"
+          ],
+          "Sun": []
+        }
+      },
+      "Abbotsford — Rinks at Summit Center": {
+        "Fri": [
+          "11:45",
+          "14:00"
+        ],
+        "Sat": [
+          "08:45",
+          "09:00"
+        ],
+        "Sun": [
+          "09:15",
+          "11:30"
+        ],
+        "surfaces": {
+          "Fri": [
+            "The Rinks at Summit Centre East Rink",
+            "The Rinks at Summit Centre East Rink"
+          ],
+          "Sat": [
+            "The Rinks at Summit Centre East Rink",
+            "The Rinks at Summit Centre West Rink"
+          ],
+          "Sun": [
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre West Rink"
+          ]
+        }
+      },
+      "Coquitlam — Planet Ice": {
+        "Fri": [],
+        "Sat": [
+          "18:45",
+          "20:15"
+        ],
+        "Sun": [],
+        "surfaces": {
+          "Fri": [],
+          "Sat": [
+            "",
+            ""
           ],
           "Sun": []
         }
@@ -1375,38 +1625,38 @@
         ],
         "surfaces": {
           "Fri": [
-            "West Rink",
-            "East Rink",
-            "West Rink",
-            "East Rink",
-            "West Rink",
-            "East Rink",
-            "West Rink",
-            "West Rink"
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre East Rink",
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre East Rink",
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre East Rink",
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre West Rink"
           ],
           "Sat": [
-            "West Rink",
-            "East Rink",
-            "West Rink",
-            "East Rink",
-            "West Rink",
-            "East Rink",
-            "West Rink",
-            "East Rink",
-            "West Rink",
-            "East Rink",
-            "West Rink",
-            "East Rink"
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre East Rink",
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre East Rink",
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre East Rink",
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre East Rink",
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre East Rink",
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre East Rink"
           ],
           "Sun": [
-            "West Rink",
-            "East Rink",
-            "West Rink",
-            "East Rink",
-            "West Rink",
-            "East Rink",
-            "West Rink",
-            "East Rink"
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre East Rink",
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre East Rink",
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre East Rink",
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre East Rink"
           ]
         }
       },
@@ -1435,26 +1685,26 @@
         ],
         "surfaces": {
           "Fri": [
-            "Ice Surface TBD",
-            "Ice Surface TBD",
-            "Ice Surface TBD",
-            "Ice Surface TBD",
-            "Ice Surface TBD",
-            "Ice Surface TBD"
+            "Aberdeen Recreation Complex",
+            "Aberdeen Recreation Complex",
+            "Aberdeen Recreation Complex",
+            "Aberdeen Recreation Complex",
+            "Aberdeen Recreation Complex",
+            "Aberdeen Recreation Complex"
           ],
           "Sat": [
-            "Ice Surface TBD",
-            "Ice Surface TBD",
-            "Ice Surface TBD",
-            "Ice Surface TBD",
-            "Ice Surface TBD",
-            "Ice Surface TBD"
+            "Aberdeen Recreation Complex",
+            "Aberdeen Recreation Complex",
+            "Aberdeen Recreation Complex",
+            "Aberdeen Recreation Complex",
+            "Aberdeen Recreation Complex",
+            "Aberdeen Recreation Complex"
           ],
           "Sun": [
-            "Ice Surface TBD",
-            "Ice Surface TBD",
-            "Ice Surface TBD",
-            "Ice Surface TBD"
+            "Aberdeen Recreation Complex",
+            "Aberdeen Recreation Complex",
+            "Aberdeen Recreation Complex",
+            "Aberdeen Recreation Complex"
           ]
         }
       },
@@ -1477,21 +1727,39 @@
         ],
         "surfaces": {
           "Fri": [
-            "Rink 3",
-            "Rink 3",
-            "Rink 4",
-            "Rink 4"
+            "Planet Ice - Total Sport Entertainment (Ice 3)",
+            "Planet Ice - Total Sport Entertainment (Ice 3)",
+            "Planet Ice - Total Sport Entertainment (Ice 4)",
+            "Planet Ice - Total Sport Entertainment (Ice 4)"
           ],
           "Sat": [
-            "Rink 4",
-            "Rink 3",
-            "Rink 4"
+            "Planet Ice - Total Sport Entertainment (Ice 4)",
+            "Planet Ice - Total Sport Entertainment (Ice 3)",
+            "Planet Ice - Total Sport Entertainment (Ice 4)"
           ],
           "Sun": [
-            "Rink 3",
-            "Rink 4",
-            "Rink 3"
+            "Planet Ice - Total Sport Entertainment (Ice 3)",
+            "Planet Ice - Total Sport Entertainment (Ice 4)",
+            "Planet Ice - Total Sport Entertainment (Ice 3)"
           ]
+        }
+      },
+      "Edmonton — Downtown Community Arena": {
+        "Fri": [
+          "15:15"
+        ],
+        "Sat": [
+          "19:15"
+        ],
+        "Sun": [],
+        "surfaces": {
+          "Fri": [
+            "Downtown Community Arena"
+          ],
+          "Sat": [
+            "Downtown Community Arena"
+          ],
+          "Sun": []
         }
       }
     },
@@ -1564,35 +1832,35 @@
         ],
         "surfaces": {
           "Fri": [
-            "Holmes Arena",
-            "Rusway Arena",
-            "Holmes Arena",
-            "Rusway Arena",
-            "Holmes Arena",
-            "Rusway Arena",
-            "Rusway Arena"
+            "Servus Sports Centre Robert B. Holmes Arena",
+            "Servus Sports Centre Rusway Arena",
+            "Servus Sports Centre Robert B. Holmes Arena",
+            "Servus Sports Centre Rusway Arena",
+            "Servus Sports Centre Robert B. Holmes Arena",
+            "Servus Sports Centre Rusway Arena",
+            "Servus Sports Centre Rusway Arena"
           ],
           "Sat": [
-            "Rusway Arena",
-            "Holmes Arena",
-            "Rusway Arena",
-            "Holmes Arena",
-            "Rusway Arena",
-            "Holmes Arena",
-            "Rusway Arena",
-            "Holmes Arena",
-            "Rusway Arena",
-            "Holmes Arena",
-            "Rusway Arena",
-            "Holmes Arena"
+            "Servus Sports Centre Rusway Arena",
+            "Servus Sports Centre Robert B. Holmes Arena",
+            "Servus Sports Centre Rusway Arena",
+            "Servus Sports Centre Robert B. Holmes Arena",
+            "Servus Sports Centre Rusway Arena",
+            "Servus Sports Centre Robert B. Holmes Arena",
+            "Servus Sports Centre Rusway Arena",
+            "Servus Sports Centre Robert B. Holmes Arena",
+            "Servus Sports Centre Rusway Arena",
+            "Servus Sports Centre Robert B. Holmes Arena",
+            "Servus Sports Centre Rusway Arena",
+            "Servus Sports Centre Robert B. Holmes Arena"
           ],
           "Sun": [
-            "Rusway Arena",
-            "Holmes Arena",
-            "Rusway Arena",
-            "Holmes Arena",
-            "Rusway Arena",
-            "Holmes Arena"
+            "Servus Sports Centre Rusway Arena",
+            "Servus Sports Centre Robert B. Holmes Arena",
+            "Servus Sports Centre Rusway Arena",
+            "Servus Sports Centre Robert B. Holmes Arena",
+            "Servus Sports Centre Rusway Arena",
+            "Servus Sports Centre Robert B. Holmes Arena"
           ]
         }
       },
@@ -1618,23 +1886,23 @@
         ],
         "surfaces": {
           "Fri": [
-            "Fenlands Arena 1",
-            "Fenlands Arena 1",
-            "Fenlands Arena 1"
+            "Banff Recreation Centre - Arena 1",
+            "Banff Recreation Centre - Arena 1",
+            "Banff Recreation Centre - Arena 1"
           ],
           "Sat": [
-            "Fenlands Arena 1",
-            "Fenlands Arena 1",
-            "Fenlands Arena 1",
-            "Fenlands Arena 1",
-            "Fenlands Arena 1"
+            "Banff Recreation Centre - Arena 1",
+            "Banff Recreation Centre - Arena 1",
+            "Banff Recreation Centre - Arena 1",
+            "Banff Recreation Centre - Arena 1",
+            "Banff Recreation Centre - Arena 1"
           ],
           "Sun": [
-            "Fenlands Arena 1",
-            "Fenlands Arena 1",
-            "Fenlands Arena 1",
-            "Fenlands Arena 1",
-            "Fenlands Arena 1"
+            "Banff Recreation Centre - Arena 1",
+            "Banff Recreation Centre - Arena 1",
+            "Banff Recreation Centre - Arena 1",
+            "Banff Recreation Centre - Arena 1",
+            "Banff Recreation Centre - Arena 1"
           ]
         }
       },
@@ -1723,80 +1991,122 @@
         ],
         "surfaces": {
           "Fri": [
-            "East Rink",
-            "West Rink",
-            "West Rink"
+            "The Rinks at Summit Centre East Rink",
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre West Rink"
           ],
           "Sat": [
-            "West Rink",
-            "East Rink",
-            "West Rink",
-            "West Rink",
-            "West Rink",
-            "East Rink"
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre East Rink",
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre East Rink"
           ],
           "Sun": [
-            "West Rink",
-            "West Rink",
-            "West Rink"
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre West Rink"
           ]
         }
       },
       "Cochrane — SLS Center": {
         "Fri": [
+          "09:30",
+          "10:15",
+          "12:00",
           "12:00",
           "12:15",
+          "12:45",
+          "14:30",
           "14:30",
           "14:45",
+          "15:15",
+          "17:00",
           "17:00",
           "17:15",
+          "17:45",
+          "19:30",
           "19:30"
         ],
         "Sat": [
           "08:00",
           "08:00",
+          "08:00",
+          "08:15",
           "10:30",
           "10:30",
+          "10:30",
+          "10:45",
+          "13:00",
           "13:00",
           "16:15",
+          "16:15",
           "18:15",
+          "18:45",
           "18:45"
         ],
         "Sun": [
           "08:00",
           "08:00",
+          "08:00",
+          "08:15",
           "10:30",
           "10:30",
+          "10:30",
+          "10:45",
+          "13:00",
           "13:00",
           "13:00"
         ],
         "surfaces": {
           "Fri": [
-            "Totem 2",
-            "Totem 1",
-            "Totem 2",
-            "Totem 1",
-            "Totem 2",
-            "Totem 1",
-            "Totem 2"
+            "SLS Centre - Totem 2",
+            "SLS Centre - Totem 1",
+            "SLS Centre - Totem 2",
+            "SLS Centre - Totem 2",
+            "SLS Centre - Totem 1",
+            "SLS Centre - Totem 1",
+            "SLS Centre - Totem 2",
+            "SLS Centre - Totem 2",
+            "SLS Centre - Totem 1",
+            "SLS Centre - Totem 1",
+            "SLS Centre - Totem 2",
+            "SLS Centre - Totem 2",
+            "SLS Centre - Totem 1",
+            "SLS Centre - Totem 1",
+            "SLS Centre - Totem 2",
+            "SLS Centre - Totem 2"
           ],
           "Sat": [
-            "Totem 1",
-            "Totem 2",
-            "Totem 1",
-            "Totem 2",
-            "Totem 1",
-            "Totem 2",
-            "Totem 1",
-            "Totem 2"
+            "SLS Centre - Totem 1",
+            "SLS Centre - Totem 1",
+            "SLS Centre - Totem 2",
+            "SLS Centre - Totem 2",
+            "SLS Centre - Totem 1",
+            "SLS Centre - Totem 1",
+            "SLS Centre - Totem 2",
+            "SLS Centre - Totem 2",
+            "SLS Centre - Totem 1",
+            "SLS Centre - Totem 1",
+            "SLS Centre - Totem 2",
+            "SLS Centre - Totem 2",
+            "SLS Centre - Totem 1",
+            "SLS Centre - Totem 2",
+            "SLS Centre - Totem 2"
           ],
           "Sun": [
-            "Totem 1",
-            "Totem 2",
-            "Totem 1",
-            "Totem 2",
-            "Totem 1",
-            "Totem 2"
+            "SLS Centre - Totem 1",
+            "SLS Centre - Totem 1",
+            "SLS Centre - Totem 2",
+            "SLS Centre - Totem 2",
+            "SLS Centre - Totem 1",
+            "SLS Centre - Totem 1",
+            "SLS Centre - Totem 2",
+            "SLS Centre - Totem 2",
+            "SLS Centre - Totem 1",
+            "SLS Centre - Totem 1",
+            "SLS Centre - Totem 2"
           ]
         }
       },
@@ -1819,20 +2129,20 @@
         ],
         "surfaces": {
           "Fri": [
-            "Red Arena",
-            "Red Arena",
-            "Red Arena"
+            "East Calgary Twin Arena Red",
+            "East Calgary Twin Arena Red",
+            "East Calgary Twin Arena Red"
           ],
           "Sat": [
-            "Red Arena",
-            "Red Arena",
-            "Red Arena",
-            "Red Arena",
-            "Red Arena"
+            "East Calgary Twin Arena Red",
+            "East Calgary Twin Arena Red",
+            "East Calgary Twin Arena Red",
+            "East Calgary Twin Arena Red",
+            "East Calgary Twin Arena Red"
           ],
           "Sun": [
-            "Red Arena",
-            "Red Arena"
+            "East Calgary Twin Arena Red",
+            "East Calgary Twin Arena Red"
           ]
         }
       }
@@ -1897,50 +2207,54 @@
         ],
         "surfaces": {
           "Fri": [
-            "West Rink",
-            "East Rink",
-            "West Rink",
-            "East Rink",
-            "West Rink",
-            "East Rink",
-            "West Rink",
-            "West Rink"
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre East Rink",
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre East Rink",
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre East Rink",
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre West Rink"
           ],
           "Sat": [
-            "East Rink",
-            "West Rink",
-            "West Rink",
-            "West Rink",
-            "East Rink",
-            "West Rink"
+            "The Rinks at Summit Centre East Rink",
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre East Rink",
+            "The Rinks at Summit Centre West Rink"
           ],
           "Sun": [
-            "West Rink",
-            "East Rink",
-            "West Rink",
-            "East Rink",
-            "West Rink",
-            "East Rink"
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre East Rink",
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre East Rink",
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre East Rink"
           ]
         }
       },
       "Edmonton — Morinville Silent Ice Gardens": {
         "Fri": [
+          "16:00",
           "18:30"
         ],
         "Sat": [
           "10:00",
           "14:15",
-          "16:30"
+          "16:30",
+          "18:00"
         ],
         "Sun": [
           "09:00"
         ],
         "surfaces": {
           "Fri": [
+            "Morinville Silent Ice Gardens",
             "Morinville Silent Ice Gardens"
           ],
           "Sat": [
+            "Morinville Silent Ice Gardens",
             "Morinville Silent Ice Gardens",
             "Morinville Silent Ice Gardens",
             "Morinville Silent Ice Gardens"
@@ -1966,17 +2280,17 @@
         ],
         "surfaces": {
           "Fri": [
-            "Blue Rink",
-            "Blue Rink"
+            "Seven Oaks Arena - Blue",
+            "Seven Oaks Arena - Blue"
           ],
           "Sat": [
-            "Blue Rink",
-            "Blue Rink",
-            "Blue Rink",
-            "Blue Rink"
+            "Seven Oaks Arena - Blue",
+            "Seven Oaks Arena - Blue",
+            "Seven Oaks Arena - Blue",
+            "Seven Oaks Arena - Blue"
           ],
           "Sun": [
-            "Blue Rink"
+            "Seven Oaks Arena - Blue"
           ]
         }
       }
@@ -2036,23 +2350,23 @@
         ],
         "surfaces": {
           "Fri": [
-            "Ice Surface TBD",
-            "Ice Surface TBD",
-            "Ice Surface TBD",
-            "Ice Surface TBD",
-            "Ice Surface TBD"
+            "Aberdeen Recreation Complex",
+            "Aberdeen Recreation Complex",
+            "Aberdeen Recreation Complex",
+            "Aberdeen Recreation Complex",
+            "Aberdeen Recreation Complex"
           ],
           "Sat": [
-            "Ice Surface TBD",
-            "Ice Surface TBD",
-            "Ice Surface TBD",
-            "Ice Surface TBD",
-            "Ice Surface TBD"
+            "Aberdeen Recreation Complex",
+            "Aberdeen Recreation Complex",
+            "Aberdeen Recreation Complex",
+            "Aberdeen Recreation Complex",
+            "Aberdeen Recreation Complex"
           ],
           "Sun": [
-            "Ice Surface TBD",
-            "Ice Surface TBD",
-            "Ice Surface TBD"
+            "Aberdeen Recreation Complex",
+            "Aberdeen Recreation Complex",
+            "Aberdeen Recreation Complex"
           ]
         }
       },
@@ -2090,68 +2404,116 @@
         ],
         "surfaces": {
           "Fri": [
-            "Holmes Arena",
-            "Rusway Arena",
-            "Holmes Arena",
-            "Rusway Arena",
-            "Holmes Arena",
-            "Rusway Arena"
+            "Servus Sports Centre Robert B. Holmes Arena",
+            "Servus Sports Centre Rusway Arena",
+            "Servus Sports Centre Robert B. Holmes Arena",
+            "Servus Sports Centre Rusway Arena",
+            "Servus Sports Centre Robert B. Holmes Arena",
+            "Servus Sports Centre Rusway Arena"
           ],
           "Sat": [
-            "Rusway Arena",
-            "Holmes Arena",
-            "Rusway Arena",
-            "Holmes Arena",
-            "Rusway Arena",
-            "Holmes Arena",
-            "Rusway Arena",
-            "Holmes Arena",
-            "Rusway Arena",
-            "Holmes Arena",
-            "Holmes Arena"
+            "Servus Sports Centre Rusway Arena",
+            "Servus Sports Centre Robert B. Holmes Arena",
+            "Servus Sports Centre Rusway Arena",
+            "Servus Sports Centre Robert B. Holmes Arena",
+            "Servus Sports Centre Rusway Arena",
+            "Servus Sports Centre Robert B. Holmes Arena",
+            "Servus Sports Centre Rusway Arena",
+            "Servus Sports Centre Robert B. Holmes Arena",
+            "Servus Sports Centre Rusway Arena",
+            "Servus Sports Centre Robert B. Holmes Arena",
+            "Servus Sports Centre Robert B. Holmes Arena"
           ],
           "Sun": [
-            "Holmes Arena",
-            "Rusway Arena",
-            "Holmes Arena",
-            "Rusway Arena",
-            "Holmes Arena",
-            "Rusway Arena",
-            "Holmes Arena",
-            "Rusway Arena"
+            "Servus Sports Centre Robert B. Holmes Arena",
+            "Servus Sports Centre Rusway Arena",
+            "Servus Sports Centre Robert B. Holmes Arena",
+            "Servus Sports Centre Rusway Arena",
+            "Servus Sports Centre Robert B. Holmes Arena",
+            "Servus Sports Centre Rusway Arena",
+            "Servus Sports Centre Robert B. Holmes Arena",
+            "Servus Sports Centre Rusway Arena"
           ]
         }
       },
       "Abbotsford — Rinks at Summit Center": {
-        "Fri": [],
+        "Fri": [
+          "12:15",
+          "12:45",
+          "14:45",
+          "15:15",
+          "17:15",
+          "17:45",
+          "20:00",
+          "20:15"
+        ],
         "Sat": [
+          "08:00",
+          "08:00",
+          "08:15",
+          "08:15",
+          "10:30",
+          "10:30",
+          "10:45",
+          "13:00",
+          "13:00",
+          "13:15",
+          "15:30",
+          "15:30",
+          "15:45",
+          "18:00",
+          "18:15",
+          "20:45",
+          "20:45"
+        ],
+        "Sun": [
           "08:00",
           "08:15",
           "10:30",
           "10:45",
           "13:00",
           "13:15",
-          "15:30",
-          "15:45",
-          "18:15",
-          "20:45"
+          "15:30"
         ],
-        "Sun": [],
         "surfaces": {
-          "Fri": [],
-          "Sat": [
-            "East Rink",
-            "West Rink",
-            "East Rink",
-            "West Rink",
-            "East Rink",
-            "West Rink",
-            "East Rink",
-            "West Rink",
-            "West Rink",
-            "West Rink"
+          "Fri": [
+            "The Rinks at Summit Centre East Rink",
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre East Rink",
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre East Rink",
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre East Rink",
+            "The Rinks at Summit Centre West Rink"
           ],
-          "Sun": []
+          "Sat": [
+            "The Rinks at Summit Centre East Rink",
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre East Rink",
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre East Rink",
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre East Rink",
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre West Rink"
+          ],
+          "Sun": [
+            "The Rinks at Summit Centre East Rink",
+            "The Rinks at Summit Centre East Rink",
+            "The Rinks at Summit Centre East Rink",
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre East Rink",
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre East Rink"
+          ]
         }
       },
       "Winnipeg — 7 Oaks Arena": {
@@ -2173,20 +2535,20 @@
         ],
         "surfaces": {
           "Fri": [
-            "Blue Rink",
-            "Blue Rink",
-            "Blue Rink"
+            "Seven Oaks Arena - Blue",
+            "Seven Oaks Arena - Blue",
+            "Seven Oaks Arena - Blue"
           ],
           "Sat": [
-            "Blue Rink",
-            "Blue Rink",
-            "Blue Rink",
-            "Blue Rink",
-            "Blue Rink"
+            "Seven Oaks Arena - Blue",
+            "Seven Oaks Arena - Blue",
+            "Seven Oaks Arena - Blue",
+            "Seven Oaks Arena - Blue",
+            "Seven Oaks Arena - Blue"
           ],
           "Sun": [
-            "Blue Rink",
-            "Blue Rink"
+            "Seven Oaks Arena - Blue",
+            "Seven Oaks Arena - Blue"
           ]
         }
       },
@@ -2205,16 +2567,16 @@
         ],
         "surfaces": {
           "Fri": [
-            ""
+            "Shawnigan Lake School Arena"
           ],
           "Sat": [
-            "",
-            "",
-            ""
+            "Shawnigan Lake School Arena",
+            "Shawnigan Lake School Arena",
+            "Shawnigan Lake School Arena"
           ],
           "Sun": [
-            "",
-            ""
+            "Shawnigan Lake School Arena",
+            "Shawnigan Lake School Arena"
           ]
         }
       }
@@ -2241,22 +2603,22 @@
         ],
         "surfaces": {
           "Fri": [
-            "East Rink",
-            "West Rink",
-            "West Rink"
+            "The Rinks at Summit Centre East Rink",
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre West Rink"
           ],
           "Sat": [
-            "East Rink",
-            "West Rink",
-            "West Rink",
-            "West Rink",
-            "East Rink",
-            "West Rink"
+            "The Rinks at Summit Centre East Rink",
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre East Rink",
+            "The Rinks at Summit Centre West Rink"
           ],
           "Sun": [
-            "West Rink",
-            "East Rink",
-            "West Rink"
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre East Rink",
+            "The Rinks at Summit Centre West Rink"
           ]
         }
       },
@@ -2293,34 +2655,52 @@
         ],
         "surfaces": {
           "Fri": [
-            "Rink 1",
-            "Rink 2",
-            "Rink 1",
-            "Rink 2",
-            "Rink 1",
-            "Rink 2",
-            "Rink 1",
-            "Rink 2",
-            "Rink 1"
+            "Great Plains Arena 1",
+            "Great Plains Arena 2",
+            "Great Plains Arena 1",
+            "Great Plains Arena 2",
+            "Great Plains Arena 1",
+            "Great Plains Arena 2",
+            "Great Plains Arena 1",
+            "Great Plains Arena 2",
+            "Great Plains Arena 1"
           ],
           "Sat": [
-            "Rink 2",
-            "Rink 2",
-            "Rink 1",
-            "Rink 2",
-            "Rink 1",
-            "Rink 2",
-            "Rink 1",
-            "Rink 2",
-            "Rink 1"
+            "Great Plains Arena 2",
+            "Great Plains Arena 2",
+            "Great Plains Arena 1",
+            "Great Plains Arena 2",
+            "Great Plains Arena 1",
+            "Great Plains Arena 2",
+            "Great Plains Arena 1",
+            "Great Plains Arena 2",
+            "Great Plains Arena 1"
           ],
           "Sun": [
-            "Rink 2",
-            "Rink 1",
-            "Rink 2",
-            "Rink 1",
-            "Rink 2",
-            "Rink 1"
+            "Great Plains Arena 2",
+            "Great Plains Arena 1",
+            "Great Plains Arena 2",
+            "Great Plains Arena 1",
+            "Great Plains Arena 2",
+            "Great Plains Arena 1"
+          ]
+        }
+      },
+      "Edmonton — Downtown Community Arena": {
+        "Fri": [],
+        "Sat": [
+          "15:15"
+        ],
+        "Sun": [
+          "11:30"
+        ],
+        "surfaces": {
+          "Fri": [],
+          "Sat": [
+            "Downtown Community Arena"
+          ],
+          "Sun": [
+            "Downtown Community Arena"
           ]
         }
       }
@@ -2347,22 +2727,22 @@
         ],
         "surfaces": {
           "Fri": [
-            "West Rink",
-            "East Rink",
-            "West Rink"
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre East Rink",
+            "The Rinks at Summit Centre West Rink"
           ],
           "Sat": [
-            "West Rink",
-            "East Rink",
-            "West Rink",
-            "West Rink",
-            "West Rink",
-            "West Rink"
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre East Rink",
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre West Rink"
           ],
           "Sun": [
-            "West Rink",
-            "East Rink",
-            "West Rink"
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre East Rink",
+            "The Rinks at Summit Centre West Rink"
           ]
         }
       },
@@ -2386,19 +2766,19 @@
         "surfaces": {
           "Fri": [],
           "Sat": [
-            "Archie Miller",
-            "Archie Miller",
-            "Archie Miller",
-            "Archie Miller",
-            "Archie Miller",
-            "Archie Miller"
+            "Archie Miller Arena",
+            "Archie Miller Arena",
+            "Archie Miller Arena",
+            "Archie Miller Arena",
+            "Archie Miller Arena",
+            "Archie Miller Arena"
           ],
           "Sun": [
-            "Archie Miller",
-            "Archie Miller",
-            "Archie Miller",
-            "Archie Miller",
-            "Archie Miller"
+            "Archie Miller Arena",
+            "Archie Miller Arena",
+            "Archie Miller Arena",
+            "Archie Miller Arena",
+            "Archie Miller Arena"
           ]
         }
       },
@@ -2474,39 +2854,39 @@
         ],
         "surfaces": {
           "Fri": [
-            "Rink 2",
-            "Rink 1",
-            "Rink 2",
-            "Rink 1",
-            "Rink 2",
-            "Rink 1",
-            "Rink 2",
-            "Rink 2",
-            "Rink 2"
+            "7 Chiefs Sportsplex & Jim Starlight Centre (2)",
+            "7 Chiefs Sportsplex & Jim Starlight Centre (1)",
+            "7 Chiefs Sportsplex & Jim Starlight Centre (2)",
+            "7 Chiefs Sportsplex & Jim Starlight Centre (1)",
+            "7 Chiefs Sportsplex & Jim Starlight Centre (2)",
+            "7 Chiefs Sportsplex & Jim Starlight Centre (1)",
+            "7 Chiefs Sportsplex & Jim Starlight Centre (2)",
+            "7 Chiefs Sportsplex & Jim Starlight Centre (2)",
+            "7 Chiefs Sportsplex & Jim Starlight Centre (2)"
           ],
           "Sat": [
-            "Rink 1",
-            "Rink 2",
-            "Rink 1",
-            "Rink 2",
-            "Rink 1",
-            "Rink 2",
-            "Rink 1",
-            "Rink 2",
-            "Rink 1",
-            "Rink 2",
-            "Rink 1",
-            "Rink 2"
+            "7 Chiefs Sportsplex & Jim Starlight Centre (1)",
+            "7 Chiefs Sportsplex & Jim Starlight Centre (2)",
+            "7 Chiefs Sportsplex & Jim Starlight Centre (1)",
+            "7 Chiefs Sportsplex & Jim Starlight Centre (2)",
+            "7 Chiefs Sportsplex & Jim Starlight Centre (1)",
+            "7 Chiefs Sportsplex & Jim Starlight Centre (2)",
+            "7 Chiefs Sportsplex & Jim Starlight Centre (1)",
+            "7 Chiefs Sportsplex & Jim Starlight Centre (2)",
+            "7 Chiefs Sportsplex & Jim Starlight Centre (1)",
+            "7 Chiefs Sportsplex & Jim Starlight Centre (2)",
+            "7 Chiefs Sportsplex & Jim Starlight Centre (1)",
+            "7 Chiefs Sportsplex & Jim Starlight Centre (2)"
           ],
           "Sun": [
-            "Rink 1",
-            "Rink 2",
-            "Rink 1",
-            "Rink 2",
-            "Rink 1",
-            "Rink 2",
-            "Rink 1",
-            "Rink 2"
+            "7 Chiefs Sportsplex & Jim Starlight Centre (1)",
+            "7 Chiefs Sportsplex & Jim Starlight Centre (2)",
+            "7 Chiefs Sportsplex & Jim Starlight Centre (1)",
+            "7 Chiefs Sportsplex & Jim Starlight Centre (2)",
+            "7 Chiefs Sportsplex & Jim Starlight Centre (1)",
+            "7 Chiefs Sportsplex & Jim Starlight Centre (2)",
+            "7 Chiefs Sportsplex & Jim Starlight Centre (1)",
+            "7 Chiefs Sportsplex & Jim Starlight Centre (2)"
           ]
         }
       },
@@ -2543,34 +2923,34 @@
         ],
         "surfaces": {
           "Fri": [
-            "Holmes Arena",
-            "Rusway Arena",
-            "Holmes Arena",
-            "Rusway Arena",
-            "Holmes Arena",
-            "Rusway Arena"
+            "Servus Sports Centre Robert B. Holmes Arena",
+            "Servus Sports Centre Rusway Arena",
+            "Servus Sports Centre Robert B. Holmes Arena",
+            "Servus Sports Centre Rusway Arena",
+            "Servus Sports Centre Robert B. Holmes Arena",
+            "Servus Sports Centre Rusway Arena"
           ],
           "Sat": [
-            "Holmes Arena",
-            "Rusway Arena",
-            "Holmes Arena",
-            "Rusway Arena",
-            "Holmes Arena",
-            "Rusway Arena",
-            "Holmes Arena",
-            "Rusway Arena",
-            "Holmes Arena",
-            "Rusway Arena"
+            "Servus Sports Centre Robert B. Holmes Arena",
+            "Servus Sports Centre Rusway Arena",
+            "Servus Sports Centre Robert B. Holmes Arena",
+            "Servus Sports Centre Rusway Arena",
+            "Servus Sports Centre Robert B. Holmes Arena",
+            "Servus Sports Centre Rusway Arena",
+            "Servus Sports Centre Robert B. Holmes Arena",
+            "Servus Sports Centre Rusway Arena",
+            "Servus Sports Centre Robert B. Holmes Arena",
+            "Servus Sports Centre Rusway Arena"
           ],
           "Sun": [
-            "Holmes Arena",
-            "Rusway Arena",
-            "Holmes Arena",
-            "Rusway Arena",
-            "Holmes Arena",
-            "Rusway Arena",
-            "Holmes Arena",
-            "Rusway Arena"
+            "Servus Sports Centre Robert B. Holmes Arena",
+            "Servus Sports Centre Rusway Arena",
+            "Servus Sports Centre Robert B. Holmes Arena",
+            "Servus Sports Centre Rusway Arena",
+            "Servus Sports Centre Robert B. Holmes Arena",
+            "Servus Sports Centre Rusway Arena",
+            "Servus Sports Centre Robert B. Holmes Arena",
+            "Servus Sports Centre Rusway Arena"
           ]
         }
       },
@@ -2587,14 +2967,56 @@
         ],
         "surfaces": {
           "Fri": [
-            ""
+            "Shawnigan Lake School Arena"
           ],
           "Sat": [
-            "",
-            ""
+            "Shawnigan Lake School Arena",
+            "Shawnigan Lake School Arena"
           ],
           "Sun": [
-            ""
+            "Shawnigan Lake School Arena"
+          ]
+        }
+      },
+      "Calgary — GPRC": {
+        "Fri": [
+          "14:45",
+          "17:15"
+        ],
+        "Sat": [
+          "09:15",
+          "11:30",
+          "12:30",
+          "14:30",
+          "16:45",
+          "17:00"
+        ],
+        "Sun": [
+          "09:30",
+          "10:15",
+          "12:00",
+          "12:30",
+          "13:45"
+        ],
+        "surfaces": {
+          "Fri": [
+            "Great Plains Arena 1",
+            "Great Plains Arena 1"
+          ],
+          "Sat": [
+            "Great Plains Arena 2",
+            "Great Plains Arena 2",
+            "Great Plains Arena 1",
+            "Great Plains Arena 1",
+            "Great Plains Arena 2",
+            "Great Plains Arena 1"
+          ],
+          "Sun": [
+            "Great Plains Arena 2",
+            "Great Plains Arena 1",
+            "Great Plains Arena 2",
+            "Great Plains Arena 1",
+            "Great Plains Arena 2"
           ]
         }
       }
@@ -2621,32 +3043,164 @@
         ],
         "surfaces": {
           "Fri": [
-            "",
-            "",
-            ""
+            "Shawnigan Lake School Arena",
+            "Shawnigan Lake School Arena",
+            "Shawnigan Lake School Arena"
           ],
           "Sat": [
-            "",
-            "",
-            "",
-            "",
-            "",
-            ""
+            "Shawnigan Lake School Arena",
+            "Shawnigan Lake School Arena",
+            "Shawnigan Lake School Arena",
+            "Shawnigan Lake School Arena",
+            "Shawnigan Lake School Arena",
+            "Shawnigan Lake School Arena"
           ],
           "Sun": [
-            "",
-            "",
-            ""
+            "Shawnigan Lake School Arena",
+            "Shawnigan Lake School Arena",
+            "Shawnigan Lake School Arena"
+          ]
+        }
+      },
+      "Abbotsford — Rinks at Summit Center": {
+        "Fri": [],
+        "Sat": [
+          "09:15",
+          "11:30"
+        ],
+        "Sun": [
+          "11:00"
+        ],
+        "surfaces": {
+          "Fri": [],
+          "Sat": [
+            "The Rinks at Summit Centre East Rink",
+            "The Rinks at Summit Centre East Rink"
+          ],
+          "Sun": [
+            "The Rinks at Summit Centre East Rink"
           ]
         }
       }
     }
   },
-  "newThisSync": [],
+  "newThisSync": [
+    "Dec 04|Abbotsford — Rinks at Summit Center|Sat|09:15",
+    "Dec 04|Abbotsford — Rinks at Summit Center|Sat|11:30",
+    "Dec 04|Abbotsford — Rinks at Summit Center|Sun|11:00",
+    "Dec 11|Abbotsford — Rinks at Summit Center|Fri|11:45",
+    "Dec 11|Abbotsford — Rinks at Summit Center|Fri|14:00",
+    "Dec 11|Abbotsford — Rinks at Summit Center|Sat|08:45",
+    "Dec 11|Abbotsford — Rinks at Summit Center|Sat|09:00",
+    "Dec 11|Abbotsford — Rinks at Summit Center|Sun|09:15",
+    "Dec 11|Abbotsford — Rinks at Summit Center|Sun|11:30",
+    "Dec 11|Coquitlam — Planet Ice|Sat|18:45",
+    "Dec 11|Coquitlam — Planet Ice|Sat|20:15",
+    "Dec 11|Edmonton — Downtown Community Arena|Sat|11:15",
+    "Feb 05|Edmonton — Morinville Silent Ice Gardens|Fri|18:15",
+    "Feb 05|Edmonton — Morinville Silent Ice Gardens|Sat|14:15",
+    "Feb 12|Edmonton — Downtown Community Arena|Fri|15:15",
+    "Feb 12|Edmonton — Downtown Community Arena|Sat|19:15",
+    "Jan 02|Edmonton — Morinville Silent Ice Gardens|Fri|20:15",
+    "Jan 08|Edmonton — Downtown Community Arena|Sat|15:15",
+    "Jan 08|Edmonton — Downtown Community Arena|Sun|11:30",
+    "Jan 15|Edmonton — Morinville Silent Ice Gardens|Fri|11:00",
+    "Jan 22|Abbotsford — Rinks at Summit Center|Fri|08:15",
+    "Jan 22|Kimberley — Civic Centre|Fri|08:30",
+    "Jan 22|Kimberley — Civic Centre|Fri|16:30",
+    "Jan 22|Kimberley — Civic Centre|Fri|19:00",
+    "Jan 22|Kimberley — Civic Centre|Sat|08:30",
+    "Jan 22|Kimberley — Civic Centre|Sat|11:00",
+    "Jan 22|Kimberley — Civic Centre|Sat|13:30",
+    "Jan 22|Kimberley — Civic Centre|Sat|16:00",
+    "Jan 22|Kimberley — Civic Centre|Sat|18:45",
+    "Jan 22|Kimberley — Civic Centre|Sun|08:30",
+    "Jan 22|Kimberley — Civic Centre|Sun|11:00",
+    "Nov 13|Calgary — GPRC|Fri|14:45",
+    "Nov 13|Calgary — GPRC|Fri|17:15",
+    "Nov 13|Calgary — GPRC|Sat|09:15",
+    "Nov 13|Calgary — GPRC|Sat|11:30",
+    "Nov 13|Calgary — GPRC|Sat|12:30",
+    "Nov 13|Calgary — GPRC|Sat|14:30",
+    "Nov 13|Calgary — GPRC|Sat|16:45",
+    "Nov 13|Calgary — GPRC|Sat|17:00",
+    "Nov 13|Calgary — GPRC|Sun|09:30",
+    "Nov 13|Calgary — GPRC|Sun|10:15",
+    "Nov 13|Calgary — GPRC|Sun|12:00",
+    "Nov 13|Calgary — GPRC|Sun|12:30",
+    "Nov 13|Calgary — GPRC|Sun|13:45",
+    "Nov 20|Edmonton — Morinville Silent Ice Gardens|Fri|11:30",
+    "Nov 27|Abbotsford — Rinks at Summit Center|Sun|16:00",
+    "Nov 27|Edmonton — Morinville Silent Ice Gardens|Fri|15:15",
+    "Nov 27|Edmonton — Silent Ice Center (Hatch+Hesco)|Sat|08:15",
+    "Nov 27|Kimberley — Civic Centre|Fri|18:30",
+    "Nov 27|Kimberley — Civic Centre|Sat|08:30",
+    "Oct 02|Abbotsford — Rinks at Summit Center|Fri|12:45",
+    "Oct 02|Abbotsford — Rinks at Summit Center|Fri|15:15",
+    "Oct 02|Abbotsford — Rinks at Summit Center|Fri|17:45",
+    "Oct 02|Abbotsford — Rinks at Summit Center|Fri|20:15",
+    "Oct 02|Abbotsford — Rinks at Summit Center|Sat|08:00",
+    "Oct 02|Abbotsford — Rinks at Summit Center|Sat|08:15",
+    "Oct 02|Abbotsford — Rinks at Summit Center|Sat|10:45",
+    "Oct 02|Abbotsford — Rinks at Summit Center|Sat|13:00",
+    "Oct 02|Abbotsford — Rinks at Summit Center|Sat|13:15",
+    "Oct 02|Abbotsford — Rinks at Summit Center|Sat|15:45",
+    "Oct 02|Abbotsford — Rinks at Summit Center|Sat|18:15",
+    "Oct 02|Abbotsford — Rinks at Summit Center|Sun|08:00",
+    "Oct 02|Abbotsford — Rinks at Summit Center|Sun|08:15",
+    "Oct 02|Abbotsford — Rinks at Summit Center|Sun|10:30",
+    "Oct 02|Abbotsford — Rinks at Summit Center|Sun|13:00",
+    "Oct 02|Abbotsford — Rinks at Summit Center|Sun|13:15",
+    "Oct 02|Abbotsford — Rinks at Summit Center|Sun|15:30",
+    "Oct 09|Abbotsford — Rinks at Summit Center|Fri|12:15",
+    "Oct 09|Abbotsford — Rinks at Summit Center|Fri|12:45",
+    "Oct 09|Abbotsford — Rinks at Summit Center|Fri|14:45",
+    "Oct 09|Abbotsford — Rinks at Summit Center|Fri|15:15",
+    "Oct 09|Abbotsford — Rinks at Summit Center|Fri|17:15",
+    "Oct 09|Abbotsford — Rinks at Summit Center|Fri|17:45",
+    "Oct 09|Abbotsford — Rinks at Summit Center|Fri|20:00",
+    "Oct 09|Abbotsford — Rinks at Summit Center|Fri|20:15",
+    "Oct 09|Abbotsford — Rinks at Summit Center|Sat|18:00",
+    "Oct 09|Abbotsford — Rinks at Summit Center|Sun|08:00",
+    "Oct 09|Abbotsford — Rinks at Summit Center|Sun|08:15",
+    "Oct 09|Abbotsford — Rinks at Summit Center|Sun|10:30",
+    "Oct 09|Abbotsford — Rinks at Summit Center|Sun|10:45",
+    "Oct 09|Abbotsford — Rinks at Summit Center|Sun|13:00",
+    "Oct 09|Abbotsford — Rinks at Summit Center|Sun|13:15",
+    "Oct 09|Abbotsford — Rinks at Summit Center|Sun|15:30",
+    "Oct 16|Edmonton — Downtown Community Arena|Sat|10:15",
+    "Oct 16|Edmonton — Downtown Community Arena|Sat|12:30",
+    "Oct 23|Abbotsford — Rinks at Summit Center|Fri|17:00",
+    "Oct 23|Abbotsford — Rinks at Summit Center|Fri|19:30",
+    "Oct 23|Abbotsford — Rinks at Summit Center|Sat|08:00",
+    "Oct 23|Abbotsford — Rinks at Summit Center|Sat|10:30",
+    "Oct 23|Abbotsford — Rinks at Summit Center|Sat|13:00",
+    "Oct 23|Abbotsford — Rinks at Summit Center|Sat|15:15",
+    "Oct 23|Abbotsford — Rinks at Summit Center|Sat|17:45",
+    "Oct 23|Abbotsford — Rinks at Summit Center|Sun|08:00",
+    "Oct 23|Abbotsford — Rinks at Summit Center|Sun|10:30",
+    "Oct 23|Abbotsford — Rinks at Summit Center|Sun|13:00",
+    "Oct 30|Cochrane — SLS Center|Fri|14:00",
+    "Oct 30|Cochrane — SLS Center|Fri|14:30",
+    "Sep 18|Cochrane — SLS Center|Fri|09:30",
+    "Sep 18|Cochrane — SLS Center|Fri|10:15",
+    "Sep 18|Cochrane — SLS Center|Fri|12:45",
+    "Sep 18|Cochrane — SLS Center|Fri|15:15",
+    "Sep 18|Cochrane — SLS Center|Fri|17:45",
+    "Sep 18|Cochrane — SLS Center|Sat|08:15",
+    "Sep 18|Cochrane — SLS Center|Sat|10:45",
+    "Sep 18|Cochrane — SLS Center|Sun|08:15",
+    "Sep 18|Cochrane — SLS Center|Sun|10:45",
+    "Sep 25|Edmonton — Morinville Silent Ice Gardens|Fri|16:00",
+    "Sep 25|Edmonton — Morinville Silent Ice Gardens|Sat|18:00"
+  ],
   "removedThisSync": [],
-  "contentChanged": false,
+  "contentChanged": true,
   "isBaseline": false,
   "slotKeys": [
+    "Dec 04|Abbotsford — Rinks at Summit Center|Sat|09:15",
+    "Dec 04|Abbotsford — Rinks at Summit Center|Sat|11:30",
+    "Dec 04|Abbotsford — Rinks at Summit Center|Sun|11:00",
     "Dec 04|Cowichan — Shawnigan Lake Arena|Fri|14:00",
     "Dec 04|Cowichan — Shawnigan Lake Arena|Fri|16:15",
     "Dec 04|Cowichan — Shawnigan Lake Arena|Fri|19:30",
@@ -2659,6 +3213,15 @@
     "Dec 04|Cowichan — Shawnigan Lake Arena|Sun|09:00",
     "Dec 04|Cowichan — Shawnigan Lake Arena|Sun|11:15",
     "Dec 04|Cowichan — Shawnigan Lake Arena|Sun|13:30",
+    "Dec 11|Abbotsford — Rinks at Summit Center|Fri|11:45",
+    "Dec 11|Abbotsford — Rinks at Summit Center|Fri|14:00",
+    "Dec 11|Abbotsford — Rinks at Summit Center|Sat|08:45",
+    "Dec 11|Abbotsford — Rinks at Summit Center|Sat|09:00",
+    "Dec 11|Abbotsford — Rinks at Summit Center|Sun|09:15",
+    "Dec 11|Abbotsford — Rinks at Summit Center|Sun|11:30",
+    "Dec 11|Coquitlam — Planet Ice|Sat|18:45",
+    "Dec 11|Coquitlam — Planet Ice|Sat|20:15",
+    "Dec 11|Edmonton — Downtown Community Arena|Sat|11:15",
     "Dec 11|Edmonton — Downtown Community Arena|Sat|13:30",
     "Dec 11|Edmonton — Morinville Silent Ice Gardens|Sun|08:00",
     "Dec 11|Edmonton — Morinville Silent Ice Gardens|Sun|10:30",
@@ -2678,7 +3241,9 @@
     "Feb 05|Delta — Planet Ice Delta|Sat|19:00",
     "Feb 05|Delta — Planet Ice Delta|Sun|13:30",
     "Feb 05|Delta — Planet Ice Delta|Sun|16:15",
+    "Feb 05|Edmonton — Morinville Silent Ice Gardens|Fri|18:15",
     "Feb 05|Edmonton — Morinville Silent Ice Gardens|Fri|21:15",
+    "Feb 05|Edmonton — Morinville Silent Ice Gardens|Sat|14:15",
     "Feb 05|Edmonton — Morinville Silent Ice Gardens|Sat|20:15",
     "Feb 05|Kimberley — Civic Centre|Sat|15:30",
     "Feb 05|Kimberley — Civic Centre|Sun|08:30",
@@ -2735,6 +3300,8 @@
     "Feb 12|Coquitlam — Planet Ice|Sun|10:00",
     "Feb 12|Coquitlam — Planet Ice|Sun|10:15",
     "Feb 12|Coquitlam — Planet Ice|Sun|12:30",
+    "Feb 12|Edmonton — Downtown Community Arena|Fri|15:15",
+    "Feb 12|Edmonton — Downtown Community Arena|Sat|19:15",
     "Feb 12|Edmonton — Silent Ice Center (Hatch+Hesco)|Sun|08:15",
     "Feb 12|Edmonton — Silent Ice Center (Hatch+Hesco)|Sun|10:30",
     "Feb 12|Edmonton — Silent Ice Center (Hatch+Hesco)|Sun|12:45",
@@ -2789,6 +3356,7 @@
     "Jan 02|Delta — Planet Ice Delta|Fri|18:00",
     "Jan 02|Delta — Planet Ice Delta|Sat|08:00",
     "Jan 02|Delta — Planet Ice Delta|Sat|10:30",
+    "Jan 02|Edmonton — Morinville Silent Ice Gardens|Fri|20:15",
     "Jan 08|Abbotsford — Rinks at Summit Center|Fri|13:30",
     "Jan 08|Abbotsford — Rinks at Summit Center|Fri|13:45",
     "Jan 08|Abbotsford — Rinks at Summit Center|Fri|16:15",
@@ -2825,6 +3393,8 @@
     "Jan 08|Calgary — GPRC|Sun|11:00",
     "Jan 08|Calgary — GPRC|Sun|13:00",
     "Jan 08|Calgary — GPRC|Sun|13:15",
+    "Jan 08|Edmonton — Downtown Community Arena|Sat|15:15",
+    "Jan 08|Edmonton — Downtown Community Arena|Sun|11:30",
     "Jan 15|Abbotsford — Rinks at Summit Center|Fri|13:30",
     "Jan 15|Abbotsford — Rinks at Summit Center|Fri|14:00",
     "Jan 15|Abbotsford — Rinks at Summit Center|Fri|16:30",
@@ -2843,6 +3413,7 @@
     "Jan 15|Delta — Planet Ice Delta|Sat|21:15",
     "Jan 15|Delta — Planet Ice Delta|Sun|15:30",
     "Jan 15|Delta — Planet Ice Delta|Sun|17:45",
+    "Jan 15|Edmonton — Morinville Silent Ice Gardens|Fri|11:00",
     "Jan 15|Edmonton — Morinville Silent Ice Gardens|Fri|16:00",
     "Jan 15|Edmonton — Morinville Silent Ice Gardens|Fri|18:15",
     "Jan 15|Edmonton — Morinville Silent Ice Gardens|Fri|20:30",
@@ -2855,6 +3426,7 @@
     "Jan 15|Edmonton — Morinville Silent Ice Gardens|Sun|08:00",
     "Jan 15|Edmonton — Morinville Silent Ice Gardens|Sun|10:30",
     "Jan 15|Edmonton — Morinville Silent Ice Gardens|Sun|13:00",
+    "Jan 22|Abbotsford — Rinks at Summit Center|Fri|08:15",
     "Jan 22|Abbotsford — Rinks at Summit Center|Fri|13:30",
     "Jan 22|Abbotsford — Rinks at Summit Center|Fri|14:00",
     "Jan 22|Abbotsford — Rinks at Summit Center|Fri|16:30",
@@ -2873,6 +3445,16 @@
     "Jan 22|Edmonton — Morinville Silent Ice Gardens|Fri|11:00",
     "Jan 22|Edmonton — Morinville Silent Ice Gardens|Fri|13:15",
     "Jan 22|Edmonton — Morinville Silent Ice Gardens|Sat|20:15",
+    "Jan 22|Kimberley — Civic Centre|Fri|08:30",
+    "Jan 22|Kimberley — Civic Centre|Fri|16:30",
+    "Jan 22|Kimberley — Civic Centre|Fri|19:00",
+    "Jan 22|Kimberley — Civic Centre|Sat|08:30",
+    "Jan 22|Kimberley — Civic Centre|Sat|11:00",
+    "Jan 22|Kimberley — Civic Centre|Sat|13:30",
+    "Jan 22|Kimberley — Civic Centre|Sat|16:00",
+    "Jan 22|Kimberley — Civic Centre|Sat|18:45",
+    "Jan 22|Kimberley — Civic Centre|Sun|08:30",
+    "Jan 22|Kimberley — Civic Centre|Sun|11:00",
     "Jan 22|Spruce Grove - Heavy Metal Place|Fri|19:30",
     "Jan 22|Spruce Grove - Heavy Metal Place|Fri|19:45",
     "Jan 22|Spruce Grove - Heavy Metal Place|Sat|09:45",
@@ -2971,6 +3553,19 @@
     "Nov 13|Calgary — 7 Chiefs Sportsplex (JPHL Contract)|Sun|13:15",
     "Nov 13|Calgary — 7 Chiefs Sportsplex (JPHL Contract)|Sun|15:30",
     "Nov 13|Calgary — 7 Chiefs Sportsplex (JPHL Contract)|Sun|15:45",
+    "Nov 13|Calgary — GPRC|Fri|14:45",
+    "Nov 13|Calgary — GPRC|Fri|17:15",
+    "Nov 13|Calgary — GPRC|Sat|09:15",
+    "Nov 13|Calgary — GPRC|Sat|11:30",
+    "Nov 13|Calgary — GPRC|Sat|12:30",
+    "Nov 13|Calgary — GPRC|Sat|14:30",
+    "Nov 13|Calgary — GPRC|Sat|16:45",
+    "Nov 13|Calgary — GPRC|Sat|17:00",
+    "Nov 13|Calgary — GPRC|Sun|09:30",
+    "Nov 13|Calgary — GPRC|Sun|10:15",
+    "Nov 13|Calgary — GPRC|Sun|12:00",
+    "Nov 13|Calgary — GPRC|Sun|12:30",
+    "Nov 13|Calgary — GPRC|Sun|13:45",
     "Nov 13|Cowichan — Shawnigan Lake Arena|Fri|18:45",
     "Nov 13|Cowichan — Shawnigan Lake Arena|Sat|09:00",
     "Nov 13|Cowichan — Shawnigan Lake Arena|Sat|19:45",
@@ -2998,6 +3593,7 @@
     "Nov 13|Lloydminster — Servus Sports Center|Sun|13:15",
     "Nov 13|Lloydminster — Servus Sports Center|Sun|15:30",
     "Nov 13|Lloydminster — Servus Sports Center|Sun|15:45",
+    "Nov 20|Edmonton — Morinville Silent Ice Gardens|Fri|11:30",
     "Nov 20|Edmonton — Morinville Silent Ice Gardens|Fri|13:45",
     "Nov 20|Edmonton — Silent Ice Center (Hatch+Hesco)|Sat|08:45",
     "Nov 20|Edmonton — Silent Ice Center (Hatch+Hesco)|Sat|20:00",
@@ -3007,6 +3603,8 @@
     "Nov 20|Spruce Grove - Heavy Metal Place|Sat|19:45",
     "Nov 20|Spruce Grove - Heavy Metal Place|Sun|08:15",
     "Nov 20|Spruce Grove - Heavy Metal Place|Sun|08:30",
+    "Nov 27|Abbotsford — Rinks at Summit Center|Sun|16:00",
+    "Nov 27|Edmonton — Morinville Silent Ice Gardens|Fri|15:15",
     "Nov 27|Edmonton — Morinville Silent Ice Gardens|Fri|18:00",
     "Nov 27|Edmonton — Morinville Silent Ice Gardens|Fri|20:15",
     "Nov 27|Edmonton — Morinville Silent Ice Gardens|Sat|08:00",
@@ -3015,9 +3613,29 @@
     "Nov 27|Edmonton — Morinville Silent Ice Gardens|Sat|15:15",
     "Nov 27|Edmonton — Morinville Silent Ice Gardens|Sat|17:30",
     "Nov 27|Edmonton — Morinville Silent Ice Gardens|Sat|19:45",
+    "Nov 27|Edmonton — Silent Ice Center (Hatch+Hesco)|Sat|08:15",
     "Nov 27|Edmonton — Silent Ice Center (Hatch+Hesco)|Sat|08:30",
     "Nov 27|Edmonton — Silent Ice Center (Hatch+Hesco)|Sat|18:15",
     "Nov 27|Edmonton — Silent Ice Center (Hatch+Hesco)|Sat|20:30",
+    "Nov 27|Kimberley — Civic Centre|Fri|18:30",
+    "Nov 27|Kimberley — Civic Centre|Sat|08:30",
+    "Oct 02|Abbotsford — Rinks at Summit Center|Fri|12:45",
+    "Oct 02|Abbotsford — Rinks at Summit Center|Fri|15:15",
+    "Oct 02|Abbotsford — Rinks at Summit Center|Fri|17:45",
+    "Oct 02|Abbotsford — Rinks at Summit Center|Fri|20:15",
+    "Oct 02|Abbotsford — Rinks at Summit Center|Sat|08:00",
+    "Oct 02|Abbotsford — Rinks at Summit Center|Sat|08:15",
+    "Oct 02|Abbotsford — Rinks at Summit Center|Sat|10:45",
+    "Oct 02|Abbotsford — Rinks at Summit Center|Sat|13:00",
+    "Oct 02|Abbotsford — Rinks at Summit Center|Sat|13:15",
+    "Oct 02|Abbotsford — Rinks at Summit Center|Sat|15:45",
+    "Oct 02|Abbotsford — Rinks at Summit Center|Sat|18:15",
+    "Oct 02|Abbotsford — Rinks at Summit Center|Sun|08:00",
+    "Oct 02|Abbotsford — Rinks at Summit Center|Sun|08:15",
+    "Oct 02|Abbotsford — Rinks at Summit Center|Sun|10:30",
+    "Oct 02|Abbotsford — Rinks at Summit Center|Sun|13:00",
+    "Oct 02|Abbotsford — Rinks at Summit Center|Sun|13:15",
+    "Oct 02|Abbotsford — Rinks at Summit Center|Sun|15:30",
     "Oct 02|Aberdeen — Aberdeen Rec Center|Fri|14:45",
     "Oct 02|Aberdeen — Aberdeen Rec Center|Fri|16:45",
     "Oct 02|Aberdeen — Aberdeen Rec Center|Fri|17:00",
@@ -3049,6 +3667,14 @@
     "Oct 02|Delta — Planet Ice Delta|Sun|13:30",
     "Oct 02|Delta — Planet Ice Delta|Sun|15:30",
     "Oct 02|Edmonton — Silent Ice Center (Hatch+Hesco)|Sat|08:00",
+    "Oct 09|Abbotsford — Rinks at Summit Center|Fri|12:15",
+    "Oct 09|Abbotsford — Rinks at Summit Center|Fri|12:45",
+    "Oct 09|Abbotsford — Rinks at Summit Center|Fri|14:45",
+    "Oct 09|Abbotsford — Rinks at Summit Center|Fri|15:15",
+    "Oct 09|Abbotsford — Rinks at Summit Center|Fri|17:15",
+    "Oct 09|Abbotsford — Rinks at Summit Center|Fri|17:45",
+    "Oct 09|Abbotsford — Rinks at Summit Center|Fri|20:00",
+    "Oct 09|Abbotsford — Rinks at Summit Center|Fri|20:15",
     "Oct 09|Abbotsford — Rinks at Summit Center|Sat|08:00",
     "Oct 09|Abbotsford — Rinks at Summit Center|Sat|08:15",
     "Oct 09|Abbotsford — Rinks at Summit Center|Sat|10:30",
@@ -3057,8 +3683,16 @@
     "Oct 09|Abbotsford — Rinks at Summit Center|Sat|13:15",
     "Oct 09|Abbotsford — Rinks at Summit Center|Sat|15:30",
     "Oct 09|Abbotsford — Rinks at Summit Center|Sat|15:45",
+    "Oct 09|Abbotsford — Rinks at Summit Center|Sat|18:00",
     "Oct 09|Abbotsford — Rinks at Summit Center|Sat|18:15",
     "Oct 09|Abbotsford — Rinks at Summit Center|Sat|20:45",
+    "Oct 09|Abbotsford — Rinks at Summit Center|Sun|08:00",
+    "Oct 09|Abbotsford — Rinks at Summit Center|Sun|08:15",
+    "Oct 09|Abbotsford — Rinks at Summit Center|Sun|10:30",
+    "Oct 09|Abbotsford — Rinks at Summit Center|Sun|10:45",
+    "Oct 09|Abbotsford — Rinks at Summit Center|Sun|13:00",
+    "Oct 09|Abbotsford — Rinks at Summit Center|Sun|13:15",
+    "Oct 09|Abbotsford — Rinks at Summit Center|Sun|15:30",
     "Oct 09|Aberdeen — Aberdeen Rec Center|Fri|09:15",
     "Oct 09|Aberdeen — Aberdeen Rec Center|Fri|11:45",
     "Oct 09|Aberdeen — Aberdeen Rec Center|Fri|14:15",
@@ -3114,6 +3748,8 @@
     "Oct 09|Winnipeg — 7 Oaks Arena|Sat|19:30",
     "Oct 09|Winnipeg — 7 Oaks Arena|Sun|09:00",
     "Oct 09|Winnipeg — 7 Oaks Arena|Sun|11:15",
+    "Oct 16|Edmonton — Downtown Community Arena|Sat|10:15",
+    "Oct 16|Edmonton — Downtown Community Arena|Sat|12:30",
     "Oct 16|Edmonton — Silent Ice Center (Hatch+Hesco)|Fri|09:30",
     "Oct 16|Edmonton — Silent Ice Center (Hatch+Hesco)|Fri|10:00",
     "Oct 16|Edmonton — Silent Ice Center (Hatch+Hesco)|Fri|11:45",
@@ -3140,6 +3776,16 @@
     "Oct 16|Edmonton — Silent Ice Center (Hatch+Hesco)|Sun|12:30",
     "Oct 16|Edmonton — Silent Ice Center (Hatch+Hesco)|Sun|12:45",
     "Oct 16|Edmonton — Silent Ice Center (Hatch+Hesco)|Sun|14:45",
+    "Oct 23|Abbotsford — Rinks at Summit Center|Fri|17:00",
+    "Oct 23|Abbotsford — Rinks at Summit Center|Fri|19:30",
+    "Oct 23|Abbotsford — Rinks at Summit Center|Sat|08:00",
+    "Oct 23|Abbotsford — Rinks at Summit Center|Sat|10:30",
+    "Oct 23|Abbotsford — Rinks at Summit Center|Sat|13:00",
+    "Oct 23|Abbotsford — Rinks at Summit Center|Sat|15:15",
+    "Oct 23|Abbotsford — Rinks at Summit Center|Sat|17:45",
+    "Oct 23|Abbotsford — Rinks at Summit Center|Sun|08:00",
+    "Oct 23|Abbotsford — Rinks at Summit Center|Sun|10:30",
+    "Oct 23|Abbotsford — Rinks at Summit Center|Sun|13:00",
     "Oct 23|Aberdeen — Aberdeen Rec Center|Fri|14:45",
     "Oct 23|Aberdeen — Aberdeen Rec Center|Fri|17:00",
     "Oct 23|Aberdeen — Aberdeen Rec Center|Fri|19:15",
@@ -3193,6 +3839,8 @@
     "Oct 30|Aberdeen — Aberdeen Rec Center|Sat|18:30",
     "Oct 30|Aberdeen — Aberdeen Rec Center|Sun|09:45",
     "Oct 30|Aberdeen — Aberdeen Rec Center|Sun|12:00",
+    "Oct 30|Cochrane — SLS Center|Fri|14:00",
+    "Oct 30|Cochrane — SLS Center|Fri|14:30",
     "Oct 30|Cochrane — SLS Center|Fri|15:30",
     "Oct 30|Cochrane — SLS Center|Fri|15:45",
     "Oct 30|Cochrane — SLS Center|Fri|18:00",
@@ -3310,21 +3958,30 @@
     "Sep 18|Canmore — Canmore Arena|Sat|14:45",
     "Sep 18|Canmore — Canmore Arena|Sat|17:15",
     "Sep 18|Canmore — Canmore Arena|Sat|19:45",
+    "Sep 18|Cochrane — SLS Center|Fri|09:30",
+    "Sep 18|Cochrane — SLS Center|Fri|10:15",
     "Sep 18|Cochrane — SLS Center|Fri|12:00",
     "Sep 18|Cochrane — SLS Center|Fri|12:15",
+    "Sep 18|Cochrane — SLS Center|Fri|12:45",
     "Sep 18|Cochrane — SLS Center|Fri|14:30",
     "Sep 18|Cochrane — SLS Center|Fri|14:45",
+    "Sep 18|Cochrane — SLS Center|Fri|15:15",
     "Sep 18|Cochrane — SLS Center|Fri|17:00",
     "Sep 18|Cochrane — SLS Center|Fri|17:15",
+    "Sep 18|Cochrane — SLS Center|Fri|17:45",
     "Sep 18|Cochrane — SLS Center|Fri|19:30",
     "Sep 18|Cochrane — SLS Center|Sat|08:00",
+    "Sep 18|Cochrane — SLS Center|Sat|08:15",
     "Sep 18|Cochrane — SLS Center|Sat|10:30",
+    "Sep 18|Cochrane — SLS Center|Sat|10:45",
     "Sep 18|Cochrane — SLS Center|Sat|13:00",
     "Sep 18|Cochrane — SLS Center|Sat|16:15",
     "Sep 18|Cochrane — SLS Center|Sat|18:15",
     "Sep 18|Cochrane — SLS Center|Sat|18:45",
     "Sep 18|Cochrane — SLS Center|Sun|08:00",
+    "Sep 18|Cochrane — SLS Center|Sun|08:15",
     "Sep 18|Cochrane — SLS Center|Sun|10:30",
+    "Sep 18|Cochrane — SLS Center|Sun|10:45",
     "Sep 18|Cochrane — SLS Center|Sun|13:00",
     "Sep 25|Abbotsford — Rinks at Summit Center|Fri|10:15",
     "Sep 25|Abbotsford — Rinks at Summit Center|Fri|12:30",
@@ -3353,10 +4010,12 @@
     "Sep 25|Canmore — Canmore Arena|Sat|16:45",
     "Sep 25|Canmore — Canmore Arena|Sat|19:15",
     "Sep 25|Canmore — Canmore Arena|Sun|08:15",
+    "Sep 25|Edmonton — Morinville Silent Ice Gardens|Fri|16:00",
     "Sep 25|Edmonton — Morinville Silent Ice Gardens|Fri|18:30",
     "Sep 25|Edmonton — Morinville Silent Ice Gardens|Sat|10:00",
     "Sep 25|Edmonton — Morinville Silent Ice Gardens|Sat|14:15",
     "Sep 25|Edmonton — Morinville Silent Ice Gardens|Sat|16:30",
+    "Sep 25|Edmonton — Morinville Silent Ice Gardens|Sat|18:00",
     "Sep 25|Edmonton — Morinville Silent Ice Gardens|Sun|09:00",
     "Sep 25|Winnipeg — 7 Oaks Arena|Fri|14:00",
     "Sep 25|Winnipeg — 7 Oaks Arena|Fri|19:30",

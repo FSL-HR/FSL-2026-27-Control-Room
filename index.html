@@ -566,8 +566,25 @@ function detectConflicts(scope){
   const pool = (scope&&scope.weekend ? gamesFor(scope.weekend) : games).filter(notTbd);
 
   // capacity per venue/day
+  // DATA.venues can hold MORE THAN ONE record for the same weekend+venue — typically a real one
+  // plus a leftover hand-added "Unsourced (hypothetical)" placeholder with zero caps. A plain
+  // forEach lets whichever lands last win, so a stale zero silently erases real ice: Oct 23
+  // Abbotsford read "10 games on 0 slots" while holding 10 contracted slots. Take the best cap
+  // across the duplicates, and never report less than the Bible actually holds.
   const capMap={};
-  DATA.venues.forEach(v=>{capMap[v.weekend+'|'+v.venue]={Fri:v.capFri,Sat:v.capSat,Sun:v.capSun,Mon:monCapFor(v)};});
+  DATA.venues.forEach(v=>{
+    const k=v.weekend+'|'+v.venue, cur=capMap[k];
+    const rec={Fri:v.capFri,Sat:v.capSat,Sun:v.capSun,Mon:monCapFor(v)};
+    capMap[k]=cur?{Fri:Math.max(cur.Fri||0,rec.Fri||0),Sat:Math.max(cur.Sat||0,rec.Sat||0),
+                   Sun:Math.max(cur.Sun||0,rec.Sun||0),Mon:Math.max(cur.Mon||0,rec.Mon||0)}:rec;
+  });
+  Object.keys(capMap).forEach(k=>{
+    const i=k.indexOf('|'), wk=k.slice(0,i), vn=k.slice(i+1);
+    ['Fri','Sat','Sun'].forEach(d=>{
+      const b=(typeof bibleSlotCount==='function')?bibleSlotCount(wk,vn,d):0;
+      if(b>(capMap[k][d]||0)) capMap[k][d]=b;
+    });
+  });
   const used={};
   pool.forEach(g=>{const k=g.weekend+'|'+g.venue+'|'+g.day;used[k]=(used[k]||0)+1;});
   Object.entries(used).forEach(([k,n])=>{
@@ -1990,12 +2007,26 @@ function bibleOmitsIce(wk,venue){
     return {userAdded:adds};                                            // real ice = only what the user added
   }catch(e){ return null; }
 }
+// Slots the Bible holds for a venue-weekend.
+function bibleSlotCount(wk,venue,day){
+  try{
+    const bs=DATA.bibleSlots&&DATA.bibleSlots[wk+'|||'+venue];
+    if(!bs) return 0;
+    if(day) return (bs[day]||[]).length;
+    return ['Fri','Sat','Sun'].reduce((n,d)=>n+((bs[d]||[]).length),0);
+  }catch(e){ return 0; }
+}
 function realAvailTotal(wk,venue){
   const n=_realAvailTotalBase(wk,venue);
-  if(markedRealIce(wk,venue) && !(DATA.bibleSlots&&DATA.bibleSlots[wk+'|||'+venue])){
+  // Bible ice IS held ice. Count it even when the venue record still says "Unsourced" with zero
+  // caps — a hand-made record can lag behind the Bible, and the base precedence reads only the
+  // record, so real contracted slots would otherwise vanish. Oct 23 Abbotsford hit exactly this:
+  // 10 Bible slots under 10 games, but an old "Unsourced (hypothetical)" record reporting 0.
+  const bn=bibleSlotCount(wk,venue);
+  if(markedRealIce(wk,venue) && !bn){
     try{ const a=(typeof slotAddsFor==='function')?(slotAddsFor(wk,venue).total||0):0; return Math.max(n,a); }catch(e){}
   }
-  return n;
+  return Math.max(n,bn);
 }
 function _realAvailTotalBase(wk,venue){
   { const go=bibleOmitsIce(wk,venue); if(go) return go.userAdded; }   // ghost ice: only user-added slots are real
@@ -2036,10 +2067,11 @@ function _realAvailTotalBase(wk,venue){
 // total-level sourcing math stay consistent.
 function realAvailDay(wk,venue,day){
   const n=_realAvailDayBase(wk,venue,day);
-  if(markedRealIce(wk,venue) && !(DATA.bibleSlots&&DATA.bibleSlots[wk+'|||'+venue])){
+  const bn=bibleSlotCount(wk,venue,day);            // see realAvailTotal
+  if(markedRealIce(wk,venue) && !bibleSlotCount(wk,venue)){
     try{ const a=(typeof slotAddsFor==='function')?(slotAddsFor(wk,venue)[day]||0):0; return Math.max(n,a); }catch(e){}
   }
-  return n;
+  return Math.max(n,bn);
 }
 function _realAvailDayBase(wk,venue,day){
   const ck={Fri:'capFri',Sat:'capSat',Sun:'capSun',Mon:'capMon'}[day]; if(!ck) return 0;
@@ -5553,6 +5585,38 @@ const XP=(function(){
     const roster=RAMP_TEAMS[division];
     return !roster || roster.indexOf(rampTeam(division,name))>=0;
   };
+  // Every arena name in the registry. Since the Bible write-back (2026-08-02) the Bible's own Ice
+  // Surface column carries these names, so a game's surface is very often ALREADY the answer.
+  // Checking that first is what stops "Shawnigan Lake Arena - Shawnigan Lake School Arena" — the
+  // building name glued to a surface that already names the building.
+  const RAMP_ARENAS=new Set([
+    'Aberdeen Recreation Complex','Planet Ice - Delta - American','Planet Ice - Delta - Canadian',
+    'Planet Ice - Delta - International','Planet Ice - Delta - Legends','Great Plains Arena 1',
+    'Great Plains Arena 2','Morinville Silent Ice Gardens','Servus Sports Centre Rusway Arena',
+    'Servus Sports Centre Robert B. Holmes Arena','7 Chiefs Sportsplex & Jim Starlight Centre (1)',
+    '7 Chiefs Sportsplex & Jim Starlight Centre (2)','Silent Ice Center - Hatch Co. Arena',
+    'Silent Ice Center - Hesco Arena','The Rinks at Summit Centre East Rink',
+    'The Rinks at Summit Centre West Rink','SLS Centre - Totem 1','SLS Centre - Totem 2',
+    'SLS Centre - Totem 3','Cochrane Arena','Lashburn Sportsplex','Banff Recreation Centre - Arena 1',
+    'Banff Recreation Centre- Arena 2','Archie Miller Arena','Cenovus Co-op Community Arena',
+    'Kimberley Civic Centre','West Edmonton Mall - Ice Palace','East Calgary Twin Arena Blue',
+    'East Calgary Twin Arena Red','Shawnigan Lake School Arena',
+    'Planet Ice - Total Sport Entertainment (Ice 1)','Planet Ice - Total Sport Entertainment (Ice 2)',
+    'Planet Ice - Total Sport Entertainment (Ice 3)','Planet Ice - Total Sport Entertainment (Ice 4)',
+    'Seven Oaks Arena - Blue','Seven Oaks Arena - Red','Grant Fuhr West Arena','TBA',
+    'Centennial Civic Centre Arena','Eddie Mountain Memorial Arena','Hardisty Memorial Arena',
+    'Sedgewick Recreation Centre','Thompson Family Arena - Heavy Metal Place',
+    'Community Arena - Heavy Metal Place','Canlan Ice Sports - Burnaby 8 Rinks Arena',
+    'Langley Sportsplex - Westcoast Roller & Ice Hockey Ltd. Rink 1',
+    'Langley Sportsplex - Westcoast Roller & Ice Hockey Ltd. Rink 2',
+    'Langley Sportsplex - Westcoast Roller & Ice Hockey Ltd. Rink 3',
+    'Langley Sportsplex - Westcoast Roller & Ice Hockey Ltd. Rink 4',
+    'Langley Twin Ice Rinks #1','Langley Twin Ice Rinks #2','UBC Father Bauer','UBC Thunderbird'
+  ]);
+  const impRegistrySurface=g=>{
+    const s=String((g&&g.sheet)||'').trim();
+    return (s&&RAMP_ARENAS.has(s))?s:null;
+  };
   const impOfficialKey=(venue,sheet)=>
     impSq(String(venue==null?'':venue).replace(/\s*\([^)]*\)\s*$/,''))+'|'+impSq(sheet);
   const impOfficial=g=>hasVenue(g)?(ARENA_OFFICIAL[impOfficialKey(g.venue,g.sheet)]||null):null;
@@ -5580,6 +5644,8 @@ const XP=(function(){
   }
   function impArena(g){
     if(!hasVenue(g)) return '';
+    const reg=impRegistrySurface(g);
+    if(reg) return reg;
     const off=impOfficial(g);
     if(off) return off;
     const mis=impMisfiled(g);
@@ -5625,7 +5691,7 @@ const XP=(function(){
     impGames().forEach(g=>{
       const cell=impArena(g);
       if(!hasVenue(g)||impIsPlaceholder(cell)) return bump(placeholders,cell||'(no venue)');
-      if(impOfficial(g)) return bump(matched,cell);
+      if(impRegistrySurface(g)||impOfficial(g)) return bump(matched,cell);
       if(impMisfiled(g)) return bump(unmatched,cell+'   \u2190 venue record says Abbotsford \u2014 fix in the app; still needs an ice number');
       bump(unmatched,cell+(g.sheet?'':'   \u2190 no ice surface recorded'));
     });
@@ -5764,7 +5830,7 @@ const XP=(function(){
     bcastSheetRows,bcastAllRows,bcastTier,bcastXls,BCAST_FILM,BCAST_MUST,BCAST_TIERS,
     repsRows,repsScopeWks,repsXls,
     staffDutyRows,staffFiltered,staffMonths,staffXls,staffScope,
-    IMP_COLS,impRows,impMonths,impCsv,impDate,impTime,impArena,impBuilding,impArenaAudit,impOfficial,ARENA_OFFICIAL,RAMP_TEAMS,rampTeam,impTeamAudit,impMonthOf,impNotReady,impTitle};
+    IMP_COLS,impRows,impMonths,impCsv,impDate,impTime,impArena,impBuilding,impArenaAudit,impOfficial,ARENA_OFFICIAL,RAMP_ARENAS,impRegistrySurface,RAMP_TEAMS,rampTeam,impTeamAudit,impMonthOf,impNotReady,impTitle};
 })();
 window.XP=XP;
 
@@ -7143,7 +7209,7 @@ render();
     +'display:flex;align-items:center;gap:7px;cursor:default;user-select:none;transition:.2s';
   // BUILD MARKER: shown next to the sync status so "which version am I actually running?" is never a
   // guessing game again. Bump this string whenever the sync/boot logic changes.
-  const FSL_BUILD='2026-08-02g';
+  const FSL_BUILD='2026-08-02h';
   window.__fslBuild=FSL_BUILD;
   function setPill(txt,color){ pill.innerHTML='<span style="width:8px;height:8px;border-radius:50%;background:'+(color||'#8a8a90')+';display:inline-block"></span>'+txt+'<span style="opacity:.55;font-weight:600;margin-left:7px">build '+FSL_BUILD+'</span>'; }
   pill.style.cursor='pointer';
