@@ -4752,7 +4752,13 @@ const XP=(function(){
     return 'Needs sourcing';
   }
   function itemsFor(kind){
-    if(kind==='league')return [['ALL','All divisions \u2014 whole league schedule']];
+    if(kind==='import'){
+      const out=[['ALL','Whole season \u2014 every game']];
+      impMonths().forEach(m=>out.push(['MO:'+m.key,'Month \u2014 '+m.label]));
+      return out;
+    }
+    if(kind==='league')return [['ALL','All divisions \u2014 whole league schedule']].concat(
+      impMonths().map(m=>['MO:'+m.key,'Month \u2014 '+m.label]));
     if(kind==='itineraries')return [['ALL','All teams \u2014 grouped by division']];
     if(kind==='broadcast')return [['ALL','All weekends \u2014 arenas ranked by film value']];
     // Rep plan: whole season, or drill into a single weekend.
@@ -4782,18 +4788,21 @@ const XP=(function(){
       .map(w=>{const n=games.filter(g=>g.venue===STATE.key&&g.weekend===w).length;
         return [w,w+'  ('+(WKDATE[w]||'')+')  \u2014  '+n+' game'+(n===1?'':'s')];});
   }
-  const kindLabel=k=>({league:'Scope',itineraries:'Scope',broadcast:'Scope',reps:'Scope',staffsched:'Scope',sourced:'Scope',unused:'Scope',team:'Team',division:'Division',weekend:'Weekend',city:'City',arena:'Arena / building',arenawknd:'Arena / building'}[k]||'Item');
+  const kindLabel=k=>({league:'Scope',import:'Scope',itineraries:'Scope',broadcast:'Scope',reps:'Scope',staffsched:'Scope',sourced:'Scope',unused:'Scope',team:'Team',division:'Division',weekend:'Weekend',city:'City',arena:'Arena / building',arenawknd:'Arena / building'}[k]||'Item');
   function spec(kind,key,key2){
     let title='',cols=[],rows=[],color=()=>'#ffffff',legend='',note='';
     if(kind==='league'){
-      const gs=games.slice().sort((a,b)=>DIVORDER.indexOf(a.division)-DIVORDER.indexOf(b.division)||gsortTbd(a,b));
-      title='FSL \u2014 Full League Schedule (all divisions)';
-      cols=['Division','Weekend','Date','Day','Time','End','City','Arena','Ice Surface','Home','Away'];
-      const mk=g=>({c:[g.division,wkCell(g),dateCell(g),g.day||'',timeCell(g),(g.endTime?clock12(g.endTime):''),cityCell(g),arenaCell(g),sheetCell(g),g.home,g.away],k:g.division});
+      const mo=(String(key||'').indexOf('MO:')===0)?String(key).slice(3):null;
+      let gs=games.slice().sort((a,b)=>DIVORDER.indexOf(a.division)-DIVORDER.indexOf(b.division)||gsortTbd(a,b));
+      if(mo) gs=gs.filter(g=>impMonthOf(g)===mo);
+      title='FSL \u2014 Full League Schedule '+(mo?('\u2014 '+((impMonths().find(m=>m.key===mo)||{}).label||mo)):'(all divisions)');
+      cols=['#','Division','Weekend','Date','Day','Time','End','City','Arena','Ice Surface','Home','Away'];
+      const mk=g=>({c:[(g.gameNo==null?'':g.gameNo),g.division,wkCell(g),dateCell(g),g.day||'',timeCell(g),(g.endTime?clock12(g.endTime):''),cityCell(g),arenaCell(g),sheetCell(g),g.home,g.away],k:g.division});
       const divsSeen=[...new Set(gs.map(g=>g.division))].sort((a,b)=>DIVORDER.indexOf(a)-DIVORDER.indexOf(b));
       rows=[];
       divsSeen.forEach(dv=>{const dgs=gs.filter(g=>g.division===dv);const dr=dgs.map(mk);
-        injectEvents(dr,dgs,cols,dv);rows=rows.concat(dr);});
+        if(!mo) injectEvents(dr,dgs,cols,dv);
+        rows=rows.concat(dr);});
       color=r=>r.k==='EVENT'?'#FFF2CC':(DIVFILL[r.k]||'#ffffff'); legend='color = division \u00b7 Alpine Cup & playoffs = gold (day/time TBD) \u00b7 every game in the league (unscheduled games show TBD)';
     } else if(kind==='sourced'){
       // Weekend \u00d7 location matrix of sourcing asks. Each cell: per-day count \u00d7 length \u00d7 window.
@@ -5316,9 +5325,185 @@ const XP=(function(){
     a.download=staffTitle().replace(/[^A-Za-z0-9]+/g,'_').replace(/^_+|_+$/g,'')+'.xls';
     document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},0);
   }
+  // --- Game import CSV -----------------------------------------------------------------
+  // The league schedule in the MSA / SportsHeadz game-import template (the 21-column
+  // "Import-Template" layout), for the whole season or one month. Field conventions come from
+  // FSL's own accepted 2025-26 upload: Season "2026-27", Game Type "Regular Season", dates
+  // M/D/YYYY, times h:MM AM/PM. SubDivision is unused by this league, and the Display / score /
+  // result columns are left blank for a schedule that hasn't been played.
+  const IMP_COLS=['Season','Game Type','Home Division','Away Division','Date','Start Time','Game Number',
+    'Home SubDivision','Away SubDivision','Home Team','Home Team Display','Away Team','Away Team Display',
+    'Arena','End Time','Home Score','Away Score','Completed','OT','SO','Notes'];
+  const IMP_SEASON='2026-27', IMP_TYPE='Regular Season';
+  const MONTHABBR=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  // The Friday of a weekend, read off its display date. Anchoring on the real weekday rather
+  // than assuming the range starts on a Friday keeps Jan 02 right — that weekend runs Sat–Sun,
+  // so its Friday is Jan 1.
+  function impFriday(wk){
+    const s=WKDATE[wk]||'';
+    const m=/^\s*([A-Za-z]{3})[a-z]*\s+(\d{1,2})/.exec(s), y=/(20\d\d)/.exec(s);
+    const mi=m?MONTHABBR.indexOf(m[1]):-1;
+    if(mi<0||!y) return null;
+    const d=new Date(Date.UTC(+y[1],mi,+m[2]));
+    d.setUTCDate(d.getUTCDate()-((d.getUTCDay()-5+7)%7));
+    return d;
+  }
+  // Calendar date of a game, derived from weekend + day. The per-game `date` field is NOT used:
+  // it is only set on a couple of dozen games, in two different formats, and on several of them
+  // it contradicts `day` (e.g. a "Sat" game dated on a Friday). Weekend + day is what the rest
+  // of the app and every conflict rule already trust.
+  function impDateObj(g){
+    const f=impFriday(g&&g.weekend), off={Fri:0,Sat:1,Sun:2,Mon:3}[g&&g.day];
+    return (f&&off!=null)?new Date(f.getTime()+off*86400000):null;
+  }
+  const impYm=d=>d.getUTCFullYear()+'-'+String(d.getUTCMonth()+1).padStart(2,'0');
+  const impDate=g=>{const d=impDateObj(g);return d?((d.getUTCMonth()+1)+'/'+d.getUTCDate()+'/'+d.getUTCFullYear()):'';};
+  function impTime(t){
+    const m=/^(\d{1,2}):(\d{2})$/.exec(String(t==null?'':t).trim());
+    if(!m) return '';
+    let hh=+m[1]; const ap=hh<12?'AM':'PM'; hh=hh%12||12;
+    return hh+':'+m[2]+' '+ap;
+  }
+  // Arena string for the import: the building, with the city prefix and any internal "(...)"
+  // note dropped, plus the ice surface when that actually adds something. Surfaces in the data
+  // are inconsistent — some already spell out the building ("Silent Ice Center - Hatch Co.
+  // Arena"), some repeat the arena verbatim, some name only the sheet — so collapse the two
+  // rather than blindly joining them.
+  function impBuilding(g){
+    if(!hasVenue(g)) return '';
+    const raw=repsPlace(g.venue).arena;
+    return raw.replace(/\s*\([^)]*\)\s*$/,'').trim()||raw;
+  }
+  const impSq=x=>String(x).toLowerCase().replace(/centre/g,'center').replace(/[^a-z0-9]/g,'');
+  // If, at one venue, every ice surface that spells out the building spells it the SAME way,
+  // adopt that spelling for the games there that have no surface recorded. Otherwise a single
+  // venue reaches the league system under two names — "Civic Centre" for the games with no
+  // sheet, "Kimberley Civic Center" for the ones with. Ambiguous venues (Silent Ice, where two
+  // surfaces name the building differently) are left alone.
+  function impCanonName(venue){
+    let found;
+    for(const g of games){
+      if(g.venue!==venue||!hasVenue(g)) continue;
+      const s=String(g.sheet||'').trim();
+      if(!s||!impSq(s).includes(impSq(impBuilding(g)))) continue;
+      if(found===undefined) found=s; else if(found!==s) return null;
+    }
+    return found===undefined?null:found;
+  }
+  function impArena(g){
+    if(!hasVenue(g)) return '';
+    const a=impBuilding(g);
+    const s=String(g.sheet||'').trim();
+    if(!s) return impCanonName(g.venue)||a;
+    const sq=impSq;
+    if(sq(s).includes(sq(a))) return s;          // the sheet already names the building
+    if(sq(a).includes(sq(s))) return a;          // the building already names the sheet
+    const segs=a.split(/\s+-\s+/), last=segs[segs.length-1];
+    if(last&&sq(s).startsWith(sq(last))){segs[segs.length-1]=s;return segs.join(' - ');}
+    return a+' - '+s;
+  }
+  // Month a game belongs to. Uses the real calendar date so a weekend straddling a month
+  // boundary (Oct 30 → Nov 1) splits correctly. Games with no day fall back to their weekend;
+  // parking-garage games have no weekend for reporting purposes, so they belong to no month.
+  function impMonthOf(g){
+    if(isParkedG(g)) return null;
+    const d=impDateObj(g); if(d) return impYm(d);
+    const f=impFriday(g&&g.weekend); return f?impYm(f):null;
+  }
+  function impMonths(){
+    const seen=[], out=[];
+    WK.forEach(wk=>{
+      const f=impFriday(wk); if(!f) return;
+      [0,1,2].forEach(o=>{
+        const d=new Date(f.getTime()+o*86400000), k=impYm(d);
+        if(seen.indexOf(k)<0){seen.push(k);out.push({key:k,label:(MONTHNAME[MONTHABBR[d.getUTCMonth()]]||'')+' '+d.getUTCFullYear()});}
+      });
+    });
+    return out.sort((a,b)=>a.key.localeCompare(b.key));
+  }
+  // Buildings that look like the same arena spelled more than one way, plus venues that are
+  // still a placeholder. These are REPORTED, never auto-merged: deciding that two spellings are
+  // one building is a judgement about her real venues, and a wrong guess uploads bad data to the
+  // league system. Fixing the venue name in the app instead also fixes the Bible sync, the rep
+  // and broadcast plans, and conflict detection — not just this one CSV.
+  const impIsPlaceholder=n=>!n||/\bTBD\b/i.test(n)||/^to source$/i.test(n);
+  function impArenaAudit(){
+    const counts=new Map();
+    impGames().forEach(g=>{const b=(hasVenue(g)?(impCanonName(g.venue)||impBuilding(g)):'')||'(no venue)';counts.set(b,(counts.get(b)||0)+1);});
+    const names=[...counts.keys()];
+    const at=n=>({name:n,n:counts.get(n)});
+    const placeholders=names.filter(n=>n==='(no venue)'||impIsPlaceholder(n)).map(at).sort((a,b)=>b.n-a.n);
+    const real=names.filter(n=>!(n==='(no venue)'||impIsPlaceholder(n)));
+    const norm=s=>String(s).toLowerCase().replace(/centre/g,'center').replace(/^the\s+/,'').replace(/[^a-z0-9]/g,'');
+    const used=new Set(), groups=[];
+    real.forEach(a=>{
+      if(used.has(a)) return;
+      const na=norm(a);
+      const fam=real.filter(b=>{const nb=norm(b);
+        return na===nb||(na.length>=6&&nb.length>=6&&(na.includes(nb)||nb.includes(na)));});
+      if(fam.length>1){fam.forEach(x=>used.add(x));groups.push(fam.map(at).sort((x,y)=>y.n-x.n));}
+    });
+    return {groups,placeholders};
+  }
+  const impScope=()=>{const k=String(STATE.key||'ALL');return k.indexOf('MO:')===0?{kind:'month',key:k.slice(3)}:{kind:'season'};};
+  // Schedule order, with anything not yet dated-and-timed pushed to the bottom so those rows are
+  // easy to delete before uploading.
+  function impGames(){
+    const s=impScope();
+    let gs=games.slice().sort(gsortTbd);
+    if(s.kind==='month') gs=gs.filter(g=>impMonthOf(g)===s.key);
+    const ready=g=>!!(impDate(g)&&g.time);
+    return gs.filter(ready).concat(gs.filter(g=>!ready(g)));
+  }
+  const impRow=g=>[IMP_SEASON,IMP_TYPE,g.division||'',g.division||'',impDate(g),impTime(g.time),
+    (g.gameNo==null?'':String(g.gameNo)),'','',g.home||'','',g.away||'','',
+    impArena(g),impTime(g.endTime),'','','','','',''];
+  const impRows=()=>impGames().map(impRow);
+  function impTitle(){
+    const s=impScope();
+    if(s.kind==='month') return 'FSL 2026-27 game import · '+((impMonths().find(m=>m.key===s.key)||{}).label||s.key);
+    return 'FSL 2026-27 game import · whole season';
+  }
+  const impQ=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"';
+  function impCsv(){
+    const lines=[IMP_COLS.map(impQ).join(',')].concat(impRows().map(r=>r.map(impQ).join(',')));
+    const blob=new Blob(['\uFEFF'+lines.join('\r\n')+'\r\n'],{type:'text/csv;charset=utf-8'});
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+    a.download=impTitle().replace(/[^A-Za-z0-9]+/g,'_').replace(/^_+|_+$/g,'')+'.csv';
+    document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},0);
+  }
+  const impNotReady=()=>impGames().filter(g=>!(impDate(g)&&g.time)).length;
+  function impPreview(){
+    const rows=impRows(), CAP=150, bd='#d9d9e3';
+    const th=c=>`<th style="background:#2f3b5c;color:#fff;padding:4px 6px;border:1px solid ${bd};font-size:11px;text-align:left;white-space:nowrap">${esc(c)}</th>`;
+    if(!rows.length) return '<div class="dt">No games in this selection.</div>';
+    const notReady=impNotReady();
+    let out=`<tr><td colspan="${IMP_COLS.length}" style="background:#111;color:#fff;font-weight:bold;font-size:13pt;padding:6px;border:1px solid ${bd}">${esc(impTitle())}</td></tr>`;
+    out+=`<tr><td colspan="${IMP_COLS.length}" style="background:#EEEDFE;padding:3px 8px;border:1px solid ${bd};font-size:12px"><b>${rows.length}</b> game${rows.length===1?'':'s'}${notReady?(' · <b>'+notReady+'</b> not yet dated/timed — those rows are last, with Date and Start Time blank'):''}${rows.length>CAP?(' · showing the first '+CAP+' below; the file has all '+rows.length):''}</td></tr>`;
+    const aud=impArenaAudit();
+    if(aud.groups.length||aud.placeholders.length){
+      let w='<b>Worth a look before uploading</b> \u2014 Arena names go into the league system as-is.';
+      aud.groups.forEach(gp=>{
+        w+='<br>\u00b7 one building, '+gp.length+' spellings: '+gp.map(x=>esc(x.name)+' ('+x.n+')').join('  \u00b7  ');
+      });
+      if(aud.placeholders.length){
+        w+='<br>\u00b7 no real arena yet: '+aud.placeholders.map(x=>esc(x.name)+' ('+x.n+')').join('  \u00b7  ');
+      }
+      out+=`<tr><td colspan="${IMP_COLS.length}" style="background:#FFF4E5;padding:5px 8px;border:1px solid ${bd};font-size:11.5px;line-height:1.5;color:#5a4630">${w}</td></tr>`;
+    }
+    out+='<tr>'+IMP_COLS.map(th).join('')+'</tr>';
+    rows.slice(0,CAP).forEach((r,i)=>{
+      out+='<tr>'+r.map(c=>`<td style="padding:3px 8px;border:1px solid ${bd};font-size:11.5px;white-space:nowrap;background:${i%2?'#FAFAFC':'#fff'}">${esc(c)}</td>`).join('')+'</tr>';
+    });
+    return `<div style="max-height:62vh;overflow:auto;border:1px solid var(--line-l);border-radius:8px"><table style="border-collapse:collapse;min-width:100%">${out}</table></div>`;
+  }
   function doExport(){ensureKey();
     if(STATE.kind==='itineraries'){ const n=DATA.teams.length; itinXls(); showToast('Exported '+n+' team itineraries (grouped by division) \u2014 FSL_Team_Itineraries.xls','good'); return; }
     if(STATE.kind==='broadcast'){ const n=bcastAllRows().length; bcastXls(); showToast('Exported the broadcast plan \u2014 '+n+' arena-weekend'+(n===1?'':'s')+' ranked by film value \u2014 FSL_Broadcast_Plan.xls','good'); return; }
+    if(STATE.kind==='import'){ const n=impRows().length;
+      if(!n){showToast('No games in this selection.','warn');return;}
+      const nr=impNotReady(); impCsv();
+      showToast('Exported '+n+' game'+(n===1?'':'s')+' in the upload template'+(nr?(' \u2014 '+nr+' still need a date/time'):'')+'.',nr?'warn':'good'); return; }
     if(STATE.kind==='staffsched'){ const n=staffFiltered().length; staffXls();
       showToast('Exported '+n+' staff duty row'+(n===1?'':'s')+'.','good'); return; }
     if(STATE.kind==='reps'){ const wks=repsScopeWks(); let reps=0; wks.forEach(w=>{reps+=repsRows(w).length;});
@@ -5332,13 +5517,14 @@ const XP=(function(){
     ensureKey();
     const prim='padding:6px 14px;border-radius:8px;border:1px solid transparent;background:var(--ok);color:#fff;font-size:12px;font-weight:700;cursor:pointer;';
     const selSty='margin-top:3px;padding:4px 8px;border:1px solid var(--line-l);border-radius:7px;font-size:12px;max-width:340px';
-    const typeOpts=[['league','\uD83C\uDFD2 Whole league (all divisions)'],['itineraries','\uD83D\uDCCB Team itineraries (all teams by division)'],['broadcast','\uD83C\uDFA5 Broadcast plan (arenas by weekend, ranked)'],['reps','\uD83E\uDDCD Rep plan (one rep per arena, by weekend)'],['staffsched','\uD83D\uDCC5 Rep & timekeeper schedules (season / month / weekend / person)'],['team','Team schedule'],['division','Division schedule'],['weekend','Weekend schedule'],['city','Venue schedule (by city)'],['arena','Arena schedule (by building)'],['arenawknd','Arena \u2014 one weekend (send to the arena)'],['sourced','\uD83D\uDD34 Ice to source (incl. over-capacity)'],['unused','\uD83D\uDFE2 Unused ice (spare real slots)']];
+    const typeOpts=[['league','\uD83C\uDFD2 Whole league (all divisions)'],['itineraries','\uD83D\uDCCB Team itineraries (all teams by division)'],['broadcast','\uD83C\uDFA5 Broadcast plan (arenas by weekend, ranked)'],['reps','\uD83E\uDDCD Rep plan (one rep per arena, by weekend)'],['staffsched','\uD83D\uDCC5 Rep & timekeeper schedules (season / month / weekend / person)'],['import','\uD83D\uDCC4 Game import CSV \u2014 upload template (season / month)'],['team','Team schedule'],['division','Division schedule'],['weekend','Weekend schedule'],['city','Venue schedule (by city)'],['arena','Arena schedule (by building)'],['arenawknd','Arena \u2014 one weekend (send to the arena)'],['sourced','\uD83D\uDD34 Ice to source (incl. over-capacity)'],['unused','\uD83D\uDFE2 Unused ice (spare real slots)']];
     const items=itemsFor(STATE.kind);
     const isItin=STATE.kind==='itineraries';
     const isBcast=STATE.kind==='broadcast';
     const isReps=STATE.kind==='reps';
     const isStaff=STATE.kind==='staffsched';
-    const isMulti=isItin||isBcast||isReps||isStaff;   // multi-table reports build their own markup, not via spec()
+    const isImport=STATE.kind==='import';
+    const isMulti=isItin||isBcast||isReps||isStaff||isImport;   // multi-table reports build their own markup, not via spec()
     const sp=(!isMulti&&STATE.key!=null&&(!needsWk(STATE.kind)||STATE.key2!=null))?spec(STATE.kind,STATE.key,STATE.key2):null;
     const wkSel=needsWk(STATE.kind)?`<label style="font-size:12px;font-weight:700">Weekend<br><select data-actchange="xpKey2" style="${selSty}">${itemsFor2().map(([v,l])=>`<option value="${escA(v)}" ${v===STATE.key2?'selected':''}>${esc(l)}</option>`).join('')}</select></label>`:'';
     const info=isItin
@@ -5353,7 +5539,7 @@ const XP=(function(){
           let reps=0, gms=0; wks.forEach(w=>{const rs=repsRows(w); reps+=rs.length; gms+=rs.reduce((s,r)=>s+r.games,0);});
           return `<div style="font-size:12px;color:var(--mut-d)">${wks.length>1?('<b>'+wks.length+'</b> weekends \u00b7 '):''}<b>${reps}</b> rep${reps===1?'':'s'} needed \u00b7 <b>${gms}</b> game${gms===1?'':'s'} \u00b7 one rep per arena</div>`;})()
       : (sp?`<div style="font-size:12px;color:var(--mut-d)"><b>${sp.rows.length}</b> ${(sp.kind==='sourced'||sp.kind==='unused')?'venue-weekend'+(sp.rows.length===1?'':'s'):'games'} \u00b7 ${esc(sp.legend)}</div>`:'');
-    const preview=isItin?itinPreview():isBcast?bcastPreview():isReps?repsPreview():isStaff?staffPreview():(sp?renderTable(sp):'<div class="dt">No selection.</div>');
+    const preview=isItin?itinPreview():isBcast?bcastPreview():isReps?repsPreview():isStaff?staffPreview():isImport?impPreview():(sp?renderTable(sp):'<div class="dt">No selection.</div>');
     return `<div class="wk-head"><h2>\uD83D\uDCE4 Schedule exports</h2>
       <div class="dt">Pick a report and an item, preview it, and download a color-coded Excel file. Reflects the live schedule, including any times you have applied. (Excel may say the file type differs from the extension on open \u2014 that is normal for this styled format; click Yes.)</div></div>
       <div class="card" style="padding:14px;display:flex;gap:16px;flex-wrap:wrap;align-items:flex-end">
@@ -5365,7 +5551,7 @@ const XP=(function(){
           <option value="rep" ${STATE.role==='rep'?'selected':''}>Reps only</option>
           <option value="tk" ${STATE.role==='tk'?'selected':''}>Timekeeping only</option>
         </select></label>`:''}
-        <button data-act="xpExport" style="${prim}">\u2b07 Export to Excel</button>
+        <button data-act="xpExport" style="${prim}">\u2b07 Export to ${isImport?'CSV':'Excel'}</button>
         ${info}
       </div>
       <div style="margin-top:14px">${preview}</div>`;
@@ -5373,7 +5559,8 @@ const XP=(function(){
   return {view,spec,itemsFor,itemsFor2,xlsHtml,toXls,setKind,setKey,setKey2,setRole,doExport,_state:()=>STATE,
     bcastSheetRows,bcastAllRows,bcastTier,bcastXls,BCAST_FILM,BCAST_MUST,BCAST_TIERS,
     repsRows,repsScopeWks,repsXls,
-    staffDutyRows,staffFiltered,staffMonths,staffXls,staffScope};
+    staffDutyRows,staffFiltered,staffMonths,staffXls,staffScope,
+    IMP_COLS,impRows,impMonths,impCsv,impDate,impTime,impArena,impBuilding,impArenaAudit,impMonthOf,impNotReady,impTitle};
 })();
 window.XP=XP;
 
@@ -6750,7 +6937,7 @@ render();
     +'display:flex;align-items:center;gap:7px;cursor:default;user-select:none;transition:.2s';
   // BUILD MARKER: shown next to the sync status so "which version am I actually running?" is never a
   // guessing game again. Bump this string whenever the sync/boot logic changes.
-  const FSL_BUILD='2026-08-01d';
+  const FSL_BUILD='2026-08-02a';
   window.__fslBuild=FSL_BUILD;
   function setPill(txt,color){ pill.innerHTML='<span style="width:8px;height:8px;border-radius:50%;background:'+(color||'#8a8a90')+';display:inline-block"></span>'+txt+'<span style="opacity:.55;font-weight:600;margin-left:7px">build '+FSL_BUILD+'</span>'; }
   pill.style.cursor='pointer';
