@@ -5424,6 +5424,13 @@ const XP=(function(){
     'edmontonmorinvillesilenticegardens|morinvillesilenticegardens':'Morinville Silent Ice Gardens',
     'edmontonmorinvillesilenticegardens|silenticecentermorinvillegardens':'Morinville Silent Ice Gardens',
     'morinvillesilenticegardens|morinvillesilenticegardens':'Morinville Silent Ice Gardens',
+    // Banff — she confirmed Fenlands is the Banff Recreation Centre, Arena 1
+    'banfffenlandsarena|':'Banff Recreation Centre - Arena 1',
+    // Calgary — she confirmed Calgary East Arena is the East Calgary Twin, Blue sheet
+    'calgarycalgaryeastarena|':'East Calgary Twin Arena Blue',
+    // Morinville — the town has one arena in the registry, and she confirmed the app's
+    // Morinville names all mean the same building
+    'morinvillemorinvillearena|':'Morinville Silent Ice Gardens',
     // Calgary
     'calgary7chiefssportsplex|rink1':'7 Chiefs Sportsplex & Jim Starlight Centre (1)',
     'calgary7chiefssportsplex|rink2':'7 Chiefs Sportsplex & Jim Starlight Centre (2)',
@@ -5451,6 +5458,12 @@ const XP=(function(){
   const impOfficialKey=(venue,sheet)=>
     impSq(String(venue==null?'':venue).replace(/\s*\([^)]*\)\s*$/,''))+'|'+impSq(sheet);
   const impOfficial=g=>hasVenue(g)?(ARENA_OFFICIAL[impOfficialKey(g.venue,g.sheet)]||null):null;
+  // Games whose ice surface names a different building than their venue does. Only entry so far:
+  // two Dec 11 12U AAA games sit on the Abbotsford venue but are really Saturday-evening overflow
+  // onto Coquitlam Planet Ice (confirmed by her). Corrected here so the upload doesn't name the
+  // wrong city; the venue record itself still says Abbotsford and should be fixed in the app.
+  const ARENA_MISFILED={'abbotsfordtherinksatsummitcenter|coquitlamplanetice':'Planet Ice Coquitlam'};
+  const impMisfiled=g=>hasVenue(g)?(ARENA_MISFILED[impOfficialKey(g.venue,g.sheet)]||null):null;
 
   // If, at one venue, every ice surface that spells out the building spells it the SAME way,
   // adopt that spelling for the games there that have no surface recorded. Otherwise a single
@@ -5471,6 +5484,8 @@ const XP=(function(){
     if(!hasVenue(g)) return '';
     const off=impOfficial(g);
     if(off) return off;
+    const mis=impMisfiled(g);
+    if(mis) return mis;
     const a=impBuilding(g);
     const s=String(g.sheet||'').trim();
     if(!s) return impCanonName(g.venue)||a;
@@ -5513,6 +5528,7 @@ const XP=(function(){
       const cell=impArena(g);
       if(!hasVenue(g)||impIsPlaceholder(cell)) return bump(placeholders,cell||'(no venue)');
       if(impOfficial(g)) return bump(matched,cell);
+      if(impMisfiled(g)) return bump(unmatched,cell+'   \u2190 venue record says Abbotsford \u2014 fix in the app; still needs an ice number');
       bump(unmatched,cell+(g.sheet?'':'   \u2190 no ice surface recorded'));
     });
     const rows=m=>[...m.entries()].map(([name,n])=>({name,n})).sort((a,b)=>b.n-a.n||a.name.localeCompare(b.name));
@@ -7012,7 +7028,7 @@ render();
     +'display:flex;align-items:center;gap:7px;cursor:default;user-select:none;transition:.2s';
   // BUILD MARKER: shown next to the sync status so "which version am I actually running?" is never a
   // guessing game again. Bump this string whenever the sync/boot logic changes.
-  const FSL_BUILD='2026-08-02b';
+  const FSL_BUILD='2026-08-02c';
   window.__fslBuild=FSL_BUILD;
   function setPill(txt,color){ pill.innerHTML='<span style="width:8px;height:8px;border-radius:50%;background:'+(color||'#8a8a90')+';display:inline-block"></span>'+txt+'<span style="opacity:.55;font-weight:600;margin-left:7px">build '+FSL_BUILD+'</span>'; }
   pill.style.cursor='pointer';
