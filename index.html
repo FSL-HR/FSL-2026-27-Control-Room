@@ -1639,6 +1639,10 @@ function sidebar(){
       <span class="big">⏱</span>
       <span><span class="l1">Time entire season</span><br><span class="l2">Real slots + 1-rink hypo</span></span>
     </button>
+    <button class="ice-btn" data-nav="staff" style="margin-top:8px">
+      <span class="big">🧍</span>
+      <span><span class="l1">Reps &amp; timekeepers</span><br><span class="l2">Assign &amp; export staff</span></span>
+    </button>
     <button class="ice-btn" data-nav="exports" style="margin-top:8px">
       <span class="big">📤</span>
       <span><span class="l1">Schedule exports</span><br><span class="l2">Color-coded Excel</span></span>
@@ -1689,6 +1693,7 @@ function main(){
   else if(view.type==='team'){body=teamView(view.team,view.div);crumb=`Teams › <b>${view.team}</b>`;}
   else if(view.type==='teams'){body=teamsView();crumb='<b>Teams &amp; rosters</b>';}
   else if(view.type==='tbd'){body=tbdView();crumb='<b>To place (TBD)</b>';}
+  else if(view.type==='staff'){body=staffView();crumb='<b>Reps &amp; timekeepers</b>';}
   else if(view.type==='conflicts'){body=conflictsView();crumb='<b>Conflicts</b>';}
   else if(view.type==='travelmatrix'){body=travelMatrixView();crumb='Travel › <b>Matrix</b>';}
   else if(view.type==='itineraries'){body=itinerariesView();crumb='Travel › <b>Itineraries</b>';}
@@ -3804,6 +3809,66 @@ function setManualTime(id, patch){
   return true;
 }
 function clearManualTime(id){ delete MANUAL_TIMES[String(id)]; saveManualTimes(); }
+
+/* ===== STAFF: reps & timekeepers (2026-08-01, user) =====
+   Two kinds of assignment, deliberately keyed differently:
+     REP — one per ARENA per WEEKEND, covering every game and division in that building.
+           Keyed "weekend|||venue", because a rep is booked to a building for a weekend, not
+           to a game. If every game leaves that arena the assignment is orphaned, and the
+           staffing page surfaces it rather than silently dropping it.
+     TK  — one per GAME, 14U and older only (12U AAA is never timekept). Keyed by GAME ID,
+           which is stable and survives re-timing, so a timekeeper automatically follows their
+           game when it moves day, time, sheet, venue or weekend — no re-assignment needed.
+   STAFF is the roster: a name is remembered the first time it is used and offered thereafter.
+   The person id is derived from the name, so the same person typed on two different machines
+   collapses to one roster entry when the cloud merge runs instead of duplicating. */
+var STAFF=(function(){try{return JSON.parse(localStorage.getItem('fsl_staff_v1')||'{}')||{};}catch(e){return {};}})();
+function saveStaff(){try{localStorage.setItem('fsl_staff_v1',JSON.stringify(STAFF));}catch(e){}}
+var REP_ASSIGN=(function(){try{return JSON.parse(localStorage.getItem('fsl_rep_assign_v1')||'{}')||{};}catch(e){return {};}})();
+function saveRepAssign(){try{localStorage.setItem('fsl_rep_assign_v1',JSON.stringify(REP_ASSIGN));}catch(e){}}
+var TK_ASSIGN=(function(){try{return JSON.parse(localStorage.getItem('fsl_tk_assign_v1')||'{}')||{};}catch(e){return {};}})();
+function saveTkAssign(){try{localStorage.setItem('fsl_tk_assign_v1',JSON.stringify(TK_ASSIGN));}catch(e){}}
+
+const TK_DIVS=new Set(['14U AA','14U AAA','16U AA','16U AAA','19U AAA']);  // 14U and older; 12U AAA never
+const needsTk=g=>!!(g && TK_DIVS.has(g.division));
+function staffIdFor(name){ return 'p_'+String(name||'').trim().toLowerCase().replace(/[^a-z0-9]+/g,'_').replace(/^_+|_+$/g,''); }
+function staffAdd(name){
+  name=String(name||'').trim(); if(!name) return '';
+  const id=staffIdFor(name); if(!id) return '';
+  if(!STAFF[id]){ STAFF[id]={id:id,name:name}; saveStaff(); }
+  return id;
+}
+function staffName(id){ const p=STAFF[String(id)]; return p?p.name:''; }
+function staffList(){ return Object.keys(STAFF).map(k=>STAFF[k]).filter(Boolean).sort((a,b)=>String(a.name).localeCompare(String(b.name))); }
+function staffRemove(id){ id=String(id); if(!STAFF[id]) return false;
+  delete STAFF[id]; saveStaff();
+  Object.keys(REP_ASSIGN).forEach(k=>{ if(REP_ASSIGN[k]===id) delete REP_ASSIGN[k]; }); saveRepAssign();
+  Object.keys(TK_ASSIGN).forEach(k=>{ if(TK_ASSIGN[k]===id) delete TK_ASSIGN[k]; }); saveTkAssign();
+  return true;
+}
+const repKey=(wk,venue)=>String(wk)+'|||'+String(venue);
+function repFor(wk,venue){ return REP_ASSIGN[repKey(wk,venue)]||''; }
+function tkFor(gid){ return TK_ASSIGN[String(gid)]||''; }
+// Passing a blank name clears the assignment. Any new name joins the roster automatically.
+function setRep(wk,venue,name){
+  const k=repKey(wk,venue), id=staffAdd(name);
+  if(id) REP_ASSIGN[k]=id; else delete REP_ASSIGN[k];
+  saveRepAssign(); return id;
+}
+function setTk(gid,name){
+  const k=String(gid), id=staffAdd(name);
+  if(id) TK_ASSIGN[k]=id; else delete TK_ASSIGN[k];
+  saveTkAssign(); return id;
+}
+// Arenas that need a rep on a weekend = the distinct venues with games there (see the Rep plan export).
+function repArenasFor(wk){
+  return [...new Set(gamesFor(wk).filter(g=>g.venue&&String(g.venue).trim()).map(g=>g.venue))].sort();
+}
+// Rep assignments whose arena-weekend no longer has any games — surfaced, never silently dropped.
+function repOrphans(){
+  const live=new Set(); WK.forEach(wk=>repArenasFor(wk).forEach(v=>live.add(repKey(wk,v))));
+  return Object.keys(REP_ASSIGN).filter(k=>!live.has(k));
+}
 // Shed ALL id-keyed time state when a game LEAVES its venue/slot, so nothing stale can be re-stamped
 // at the new location: MANUAL_TIMES is the lock applyManualTimes() re-applies (this was the bug — the
 // old day/time/rink came back at the new venue); HYPO_TIMES is the planning time for the OLD unsourced
@@ -4412,6 +4477,85 @@ window.IMP=IMP;
 
 
 /* ============ SCHEDULE EXPORTS (color-coded Excel) ============ */
+/* ============ REPS & TIMEKEEPERS ============
+   Assignment page. Reps are picked per arena for the chosen weekend; timekeepers per game,
+   14U and older only. Both inputs are free text backed by a shared <datalist> of everyone
+   already on the roster, so a name is typed once and offered by the browser thereafter.
+   Clearing an input removes the assignment. */
+var STAFF_WK=null;   // weekend being staffed, or null = first weekend with games
+function staffView(){
+  const wks=WK.filter(w=>gamesFor(w).some(g=>g.venue&&String(g.venue).trim()));
+  const wk=(STAFF_WK&&wks.includes(STAFF_WK))?STAFF_WK:(wks[0]||WK[0]);
+  const roster=staffList();
+  const dl=`<datalist id="stafflist">${roster.map(p=>`<option value="${iceEscA(p.name)}"></option>`).join('')}</datalist>`;
+  const inp='padding:5px 8px;border:1px solid var(--line-l);border-radius:7px;font-size:12px;min-width:190px';
+
+  const wkPick=`<select data-actchange="staffWk" style="padding:5px 9px;border:1px solid var(--line-l);border-radius:7px;font-size:13px;font-weight:700">
+    ${wks.map(w=>{const a=repArenasFor(w).length;const t=gamesFor(w).filter(needsTk).length;
+      const done=repArenasFor(w).filter(v=>repFor(w,v)).length + gamesFor(w).filter(g=>needsTk(g)&&tkFor(g.id)).length;
+      return `<option value="${iceEscA(w)}" ${w===wk?'selected':''}>${iceEscA(w)}  (${WKDATE[w]||''})  —  ${a} rep${a===1?'':'s'}, ${t} TK  ·  ${done}/${a+t} filled</option>`;}).join('')}
+  </select>`;
+
+  // ---- reps: one row per arena at this weekend ----
+  const arenas=repArenasFor(wk);
+  const repRows=arenas.map(v=>{
+    const n=gamesFor(wk).filter(g=>g.venue===v).length;
+    const cur=staffName(repFor(wk,v));
+    return `<tr><td class="tm">${iceEscA(v.replace(/\s*\(NEW\)/i,''))}</td><td style="text-align:center">${n}</td>
+      <td><input list="stafflist" value="${iceEscA(cur)}" placeholder="— unassigned —" style="${inp};${cur?'':'background:#FFF8E1'}"
+        data-actchange="staffSetRep" data-wk="${iceEscA(wk)}" data-venue="${iceEscA(v)}"></td></tr>`;
+  }).join('');
+
+  // ---- timekeepers: one row per 14U+ game, grouped by arena ----
+  const tkGames=gamesFor(wk).filter(g=>g.venue&&String(g.venue).trim()&&needsTk(g))
+    .sort((a,b)=>String(a.venue).localeCompare(String(b.venue))||({Fri:0,Sat:1,Sun:2}[a.day]??9)-({Fri:0,Sat:1,Sun:2}[b.day]??9)||String(a.time||'').localeCompare(String(b.time||'')));
+  let lastV=null, tkRows='';
+  tkGames.forEach(g=>{
+    if(g.venue!==lastV){ lastV=g.venue;
+      tkRows+=`<tr><td colspan="5" style="background:var(--blk3);color:#fff;font-weight:800;font-size:12px">${iceEscA(g.venue.replace(/\s*\(NEW\)/i,''))}</td></tr>`; }
+    const cur=staffName(tkFor(g.id));
+    tkRows+=`<tr><td style="font-weight:800;color:var(--red);font-size:11px;white-space:nowrap">${matchNo(g)}</td>
+      <td class="tm" style="white-space:nowrap">${g.day||'—'} ${g.time?clock12(g.time):'—'}</td>
+      <td><span class="pill">${iceEscA(g.division)}</span></td>
+      <td class="tm">${iceEscA(g.home)} <span style="color:var(--mut)">vs</span> ${iceEscA(g.away)}</td>
+      <td><input list="stafflist" value="${iceEscA(cur)}" placeholder="— unassigned —" style="${inp};${cur?'':'background:#FFF8E1'}"
+        data-actchange="staffSetTk" data-id="${iceEscA(g.id)}"></td></tr>`;
+  });
+
+  const twelve=gamesFor(wk).filter(g=>g.venue&&String(g.venue).trim()&&!needsTk(g)).length;
+  const orph=repOrphans();
+  const orphBlock=orph.length?`<div class="conf-banner" style="background:var(--warnbg);border:1px solid #e8d9a8;color:#8a6d1a"><span class="ic">◷</span>
+    <div><b>${orph.length} rep assignment${orph.length>1?'s have':' has'} no games any more.</b> The arena-weekend was staffed, then every game moved away:
+    ${orph.map(k=>{const p=k.split('|||');return iceEscA(p[0]+' · '+p[1].replace(/\s*\(NEW\)/i,'')+' → '+staffName(REP_ASSIGN[k]));}).join(' &nbsp;·&nbsp; ')}.
+    <button data-act="staffClearOrphans" style="margin-left:8px;font-size:11px;padding:2px 9px;border:1px solid #E0A743;border-radius:5px;background:#fff;color:#7a5b00;cursor:pointer;font-weight:700">Clear them</button></div></div>`:'';
+
+  // ---- roster ----
+  const rosterRows=roster.map(p=>{
+    const nRep=Object.keys(REP_ASSIGN).filter(k=>REP_ASSIGN[k]===p.id).length;
+    const nTk=Object.keys(TK_ASSIGN).filter(k=>TK_ASSIGN[k]===p.id).length;
+    return `<tr><td class="tm">${iceEscA(p.name)}</td><td style="text-align:center">${nRep}</td><td style="text-align:center">${nTk}</td>
+      <td><button data-act="staffDrop" data-id="${iceEscA(p.id)}" title="Remove from the roster and clear every assignment"
+        style="font-size:11px;padding:2px 8px;border:1px solid var(--line-l);border-radius:5px;background:#fff;color:var(--red);cursor:pointer">✕</button></td></tr>`;
+  }).join('')||'<tr><td colspan="4" style="color:var(--mut);font-style:italic">Nobody yet — type a name into any box below and it is remembered.</td></tr>';
+
+  return `${dl}
+  <div class="wk-head"><h2>Reps &amp; timekeepers</h2>
+    <div class="dt">One rep per arena for the weekend, covering every division in that building. One timekeeper per game, 14U and older
+    (12U AAA is never timekept${twelve?(' — '+twelve+' game'+(twelve===1?'':'s')+' skipped this weekend'):''}). Names are remembered once used.
+    Timekeepers follow their game automatically if it is re-timed or moved.</div></div>
+  ${orphBlock}
+  <div class="card" style="padding:12px;display:flex;gap:14px;align-items:center;flex-wrap:wrap">
+    <label style="font-size:12px;font-weight:700">Weekend<br>${wkPick}</label>
+    <div style="font-size:12px;color:var(--mut-d)"><b>${arenas.length}</b> rep${arenas.length===1?'':'s'} · <b>${tkGames.length}</b> timekeeper${tkGames.length===1?'':'s'} needed</div>
+  </div>
+  <div class="sectionhead"><h2><span class="bar"></span>Reps <span style="font-size:11.5px;color:var(--mut-d);font-weight:600">one per arena</span></h2></div>
+  <table class="tbl"><thead><tr><th>Arena</th><th>Games</th><th>Rep</th></tr></thead><tbody>${repRows||'<tr><td colspan="3" style="color:var(--mut)">No games this weekend.</td></tr>'}</tbody></table>
+  <div class="sectionhead"><h2><span class="bar"></span>Timekeepers <span style="font-size:11.5px;color:var(--mut-d);font-weight:600">14U and older, one per game</span></h2></div>
+  <table class="tbl"><thead><tr><th>Game</th><th>When</th><th>Div</th><th>Matchup</th><th>Timekeeper</th></tr></thead><tbody>${tkRows||'<tr><td colspan="5" style="color:var(--mut)">No 14U+ games this weekend.</td></tr>'}</tbody></table>
+  <div class="sectionhead"><h2><span class="bar"></span>People <span style="font-size:11.5px;color:var(--mut-d);font-weight:600">${roster.length} on the roster</span></h2></div>
+  <table class="tbl"><thead><tr><th>Name</th><th>Rep weekends</th><th>Games as TK</th><th></th></tr></thead><tbody>${rosterRows}</tbody></table>`;
+}
+
 const XP=(function(){
   const DIVORDER=['12U AAA','14U AA','14U AAA','16U AA','16U AAA','19U AAA'];
   const DIVFILL={'12U AAA':'#DDEBF7','14U AA':'#E2EFDA','14U AAA':'#C6E0B4','16U AA':'#FCE4D6','16U AAA':'#F8CBAD','19U AAA':'#E6D0F5'};
@@ -4595,6 +4739,13 @@ const XP=(function(){
     if(kind==='itineraries')return [['ALL','All teams \u2014 grouped by division']];
     if(kind==='broadcast')return [['ALL','All weekends \u2014 arenas ranked by film value']];
     // Rep plan: whole season, or drill into a single weekend.
+    if(kind==='staffsched'){
+      const out=[['ALL','Whole season \u2014 every duty']];
+      staffMonths().forEach(m=>out.push(['MO:'+m.key,'Month \u2014 '+m.label]));
+      WK.forEach(w=>out.push(['WK:'+w,'Weekend \u2014 '+w+'  ('+(WKDATE[w]||'')+')']));
+      staffList().forEach(p=>out.push(['P:'+p.id,'Person \u2014 '+p.name]));
+      return out;
+    }
     if(kind==='reps')return [['ALL','Whole season \u2014 every weekend']].concat(
       WK.map(w=>{const n=gamesFor(w).filter(g=>g.venue&&String(g.venue).trim()).length;
         const a=new Set(gamesFor(w).filter(g=>g.venue&&String(g.venue).trim()).map(g=>g.venue)).size;
@@ -4614,7 +4765,7 @@ const XP=(function(){
       .map(w=>{const n=games.filter(g=>g.venue===STATE.key&&g.weekend===w).length;
         return [w,w+'  ('+(WKDATE[w]||'')+')  \u2014  '+n+' game'+(n===1?'':'s')];});
   }
-  const kindLabel=k=>({league:'Scope',itineraries:'Scope',broadcast:'Scope',reps:'Scope',sourced:'Scope',unused:'Scope',team:'Team',division:'Division',weekend:'Weekend',city:'City',arena:'Arena / building',arenawknd:'Arena / building'}[k]||'Item');
+  const kindLabel=k=>({league:'Scope',itineraries:'Scope',broadcast:'Scope',reps:'Scope',staffsched:'Scope',sourced:'Scope',unused:'Scope',team:'Team',division:'Division',weekend:'Weekend',city:'City',arena:'Arena / building',arenawknd:'Arena / building'}[k]||'Item');
   function spec(kind,key,key2){
     let title='',cols=[],rows=[],color=()=>'#ffffff',legend='',note='';
     if(kind==='league'){
@@ -5021,9 +5172,126 @@ const XP=(function(){
     a.download='FSL_Rep_Plan'+(one?('_'+one.replace(/[^A-Za-z0-9]+/g,'_')):'')+'.xls';
     document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},0);
   }
+  /* ===== STAFF SCHEDULES (2026-08-01, user) =====
+     Every duty — rep or timekeeper — is emitted as ONE uniform row shape, so the same builder
+     serves all the scopes asked for: whole season, a month, a single weekend, or one person's
+     own schedule. A person's export is simply the same rows filtered to them, which keeps the
+     season/month/weekend views and the personal views guaranteed consistent with each other.
+     Unfilled duties are included as "— UNASSIGNED —" so the gaps are visible, except on a
+     person's own sheet where they would be meaningless. */
+  const STAFF_COLS=['Weekend','Date','Role','City','Arena','Assignment','When','Person'];
+  const MONTHNAME={Jan:'January',Feb:'February',Mar:'March',Apr:'April',May:'May',Jun:'June',
+    Jul:'July',Aug:'August',Sep:'September',Oct:'October',Nov:'November',Dec:'December'};
+  // Month a weekend belongs to, taken from its START date. The year comes off WKDATE
+  // ("Oct 30–Nov 1, 2026"), so a weekend that straddles a month boundary files under October.
+  function staffMonth(wk){
+    const mon=String(wk).trim().slice(0,3);
+    const ym=/(\d{4})/.exec(WKDATE[wk]||'');
+    const year=ym?ym[1]:'';
+    const idx=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'].indexOf(mon)+1;
+    return {key:year+'-'+String(idx).padStart(2,'0'), label:(MONTHNAME[mon]||mon)+' '+year};
+  }
+  function staffMonths(){
+    const seen=[], out=[];
+    WK.forEach(wk=>{ const m=staffMonth(wk); if(seen.indexOf(m.key)<0){ seen.push(m.key); out.push(m); } });
+    return out;
+  }
+  // One row per duty, in schedule order.
+  function staffDutyRows(){
+    const rows=[];
+    WK.forEach(wk=>{
+      const date=WKDATE[wk]||'';
+      repArenasFor(wk).forEach(v=>{
+        const pl=repsPlace(v), n=gamesFor(wk).filter(g=>g.venue===v).length, pid=repFor(wk,v);
+        rows.push({wk, date, month:staffMonth(wk), role:'Rep', city:pl.city, arena:(pl.arena===pl.city?'':pl.arena),
+          assignment:'All games ('+n+')', when:'Whole weekend', pid, person:staffName(pid), sort:'0'});
+      });
+      gamesFor(wk).filter(g=>g.venue&&String(g.venue).trim()&&needsTk(g))
+        .sort((a,b)=>({Fri:0,Sat:1,Sun:2}[a.day]??9)-({Fri:0,Sat:1,Sun:2}[b.day]??9)||String(a.time||'').localeCompare(String(b.time||'')))
+        .forEach(g=>{
+          const pl=repsPlace(g.venue), pid=tkFor(g.id);
+          rows.push({wk, date, month:staffMonth(wk), role:'Timekeeper', city:pl.city, arena:(pl.arena===pl.city?'':pl.arena),
+            assignment:matchNo(g)+'  '+g.division+'  '+g.home+' vs '+g.away,
+            when:(g.day||'—')+' '+(g.time?clock12(g.time):'—'), pid, person:staffName(pid), sort:'1'});
+        });
+    });
+    return rows;
+  }
+  function staffScope(){
+    const k=String(STATE.key||'ALL');
+    if(k.indexOf('P:')===0) return {kind:'person', pid:k.slice(2)};
+    if(k.indexOf('MO:')===0) return {kind:'month', key:k.slice(3)};
+    if(k.indexOf('WK:')===0) return {kind:'weekend', key:k.slice(3)};
+    return {kind:'season'};
+  }
+  function staffFiltered(){
+    const s=staffScope(); let rows=staffDutyRows();
+    if(s.kind==='person') return rows.filter(r=>r.pid===s.pid);
+    if(s.kind==='month')  rows=rows.filter(r=>r.month.key===s.key);
+    if(s.kind==='weekend')rows=rows.filter(r=>r.wk===s.key);
+    return rows;
+  }
+  function staffTitle(){
+    const s=staffScope();
+    if(s.kind==='person')  return 'FSL — Schedule for '+(staffName(s.pid)||'(unknown)');
+    if(s.kind==='month')   return 'FSL — Rep & Timekeeper schedule · '+((staffMonths().find(m=>m.key===s.key)||{}).label||s.key);
+    if(s.kind==='weekend') return 'FSL — Rep & Timekeeper schedule · '+s.key+' ('+(WKDATE[s.key]||'')+')';
+    return 'FSL — Rep & Timekeeper schedule · whole season';
+  }
+  function staffInner(forXls){
+    const nc=STAFF_COLS.length, bd=forXls?'#999999':'#556', cbd=forXls?'#cccccc':'#d9d9e3';
+    const pad=forXls?'4px':'3px 8px', nf=forXls?"mso-number-format:'\\@'":'';
+    const th=c=>`<th style="background:#2f3b5c;color:#ffffff;padding:4px 6px;border:1px solid ${bd};font-size:11px;text-align:left;white-space:nowrap">${esc(c)}</th>`;
+    const s=staffScope();
+    let rows=staffFiltered();
+    if(s.kind!=='person') { /* keep unassigned rows so gaps show */ }
+    let out='';
+    if(!rows.length){
+      return `<tr><td colspan="${nc}" style="background:#F7F7F8;color:#8a8a90;font-style:italic;padding:${pad};border:1px solid ${cbd};font-size:12px">Nothing to show for this selection.</td></tr>`;
+    }
+    // summary line
+    const nRep=rows.filter(r=>r.role==='Rep').length, nTk=rows.filter(r=>r.role==='Timekeeper').length;
+    const unfilled=rows.filter(r=>!r.person).length;
+    out+=`<tr><td colspan="${nc}" style="background:#111111;color:#ffffff;font-weight:bold;font-size:13pt;padding:6px;border:1px solid ${bd}">${esc(staffTitle())}</td></tr>`;
+    out+=`<tr><td colspan="${nc}" style="background:#EEEDFE;padding:${pad};border:1px solid ${cbd};font-size:12px"><b>${rows.length}</b> duties · <b>${nRep}</b> rep · <b>${nTk}</b> timekeeper${s.kind==='person'?'':(' · <b>'+unfilled+'</b> still unassigned')}</td></tr>`;
+    // group: by month for a person or the season, else straight through by weekend
+    const groupBy = (s.kind==='person'||s.kind==='season') ? 'month' : 'weekend';
+    let last=null;
+    rows.forEach(r=>{
+      const g = groupBy==='month' ? r.month.label : (r.wk+'  ('+r.date+')');
+      if(g!==last){
+        last=g;
+        out+=`<tr><td colspan="${nc}" style="background:#1f2a44;color:#ffffff;font-weight:bold;font-size:12pt;padding:5px;border:1px solid ${bd}">${esc(g)}</td></tr>`;
+        out+='<tr>'+STAFF_COLS.map(th).join('')+'</tr>';
+      }
+      const person=r.person||'— UNASSIGNED —';
+      const cells=[r.wk,r.date,r.role,r.city,r.arena,r.assignment,r.when,person];
+      out+='<tr>'+cells.map((x,i)=>{
+        const isRep=r.role==='Rep';
+        const bg=(i===2)?(isRep?'#E6D0F5':'#DDEBF7'):((i===7&&!r.person)?'#FFF3D6':'#ffffff');
+        const wt=(i===7)?'font-weight:bold;':'';
+        return `<td style="background:${bg};${wt}padding:${pad};border:1px solid ${cbd};font-size:12px;white-space:${i===5?'normal':'nowrap'};${nf}">${esc(x)}</td>`;
+      }).join('')+'</tr>';
+    });
+    return out;
+  }
+  function staffPreview(){
+    return `<div style="max-height:62vh;overflow:auto;border:1px solid var(--line-l);border-radius:8px"><table style="border-collapse:collapse;min-width:100%">${staffInner(false)}</table></div>`;
+  }
+  function staffXls(){
+    let h='<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel"><head><meta charset="utf-8"><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>Staff</x:Name><x:WorksheetOptions><x:FreezePanes/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--></head><body>';
+    h+='<table border="1" style="border-collapse:collapse;font-family:Calibri,Arial;font-size:11pt">';
+    h+=staffInner(true)+'</table></body></html>';
+    const blob=new Blob(['﻿'+h],{type:'application/vnd.ms-excel'});
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+    a.download=staffTitle().replace(/[^A-Za-z0-9]+/g,'_').replace(/^_+|_+$/g,'')+'.xls';
+    document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},0);
+  }
   function doExport(){ensureKey();
     if(STATE.kind==='itineraries'){ const n=DATA.teams.length; itinXls(); showToast('Exported '+n+' team itineraries (grouped by division) \u2014 FSL_Team_Itineraries.xls','good'); return; }
     if(STATE.kind==='broadcast'){ const n=bcastAllRows().length; bcastXls(); showToast('Exported the broadcast plan \u2014 '+n+' arena-weekend'+(n===1?'':'s')+' ranked by film value \u2014 FSL_Broadcast_Plan.xls','good'); return; }
+    if(STATE.kind==='staffsched'){ const n=staffFiltered().length; staffXls();
+      showToast('Exported '+n+' staff duty row'+(n===1?'':'s')+'.','good'); return; }
     if(STATE.kind==='reps'){ const wks=repsScopeWks(); let reps=0; wks.forEach(w=>{reps+=repsRows(w).length;});
       repsXls(); showToast('Exported the rep plan \u2014 '+reps+' rep'+(reps===1?'':'s')+' across '+wks.length+' weekend'+(wks.length===1?'':'s')+' \u2014 FSL_Rep_Plan.xls','good'); return; }
     if(STATE.key==null||(needsWk(STATE.kind)&&STATE.key2==null)){showToast('Nothing to export for this report.','warn');return;}
@@ -5035,12 +5303,13 @@ const XP=(function(){
     ensureKey();
     const prim='padding:6px 14px;border-radius:8px;border:1px solid transparent;background:var(--ok);color:#fff;font-size:12px;font-weight:700;cursor:pointer;';
     const selSty='margin-top:3px;padding:4px 8px;border:1px solid var(--line-l);border-radius:7px;font-size:12px;max-width:340px';
-    const typeOpts=[['league','\uD83C\uDFD2 Whole league (all divisions)'],['itineraries','\uD83D\uDCCB Team itineraries (all teams by division)'],['broadcast','\uD83C\uDFA5 Broadcast plan (arenas by weekend, ranked)'],['reps','\uD83E\uDDCD Rep plan (one rep per arena, by weekend)'],['team','Team schedule'],['division','Division schedule'],['weekend','Weekend schedule'],['city','Venue schedule (by city)'],['arena','Arena schedule (by building)'],['arenawknd','Arena \u2014 one weekend (send to the arena)'],['sourced','\uD83D\uDD34 Ice to source (incl. over-capacity)'],['unused','\uD83D\uDFE2 Unused ice (spare real slots)']];
+    const typeOpts=[['league','\uD83C\uDFD2 Whole league (all divisions)'],['itineraries','\uD83D\uDCCB Team itineraries (all teams by division)'],['broadcast','\uD83C\uDFA5 Broadcast plan (arenas by weekend, ranked)'],['reps','\uD83E\uDDCD Rep plan (one rep per arena, by weekend)'],['staffsched','\uD83D\uDCC5 Rep & timekeeper schedules (season / month / weekend / person)'],['team','Team schedule'],['division','Division schedule'],['weekend','Weekend schedule'],['city','Venue schedule (by city)'],['arena','Arena schedule (by building)'],['arenawknd','Arena \u2014 one weekend (send to the arena)'],['sourced','\uD83D\uDD34 Ice to source (incl. over-capacity)'],['unused','\uD83D\uDFE2 Unused ice (spare real slots)']];
     const items=itemsFor(STATE.kind);
     const isItin=STATE.kind==='itineraries';
     const isBcast=STATE.kind==='broadcast';
     const isReps=STATE.kind==='reps';
-    const isMulti=isItin||isBcast||isReps;   // multi-table reports build their own markup, not via spec()
+    const isStaff=STATE.kind==='staffsched';
+    const isMulti=isItin||isBcast||isReps||isStaff;   // multi-table reports build their own markup, not via spec()
     const sp=(!isMulti&&STATE.key!=null&&(!needsWk(STATE.kind)||STATE.key2!=null))?spec(STATE.kind,STATE.key,STATE.key2):null;
     const wkSel=needsWk(STATE.kind)?`<label style="font-size:12px;font-weight:700">Weekend<br><select data-actchange="xpKey2" style="${selSty}">${itemsFor2().map(([v,l])=>`<option value="${escA(v)}" ${v===STATE.key2?'selected':''}>${esc(l)}</option>`).join('')}</select></label>`:'';
     const info=isItin
@@ -5055,7 +5324,7 @@ const XP=(function(){
           let reps=0, gms=0; wks.forEach(w=>{const rs=repsRows(w); reps+=rs.length; gms+=rs.reduce((s,r)=>s+r.games,0);});
           return `<div style="font-size:12px;color:var(--mut-d)">${wks.length>1?('<b>'+wks.length+'</b> weekends \u00b7 '):''}<b>${reps}</b> rep${reps===1?'':'s'} needed \u00b7 <b>${gms}</b> game${gms===1?'':'s'} \u00b7 one rep per arena</div>`;})()
       : (sp?`<div style="font-size:12px;color:var(--mut-d)"><b>${sp.rows.length}</b> ${(sp.kind==='sourced'||sp.kind==='unused')?'venue-weekend'+(sp.rows.length===1?'':'s'):'games'} \u00b7 ${esc(sp.legend)}</div>`:'');
-    const preview=isItin?itinPreview():isBcast?bcastPreview():isReps?repsPreview():(sp?renderTable(sp):'<div class="dt">No selection.</div>');
+    const preview=isItin?itinPreview():isBcast?bcastPreview():isReps?repsPreview():isStaff?staffPreview():(sp?renderTable(sp):'<div class="dt">No selection.</div>');
     return `<div class="wk-head"><h2>\uD83D\uDCE4 Schedule exports</h2>
       <div class="dt">Pick a report and an item, preview it, and download a color-coded Excel file. Reflects the live schedule, including any times you have applied. (Excel may say the file type differs from the extension on open \u2014 that is normal for this styled format; click Yes.)</div></div>
       <div class="card" style="padding:14px;display:flex;gap:16px;flex-wrap:wrap;align-items:flex-end">
@@ -5069,7 +5338,8 @@ const XP=(function(){
   }
   return {view,spec,itemsFor,itemsFor2,xlsHtml,toXls,setKind,setKey,setKey2,doExport,_state:()=>STATE,
     bcastSheetRows,bcastAllRows,bcastTier,bcastXls,BCAST_FILM,BCAST_MUST,BCAST_TIERS,
-    repsRows,repsScopeWks,repsXls};
+    repsRows,repsScopeWks,repsXls,
+    staffDutyRows,staffFiltered,staffMonths,staffXls,staffScope};
 })();
 window.XP=XP;
 
@@ -5701,7 +5971,8 @@ window.PG=PG;
 var UNDO_STACK=[];
 var REDO_STACK=[];   // forward history: undo() pushes here; any NEW action (pushUndo) clears it
 var SOLVE_REPORT={}; // wk -> last auto-solve result (per-venue day splits, flags, review items)
-const MUTATING=new Set(['iceHave','iceNo','iceHeld','iceDel','iceRestore','iceReset','venueAdd','venueAddDel','impApply','impReset','pgPark','pgParkVenue','pgParkDiv','pgAssign','podSwap','podTime','slotAssign','pgPlaceAt','pgPlaceAll','pgPodMove','pgSelMove','pgRestore','pgRemove','autosolve','toggleLock','toggleVenueLock','pgTbd','timeSet','timeUnlock','slotAddDel','hypoTime','hypoClear','hypoLock','slotDrop','matchupSet','matchupSwap','timeAll']);;
+const MUTATING=new Set(['iceHave','iceNo','iceHeld','iceDel','iceRestore','iceReset','venueAdd','venueAddDel','impApply','impReset','pgPark','pgParkVenue','pgParkDiv','pgAssign','podSwap','podTime','slotAssign','pgPlaceAt','pgPlaceAll','pgPodMove','pgSelMove','pgRestore','pgRemove','autosolve','toggleLock','toggleVenueLock','pgTbd','timeSet','timeUnlock','slotAddDel','hypoTime','hypoClear','hypoLock','slotDrop','matchupSet','matchupSwap','timeAll',
+  'staffSetRep','staffSetTk','staffDrop','staffClearOrphans']);;   // staffWk is a view switch, not a mutation
 // Full-state snapshot. Includes EVERY persistent store a user action can touch \u2014 omitting one
 // (previously MANUAL_TIMES, SLOT_ADDS, DATA.realIce caps, MATCHUP_LOG, VENUE_ADDS, CONFLICT_ACK)
 // left undo restoring a MIXED state that render()/solve then re-derived from, shifting extra games
@@ -5710,7 +5981,7 @@ function _snapState(label){ return JSON.stringify({
   games:games, gid:gid, ice:ICE_DECISIONS, times:GAME_TIMES, manual:MANUAL_TIMES, parking:PARKING,
   locked:LOCKED, removed:REMOVED_GAMES, hypo:HYPO_TIMES, tbd:TBD_NEEDS, venAdds:VENUE_ADDS,
   slotAdds:SLOT_ADDS, slotApplied:_SLOT_ADDS_APPLIED, realIce:DATA.realIce, matchLog:MATCHUP_LOG,
-  confAck:CONFLICT_ACK, label:label||'' }); }
+  confAck:CONFLICT_ACK, staff:STAFF, repAssign:REP_ASSIGN, tkAssign:TK_ASSIGN, label:label||'' }); }
 // Restore a snapshot. localStorage-backed stores are reassigned (nothing holds a long-lived ref to
 // them \u2014 same pattern the original undo used); DATA.realIce and the slot-add guard are restored IN
 // PLACE so the ice overlays that read DATA.realIce by reference keep pointing at live data.
@@ -5728,6 +5999,9 @@ function _applyState(s){
   if(s.slotAdds){SLOT_ADDS=s.slotAdds;saveSlotAdds();}
   if(s.matchLog){MATCHUP_LOG=s.matchLog;saveMatchupLog();}
   if(s.confAck){CONFLICT_ACK=s.confAck;saveConflictAck();}
+  if(s.staff){STAFF=s.staff;saveStaff();}
+  if(s.repAssign){REP_ASSIGN=s.repAssign;saveRepAssign();}
+  if(s.tkAssign){TK_ASSIGN=s.tkAssign;saveTkAssign();}
   if(s.slotApplied){Object.keys(_SLOT_ADDS_APPLIED).forEach(k=>delete _SLOT_ADDS_APPLIED[k]);Object.assign(_SLOT_ADDS_APPLIED,s.slotApplied);}
   if(s.realIce){DATA.realIce=DATA.realIce||{};Object.keys(DATA.realIce).forEach(k=>delete DATA.realIce[k]);Object.assign(DATA.realIce,s.realIce);}
   SOLVE_REPORT={};
@@ -5961,6 +6235,15 @@ const ACTIONS={
   pgRemove:d=>PG.removeParked(d),
   xpKind:el=>XP.setKind(el),
   xpKey:el=>XP.setKey(el),
+  // --- reps & timekeepers ---
+  staffWk:el=>{ STAFF_WK=el.value; render(); },
+  staffSetRep:el=>{ const d=el.dataset; setRep(d.wk,d.venue,el.value); render(); },
+  staffSetTk:el=>{ setTk(el.dataset.id, el.value); render(); },
+  staffDrop:d=>{ const nm=staffName(d.id);
+    if(!confirm('Remove '+nm+' from the roster?\n\nEvery rep and timekeeper assignment for them will be cleared.')) return;
+    staffRemove(d.id); render(); showToast('Removed '+nm+' and cleared their assignments.','warn'); },
+  staffClearOrphans:()=>{ const o=repOrphans(); o.forEach(k=>{delete REP_ASSIGN[k];}); saveRepAssign(); render();
+    showToast('Cleared '+o.length+' rep assignment'+(o.length===1?'':'s')+' with no games.','good'); },
   xpKey2:el=>XP.setKey2(el),
   xpExport:()=>XP.doExport(),
   impApply:d=>IMP.applyGroup(d),
@@ -6019,7 +6302,10 @@ const ACTIONS={
       manualTimes:(typeof MANUAL_TIMES!=='undefined'?MANUAL_TIMES:undefined),
       hypoTimes:(typeof HYPO_TIMES!=='undefined'?HYPO_TIMES:undefined),
       matchupLog:(typeof MATCHUP_LOG!=='undefined'?MATCHUP_LOG:undefined),
-      parking:(typeof PARKING!=='undefined'?PARKING:undefined)};
+      parking:(typeof PARKING!=='undefined'?PARKING:undefined),
+      staff:(typeof STAFF!=='undefined'?STAFF:undefined),
+      repAssign:(typeof REP_ASSIGN!=='undefined'?REP_ASSIGN:undefined),
+      tkAssign:(typeof TK_ASSIGN!=='undefined'?TK_ASSIGN:undefined)};
     const blob=new Blob([JSON.stringify(payload,null,1)],{type:'application/json'});
     const a=document.createElement('a');a.href=URL.createObjectURL(blob);
     a.download='FSL_schedule_'+new Date().toISOString().slice(0,10)+'.json';
@@ -6103,6 +6389,21 @@ const ACTIONS={
               Object.keys(MATCHUP_LOG).forEach(k=>delete MATCHUP_LOG[k]);
               Object.keys(payloadObj.matchupLog).forEach(k=>{MATCHUP_LOG[k]=payloadObj.matchupLog[k];});
               try{saveMatchupLog();}catch(e){}
+            }
+            if(payloadObj.staff && typeof payloadObj.staff==='object' && typeof STAFF!=='undefined'){
+              Object.keys(STAFF).forEach(k=>delete STAFF[k]);
+              Object.keys(payloadObj.staff).forEach(k=>{STAFF[k]=payloadObj.staff[k];});
+              try{saveStaff();}catch(e){}
+            }
+            if(payloadObj.repAssign && typeof payloadObj.repAssign==='object' && typeof REP_ASSIGN!=='undefined'){
+              Object.keys(REP_ASSIGN).forEach(k=>delete REP_ASSIGN[k]);
+              Object.keys(payloadObj.repAssign).forEach(k=>{REP_ASSIGN[k]=payloadObj.repAssign[k];});
+              try{saveRepAssign();}catch(e){}
+            }
+            if(payloadObj.tkAssign && typeof payloadObj.tkAssign==='object' && typeof TK_ASSIGN!=='undefined'){
+              Object.keys(TK_ASSIGN).forEach(k=>delete TK_ASSIGN[k]);
+              Object.keys(payloadObj.tkAssign).forEach(k=>{TK_ASSIGN[k]=payloadObj.tkAssign[k];});
+              try{saveTkAssign();}catch(e){}
             }
           }
         }catch(e){}
@@ -6262,6 +6563,7 @@ render();
       locked:M('locked'), iceDecisions:M('iceDecisions'), conflictAck:M('conflictAck'),
       gameTimes:M('gameTimes'), manualTimes:M('manualTimes'), hypoTimes:M('hypoTimes'),
       matchupLog:M('matchupLog'), parking:M('parking'),
+      staff:M('staff'), repAssign:M('repAssign'), tkAssign:M('tkAssign'),
       venueAdds:_mergeSet(base&&base.venueAdds, local&&local.venueAdds, remote&&remote.venueAdds, stableStr),
       slotAdds:_mergeSet(base&&base.slotAdds, local&&local.slotAdds, remote&&remote.slotAdds, stableStr),
       removedGames:_mergeSet(base&&base.removedGames, local&&local.removedGames, remote&&remote.removedGames, e=>String(e)),
@@ -6313,6 +6615,9 @@ render();
       hypoTimes:(typeof HYPO_TIMES!=='undefined'?HYPO_TIMES:undefined),
       matchupLog:(typeof MATCHUP_LOG!=='undefined'?MATCHUP_LOG:undefined),
       parking:(typeof PARKING!=='undefined'?PARKING:undefined),
+      staff:(typeof STAFF!=='undefined'?STAFF:undefined),
+      repAssign:(typeof REP_ASSIGN!=='undefined'?REP_ASSIGN:undefined),
+      tkAssign:(typeof TK_ASSIGN!=='undefined'?TK_ASSIGN:undefined),
       activityLog:(typeof window.__actLogGet==='function'?window.__actLogGet():undefined)};
   }
 
@@ -6358,6 +6663,18 @@ render();
         Object.keys(MATCHUP_LOG).forEach(k=>delete MATCHUP_LOG[k]);
         Object.keys(o.matchupLog).forEach(k=>{MATCHUP_LOG[k]=o.matchupLog[k];}); try{saveMatchupLog();}catch(e){}
       }
+      if(o.staff && typeof o.staff==='object' && typeof STAFF!=='undefined'){
+        Object.keys(STAFF).forEach(k=>delete STAFF[k]);
+        Object.keys(o.staff).forEach(k=>{STAFF[k]=o.staff[k];}); try{saveStaff();}catch(e){}
+      }
+      if(o.repAssign && typeof o.repAssign==='object' && typeof REP_ASSIGN!=='undefined'){
+        Object.keys(REP_ASSIGN).forEach(k=>delete REP_ASSIGN[k]);
+        Object.keys(o.repAssign).forEach(k=>{REP_ASSIGN[k]=o.repAssign[k];}); try{saveRepAssign();}catch(e){}
+      }
+      if(o.tkAssign && typeof o.tkAssign==='object' && typeof TK_ASSIGN!=='undefined'){
+        Object.keys(TK_ASSIGN).forEach(k=>delete TK_ASSIGN[k]);
+        Object.keys(o.tkAssign).forEach(k=>{TK_ASSIGN[k]=o.tkAssign[k];}); try{saveTkAssign();}catch(e){}
+      }
     }catch(e){}
     try{applyRemovedGames();}catch(e){}
     let mx=0;games.forEach(g=>{const x=parseInt(String(g.id||'').replace(/\D/g,''),10);if(x>mx)mx=x;});gid=mx+1;
@@ -6398,7 +6715,7 @@ render();
     +'display:flex;align-items:center;gap:7px;cursor:default;user-select:none;transition:.2s';
   // BUILD MARKER: shown next to the sync status so "which version am I actually running?" is never a
   // guessing game again. Bump this string whenever the sync/boot logic changes.
-  const FSL_BUILD='2026-08-01a';
+  const FSL_BUILD='2026-08-01b';
   window.__fslBuild=FSL_BUILD;
   function setPill(txt,color){ pill.innerHTML='<span style="width:8px;height:8px;border-radius:50%;background:'+(color||'#8a8a90')+';display:inline-block"></span>'+txt+'<span style="opacity:.55;font-weight:600;margin-left:7px">build '+FSL_BUILD+'</span>'; }
   pill.style.cursor='pointer';
