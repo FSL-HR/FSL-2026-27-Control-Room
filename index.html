@@ -5375,6 +5375,74 @@ const XP=(function(){
     return raw.replace(/\s*\([^)]*\)\s*$/,'').trim()||raw;
   }
   const impSq=x=>String(x).toLowerCase().replace(/centre/g,'center').replace(/[^a-z0-9]/g,'');
+  // --- Official arena names ---------------------------------------------------------------
+  // The league system's own arena registry (its selectedLocations export). Arena text uploads
+  // as-is, so these are the only spellings it will match; anything else creates a duplicate
+  // arena over there.
+  //
+  // Keyed by the app's venue + ice surface, normalised (lower case, trailing "(...)" notes
+  // dropped, Centre/Center folded, punctuation removed) so the several spellings the app carries
+  // for one building all land on the same key.
+  //
+  // ONLY unambiguous pairs are listed. Where the app knows the building but not which rink, the
+  // name is deliberately absent: the registry is per-rink for multi-rink buildings, and choosing
+  // a rink is a scheduling decision, not a spelling one. Those games keep their current text and
+  // are listed under "not matched" in the preview.
+  //
+  // Two traps worth keeping in mind when extending this: the registry's "UBC Father Bauer" is in
+  // Vancouver and is NOT the app's Calgary "Father David Bauer Arena"; and Planet Ice is two
+  // separate buildings — Delta (four named rinks) and Coquitlam (Total Sport Entertainment,
+  // Ice 1-4).
+  const ARENA_OFFICIAL={
+    // Abbotsford — one building, three spellings in the app
+    'abbotsfordrinksatsummitcenter|eastrink':'The Rinks at Summit Centre East Rink',
+    'abbotsfordrinksatsummitcenter|westrink':'The Rinks at Summit Centre West Rink',
+    'abbotsfordsummitcenter|eastrink':'The Rinks at Summit Centre East Rink',
+    'abbotsfordsummitcenter|westrink':'The Rinks at Summit Centre West Rink',
+    'abbotsfordtherinksatsummitcenter|eastrink':'The Rinks at Summit Centre East Rink',
+    'abbotsfordtherinksatsummitcenter|westrink':'The Rinks at Summit Centre West Rink',
+    // single-rink buildings — safe with no surface recorded
+    'aberdeenaberdeenreccenter|':'Aberdeen Recreation Complex',
+    'cowichanshawniganlakearena|':'Shawnigan Lake School Arena',
+    'hardistyhardistyarena|':'Hardisty Memorial Arena',
+    'kimberleyciviccenter|':'Kimberley Civic Centre',
+    'kimberleyciviccenter|kimberleyciviccenter':'Kimberley Civic Centre',
+    'lashburn|':'Lashburn Sportsplex',
+    'lashburnarena|':'Lashburn Sportsplex',
+    'lloydminsterarchiemillerarena|':'Archie Miller Arena',
+    'lloydminsterarchiemillerarena|archiemiller':'Archie Miller Arena',
+    'edmontonmorinvillesilenticegardens|':'Morinville Silent Ice Gardens',
+    'edmontonmorinvillesilenticegardens|morinvillesilenticegardens':'Morinville Silent Ice Gardens',
+    'edmontonmorinvillesilenticegardens|silenticecentermorinvillegardens':'Morinville Silent Ice Gardens',
+    'morinvillesilenticegardens|morinvillesilenticegardens':'Morinville Silent Ice Gardens',
+    // Calgary
+    'calgary7chiefssportsplex|rink1':'7 Chiefs Sportsplex & Jim Starlight Centre (1)',
+    'calgary7chiefssportsplex|rink2':'7 Chiefs Sportsplex & Jim Starlight Centre (2)',
+    'calgarygprc|rink1':'Great Plains Arena 1',
+    'calgarygprc|rink2':'Great Plains Arena 2',
+    // Cochrane
+    'cochraneslscenter|totem1':'SLS Centre - Totem 1',
+    'cochraneslscenter|totem2':'SLS Centre - Totem 2',
+    // Lower Mainland — Delta and Coquitlam are different buildings
+    'deltaplaneticedelta|americanrink':'Planet Ice - Delta - American',
+    'deltaplaneticedelta|canadianrink':'Planet Ice - Delta - Canadian',
+    'deltaplaneticedelta|internationalrink':'Planet Ice - Delta - International',
+    'coquitlamplanetice|3':'Planet Ice - Total Sport Entertainment (Ice 3)',
+    // Edmonton / Nisku
+    'edmontonsilenticecenter|silenticecenterhatchcoarena':'Silent Ice Center - Hatch Co. Arena',
+    'edmontonsilenticecenter|silenticecenterhescoarena':'Silent Ice Center - Hesco Arena',
+    'edmontonsilenticecenterhesco|hescoarena':'Silent Ice Center - Hesco Arena',
+    // Lloydminster
+    'lloydminsterservussportscenter|ruswayarena':'Servus Sports Centre Rusway Arena',
+    'lloydminsterservussportscenter|holmesarena':'Servus Sports Centre Robert B. Holmes Arena',
+    // Winnipeg
+    'winnipeg7oaksarena|7oaksarenabluerink':'Seven Oaks Arena - Blue',
+    'winnipeg7oaksarena|7oaksarenaredrink':'Seven Oaks Arena - Red'
+  };
+  const impOfficialKey=(venue,sheet)=>
+    impSq(String(venue==null?'':venue).replace(/\s*\([^)]*\)\s*$/,''))+'|'+impSq(sheet);
+  const impOfficial=g=>hasVenue(g)?(ARENA_OFFICIAL[impOfficialKey(g.venue,g.sheet)]||null):null;
+
   // If, at one venue, every ice surface that spells out the building spells it the SAME way,
   // adopt that spelling for the games there that have no surface recorded. Otherwise a single
   // venue reaches the league system under two names — "Civic Centre" for the games with no
@@ -5392,6 +5460,8 @@ const XP=(function(){
   }
   function impArena(g){
     if(!hasVenue(g)) return '';
+    const off=impOfficial(g);
+    if(off) return off;
     const a=impBuilding(g);
     const s=String(g.sheet||'').trim();
     if(!s) return impCanonName(g.venue)||a;
@@ -5428,22 +5498,16 @@ const XP=(function(){
   // and broadcast plans, and conflict detection — not just this one CSV.
   const impIsPlaceholder=n=>!n||/\bTBD\b/i.test(n)||/^to source$/i.test(n);
   function impArenaAudit(){
-    const counts=new Map();
-    impGames().forEach(g=>{const b=(hasVenue(g)?(impCanonName(g.venue)||impBuilding(g)):'')||'(no venue)';counts.set(b,(counts.get(b)||0)+1);});
-    const names=[...counts.keys()];
-    const at=n=>({name:n,n:counts.get(n)});
-    const placeholders=names.filter(n=>n==='(no venue)'||impIsPlaceholder(n)).map(at).sort((a,b)=>b.n-a.n);
-    const real=names.filter(n=>!(n==='(no venue)'||impIsPlaceholder(n)));
-    const norm=s=>String(s).toLowerCase().replace(/centre/g,'center').replace(/^the\s+/,'').replace(/[^a-z0-9]/g,'');
-    const used=new Set(), groups=[];
-    real.forEach(a=>{
-      if(used.has(a)) return;
-      const na=norm(a);
-      const fam=real.filter(b=>{const nb=norm(b);
-        return na===nb||(na.length>=6&&nb.length>=6&&(na.includes(nb)||nb.includes(na)));});
-      if(fam.length>1){fam.forEach(x=>used.add(x));groups.push(fam.map(at).sort((x,y)=>y.n-x.n));}
+    const matched=new Map(), unmatched=new Map(), placeholders=new Map();
+    const bump=(m,k)=>m.set(k,(m.get(k)||0)+1);
+    impGames().forEach(g=>{
+      const cell=impArena(g);
+      if(!hasVenue(g)||impIsPlaceholder(cell)) return bump(placeholders,cell||'(no venue)');
+      if(impOfficial(g)) return bump(matched,cell);
+      bump(unmatched,cell+(g.sheet?'':'   \u2190 no ice surface recorded'));
     });
-    return {groups,placeholders};
+    const rows=m=>[...m.entries()].map(([name,n])=>({name,n})).sort((a,b)=>b.n-a.n||a.name.localeCompare(b.name));
+    return {matched:rows(matched),unmatched:rows(unmatched),placeholders:rows(placeholders)};
   }
   const impScope=()=>{const k=String(STATE.key||'ALL');return k.indexOf('MO:')===0?{kind:'month',key:k.slice(3)}:{kind:'season'};};
   // Schedule order, with anything not yet dated-and-timed pushed to the bottom so those rows are
@@ -5481,15 +5545,16 @@ const XP=(function(){
     let out=`<tr><td colspan="${IMP_COLS.length}" style="background:#111;color:#fff;font-weight:bold;font-size:13pt;padding:6px;border:1px solid ${bd}">${esc(impTitle())}</td></tr>`;
     out+=`<tr><td colspan="${IMP_COLS.length}" style="background:#EEEDFE;padding:3px 8px;border:1px solid ${bd};font-size:12px"><b>${rows.length}</b> game${rows.length===1?'':'s'}${notReady?(' · <b>'+notReady+'</b> not yet dated/timed — those rows are last, with Date and Start Time blank'):''}${rows.length>CAP?(' · showing the first '+CAP+' below; the file has all '+rows.length):''}</td></tr>`;
     const aud=impArenaAudit();
-    if(aud.groups.length||aud.placeholders.length){
-      let w='<b>Worth a look before uploading</b> \u2014 Arena names go into the league system as-is.';
-      aud.groups.forEach(gp=>{
-        w+='<br>\u00b7 one building, '+gp.length+' spellings: '+gp.map(x=>esc(x.name)+' ('+x.n+')').join('  \u00b7  ');
-      });
-      if(aud.placeholders.length){
-        w+='<br>\u00b7 no real arena yet: '+aud.placeholders.map(x=>esc(x.name)+' ('+x.n+')').join('  \u00b7  ');
+    const nMatch=aud.matched.reduce((s,x)=>s+x.n,0);
+    if(aud.unmatched.length||aud.placeholders.length){
+      let w='<b>'+nMatch+'</b> game'+(nMatch===1?'':'s')+' use an arena name from the league registry. The rest go up as the text below \u2014 check them first, or the league system will make new arenas.';
+      if(aud.unmatched.length){
+        w+='<br><b>Not in the registry:</b> '+aud.unmatched.map(x=>esc(x.name)+' <b>('+x.n+')</b>').join('  \u00b7  ');
       }
-      out+=`<tr><td colspan="${IMP_COLS.length}" style="background:#FFF4E5;padding:5px 8px;border:1px solid ${bd};font-size:11.5px;line-height:1.5;color:#5a4630">${w}</td></tr>`;
+      if(aud.placeholders.length){
+        w+='<br><b>No arena yet:</b> '+aud.placeholders.map(x=>esc(x.name)+' <b>('+x.n+')</b>').join('  \u00b7  ');
+      }
+      out+=`<tr><td colspan="${IMP_COLS.length}" style="background:#FFF4E5;padding:5px 8px;border:1px solid ${bd};font-size:11.5px;line-height:1.6;color:#5a4630">${w}</td></tr>`;
     }
     out+='<tr>'+IMP_COLS.map(th).join('')+'</tr>';
     rows.slice(0,CAP).forEach((r,i)=>{
@@ -5560,7 +5625,7 @@ const XP=(function(){
     bcastSheetRows,bcastAllRows,bcastTier,bcastXls,BCAST_FILM,BCAST_MUST,BCAST_TIERS,
     repsRows,repsScopeWks,repsXls,
     staffDutyRows,staffFiltered,staffMonths,staffXls,staffScope,
-    IMP_COLS,impRows,impMonths,impCsv,impDate,impTime,impArena,impBuilding,impArenaAudit,impMonthOf,impNotReady,impTitle};
+    IMP_COLS,impRows,impMonths,impCsv,impDate,impTime,impArena,impBuilding,impArenaAudit,impOfficial,ARENA_OFFICIAL,impMonthOf,impNotReady,impTitle};
 })();
 window.XP=XP;
 
@@ -6937,7 +7002,7 @@ render();
     +'display:flex;align-items:center;gap:7px;cursor:default;user-select:none;transition:.2s';
   // BUILD MARKER: shown next to the sync status so "which version am I actually running?" is never a
   // guessing game again. Bump this string whenever the sync/boot logic changes.
-  const FSL_BUILD='2026-08-02a';
+  const FSL_BUILD='2026-08-02b';
   window.__fslBuild=FSL_BUILD;
   function setPill(txt,color){ pill.innerHTML='<span style="width:8px;height:8px;border-radius:50%;background:'+(color||'#8a8a90')+';display:inline-block"></span>'+txt+'<span style="opacity:.55;font-weight:600;margin-left:7px">build '+FSL_BUILD+'</span>'; }
   pill.style.cursor='pointer';
