@@ -3842,19 +3842,31 @@ function staffName(id){ const p=STAFF[String(id)]; return p?p.name:''; }
 function staffList(){ return Object.keys(STAFF).map(k=>STAFF[k]).filter(Boolean).sort((a,b)=>String(a.name).localeCompare(String(b.name))); }
 function staffRemove(id){ id=String(id); if(!STAFF[id]) return false;
   delete STAFF[id]; saveStaff();
-  Object.keys(REP_ASSIGN).forEach(k=>{ if(REP_ASSIGN[k]===id) delete REP_ASSIGN[k]; }); saveRepAssign();
+  Object.keys(REP_ASSIGN).forEach(k=>{ const left=repList(REP_ASSIGN[k]).filter(x=>x!==id);
+    if(left.length) REP_ASSIGN[k]=left; else delete REP_ASSIGN[k]; }); saveRepAssign();
   Object.keys(TK_ASSIGN).forEach(k=>{ if(TK_ASSIGN[k]===id) delete TK_ASSIGN[k]; }); saveTkAssign();
   return true;
 }
 const repKey=(wk,venue)=>String(wk)+'|||'+String(venue);
-function repFor(wk,venue){ return REP_ASSIGN[repKey(wk,venue)]||''; }
+// A rink can need MORE THAN ONE rep on a weekend (2026-08-01, user), so an assignment is a LIST.
+// Stored values are always written as an array; reading tolerates the original single-id string
+// so assignments made before this change keep working without a migration step.
+function repList(v){ return !v?[]:(Array.isArray(v)?v.slice():[v]); }
+function repsFor(wk,venue){ return repList(REP_ASSIGN[repKey(wk,venue)]); }
+function repFor(wk,venue){ return repsFor(wk,venue)[0]||''; }   // first rep, for one-line summaries
 function tkFor(gid){ return TK_ASSIGN[String(gid)]||''; }
-// Passing a blank name clears the assignment. Any new name joins the roster automatically.
-function setRep(wk,venue,name){
-  const k=repKey(wk,venue), id=staffAdd(name);
-  if(id) REP_ASSIGN[k]=id; else delete REP_ASSIGN[k];
-  saveRepAssign(); return id;
+// Set the rep at position idx. A blank name removes that slot; an idx past the end appends.
+// The same person twice on one arena-weekend is a slip, not two reps, so the list is de-duped.
+function setRepAt(wk,venue,idx,name){
+  const k=repKey(wk,venue); const list=repsFor(wk,venue); const id=staffAdd(name);
+  idx=Math.max(0,parseInt(idx,10)||0);
+  if(id){ if(idx<list.length) list[idx]=id; else list.push(id); }
+  else if(idx<list.length) list.splice(idx,1);
+  const seen={}, out=[]; list.forEach(x=>{ if(x&&!seen[x]){ seen[x]=1; out.push(x); } });
+  if(out.length) REP_ASSIGN[k]=out; else delete REP_ASSIGN[k];
+  saveRepAssign(); return out;
 }
+function setRep(wk,venue,name){ return setRepAt(wk,venue,0,name); }   // single-rep convenience
 function setTk(gid,name){
   const k=String(gid), id=staffAdd(name);
   if(id) TK_ASSIGN[k]=id; else delete TK_ASSIGN[k];
@@ -4500,10 +4512,15 @@ function staffView(){
   const arenas=repArenasFor(wk);
   const repRows=arenas.map(v=>{
     const n=gamesFor(wk).filter(g=>g.venue===v).length;
-    const cur=staffName(repFor(wk,v));
+    const cur=repsFor(wk,v);
+    // one box per rep already on this rink, plus a trailing blank box to add another
+    const boxes=cur.map((pid,i)=>`<input list="stafflist" value="${iceEscA(staffName(pid))}" title="Clear the name to remove this rep"
+        style="${inp};margin:0 6px 4px 0" data-actchange="staffSetRep" data-wk="${iceEscA(wk)}" data-venue="${iceEscA(v)}" data-idx="${i}">`).join('')
+      +`<input list="stafflist" value="" placeholder="${cur.length?'+ add another rep':'— unassigned —'}"
+        style="${inp};margin:0 6px 4px 0;${cur.length?'':'background:#FFF8E1'}" data-actchange="staffSetRep" data-wk="${iceEscA(wk)}" data-venue="${iceEscA(v)}" data-idx="${cur.length}">`;
     return `<tr><td class="tm">${iceEscA(v.replace(/\s*\(NEW\)/i,''))}</td><td style="text-align:center">${n}</td>
-      <td><input list="stafflist" value="${iceEscA(cur)}" placeholder="— unassigned —" style="${inp};${cur?'':'background:#FFF8E1'}"
-        data-actchange="staffSetRep" data-wk="${iceEscA(wk)}" data-venue="${iceEscA(v)}"></td></tr>`;
+      <td style="text-align:center;font-weight:700;color:${cur.length?'var(--txt)':'var(--mut)'}">${cur.length||'—'}</td>
+      <td>${boxes}</td></tr>`;
   }).join('');
 
   // ---- timekeepers: one row per 14U+ game, grouped by arena ----
@@ -4526,12 +4543,12 @@ function staffView(){
   const orph=repOrphans();
   const orphBlock=orph.length?`<div class="conf-banner" style="background:var(--warnbg);border:1px solid #e8d9a8;color:#8a6d1a"><span class="ic">◷</span>
     <div><b>${orph.length} rep assignment${orph.length>1?'s have':' has'} no games any more.</b> The arena-weekend was staffed, then every game moved away:
-    ${orph.map(k=>{const p=k.split('|||');return iceEscA(p[0]+' · '+p[1].replace(/\s*\(NEW\)/i,'')+' → '+staffName(REP_ASSIGN[k]));}).join(' &nbsp;·&nbsp; ')}.
+    ${orph.map(k=>{const p=k.split('|||');return iceEscA(p[0]+' · '+p[1].replace(/\s*\(NEW\)/i,'')+' → '+repList(REP_ASSIGN[k]).map(staffName).join(", "));}).join(' &nbsp;·&nbsp; ')}.
     <button data-act="staffClearOrphans" style="margin-left:8px;font-size:11px;padding:2px 9px;border:1px solid #E0A743;border-radius:5px;background:#fff;color:#7a5b00;cursor:pointer;font-weight:700">Clear them</button></div></div>`:'';
 
   // ---- roster ----
   const rosterRows=roster.map(p=>{
-    const nRep=Object.keys(REP_ASSIGN).filter(k=>REP_ASSIGN[k]===p.id).length;
+    const nRep=Object.keys(REP_ASSIGN).filter(k=>repList(REP_ASSIGN[k]).indexOf(p.id)>=0).length;
     const nTk=Object.keys(TK_ASSIGN).filter(k=>TK_ASSIGN[k]===p.id).length;
     return `<tr><td class="tm">${iceEscA(p.name)}</td><td style="text-align:center">${nRep}</td><td style="text-align:center">${nTk}</td>
       <td><button data-act="staffDrop" data-id="${iceEscA(p.id)}" title="Remove from the roster and clear every assignment"
@@ -4549,7 +4566,7 @@ function staffView(){
     <div style="font-size:12px;color:var(--mut-d)"><b>${arenas.length}</b> rep${arenas.length===1?'':'s'} · <b>${tkGames.length}</b> timekeeper${tkGames.length===1?'':'s'} needed</div>
   </div>
   <div class="sectionhead"><h2><span class="bar"></span>Reps <span style="font-size:11.5px;color:var(--mut-d);font-weight:600">one per arena</span></h2></div>
-  <table class="tbl"><thead><tr><th>Arena</th><th>Games</th><th>Rep</th></tr></thead><tbody>${repRows||'<tr><td colspan="3" style="color:var(--mut)">No games this weekend.</td></tr>'}</tbody></table>
+  <table class="tbl"><thead><tr><th>Arena</th><th>Games</th><th>Reps</th><th>Who</th></tr></thead><tbody>${repRows||'<tr><td colspan="4" style="color:var(--mut)">No games this weekend.</td></tr>'}</tbody></table>
   <div class="sectionhead"><h2><span class="bar"></span>Timekeepers <span style="font-size:11.5px;color:var(--mut-d);font-weight:600">14U and older, one per game</span></h2></div>
   <table class="tbl"><thead><tr><th>Game</th><th>When</th><th>Div</th><th>Matchup</th><th>Timekeeper</th></tr></thead><tbody>${tkRows||'<tr><td colspan="5" style="color:var(--mut)">No 14U+ games this weekend.</td></tr>'}</tbody></table>
   <div class="sectionhead"><h2><span class="bar"></span>People <span style="font-size:11.5px;color:var(--mut-d);font-weight:600">${roster.length} on the roster</span></h2></div>
@@ -5202,9 +5219,15 @@ const XP=(function(){
     WK.forEach(wk=>{
       const date=WKDATE[wk]||'';
       repArenasFor(wk).forEach(v=>{
-        const pl=repsPlace(v), n=gamesFor(wk).filter(g=>g.venue===v).length, pid=repFor(wk,v);
-        rows.push({wk, date, month:staffMonth(wk), role:'Rep', city:pl.city, arena:(pl.arena===pl.city?'':pl.arena),
-          assignment:'All games ('+n+')', when:'Whole weekend', pid, person:staffName(pid), sort:'0'});
+        const pl=repsPlace(v), n=gamesFor(wk).filter(g=>g.venue===v).length, ids=repsFor(wk,v);
+        // A rink can carry more than one rep — emit a row each, so a person's own sheet shows
+        // their share. An arena with nobody still emits one UNASSIGNED row so the gap is visible.
+        const slots=ids.length?ids:[''];
+        slots.forEach((pid,i)=>{
+          rows.push({wk, date, month:staffMonth(wk), role:'Rep', city:pl.city, arena:(pl.arena===pl.city?'':pl.arena),
+            assignment:'All games ('+n+')'+(ids.length>1?('  — rep '+(i+1)+' of '+ids.length):''),
+            when:'Whole weekend', pid, person:staffName(pid), sort:'0'});
+        });
       });
       gamesFor(wk).filter(g=>g.venue&&String(g.venue).trim()&&needsTk(g))
         .sort((a,b)=>({Fri:0,Sat:1,Sun:2}[a.day]??9)-({Fri:0,Sat:1,Sun:2}[b.day]??9)||String(a.time||'').localeCompare(String(b.time||'')))
@@ -6237,7 +6260,7 @@ const ACTIONS={
   xpKey:el=>XP.setKey(el),
   // --- reps & timekeepers ---
   staffWk:el=>{ STAFF_WK=el.value; render(); },
-  staffSetRep:el=>{ const d=el.dataset; setRep(d.wk,d.venue,el.value); render(); },
+  staffSetRep:el=>{ const d=el.dataset; setRepAt(d.wk,d.venue,d.idx,el.value); render(); },
   staffSetTk:el=>{ setTk(el.dataset.id, el.value); render(); },
   staffDrop:d=>{ const nm=staffName(d.id);
     if(!confirm('Remove '+nm+' from the roster?\n\nEvery rep and timekeeper assignment for them will be cleared.')) return;
@@ -6715,7 +6738,7 @@ render();
     +'display:flex;align-items:center;gap:7px;cursor:default;user-select:none;transition:.2s';
   // BUILD MARKER: shown next to the sync status so "which version am I actually running?" is never a
   // guessing game again. Bump this string whenever the sync/boot logic changes.
-  const FSL_BUILD='2026-08-01b';
+  const FSL_BUILD='2026-08-01c';
   window.__fslBuild=FSL_BUILD;
   function setPill(txt,color){ pill.innerHTML='<span style="width:8px;height:8px;border-radius:50%;background:'+(color||'#8a8a90')+';display:inline-block"></span>'+txt+'<span style="opacity:.55;font-weight:600;margin-left:7px">build '+FSL_BUILD+'</span>'; }
   pill.style.cursor='pointer';
