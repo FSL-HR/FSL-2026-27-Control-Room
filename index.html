@@ -6756,12 +6756,18 @@ const ACTIONS={
   iceHave:d=>{const k=iceKey(d.wk,d.venue);if(ICE_DECISIONS[k]==='have')delete ICE_DECISIONS[k];else ICE_DECISIONS[k]='have';saveIceDecisions();render();showToast('\u2713 Marked as SECURED (real ice): '+d.venue+' \u00b7 '+d.wk,'good');},
   iceNo:d=>{const k=iceKey(d.wk,d.venue);if(ICE_DECISIONS[k]==='no')delete ICE_DECISIONS[k];else ICE_DECISIONS[k]='no';saveIceDecisions();render();showToast('\u2717 Flagged as NOT secured \u2014 needs sourcing: '+d.venue+' \u00b7 '+d.wk,'warn');},
   iceHeld:d=>{const k=iceKey(d.wk,d.venue);if(ICE_DECISIONS[k]==='held')delete ICE_DECISIONS[k];else ICE_DECISIONS[k]='held';saveIceDecisions();render();showToast('\u23F8 Held as UNSOURCED (kept, awaiting confirmation): '+d.venue+' \u00b7 '+d.wk,'');},
-  iceDel:d=>{ICE_DECISIONS[iceKey(d.wk,d.venue)]='del';saveIceDecisions();
-    // Games are NEVER pulled off the weekend by removing ice \u2014 they stay put, flagged
-    // UNSOURCED, and count in the Ice-to-source report until sourced, moved, or parked.
-    const kept=games.filter(g=>g.weekend===d.wk&&g.venue===d.venue).length;
+  iceDel:d=>{
+    // Deleting ice means that ice DOES NOT EXIST, so nothing can be played on it: the games
+    // sitting there go to the parking garage (2026-08-02, user). They keep counting toward team
+    // totals, they just lose their slot. Previously they stayed on the weekend flagged UNSOURCED,
+    // which left games sitting on ice the league does not have.
+    // iceDel is in MUTATING and _snapState covers PARKING, so one Undo puts back both the games
+    // and the marker.
+    ICE_DECISIONS[iceKey(d.wk,d.venue)]='del';saveIceDecisions();
+    const on=games.filter(g=>g.weekend===d.wk&&g.venue===d.venue);
+    PG.parkMany(on,'',true);   // parkMany lives in the parking-garage module, not this scope
     render();
-    showToast('Removed from ice list: '+d.venue+' \u00b7 '+d.wk+(kept?(' \u2014 '+kept+' game'+(kept>1?'s':'')+' kept on the weekend, marked UNSOURCED (source ice, or move/park them).'):'. Restore from the hidden list below.'),'warn');},
+    showToast('Removed from ice list: '+d.venue+' \u00b7 '+d.wk+(on.length?(' \u2014 '+on.length+' game'+(on.length>1?'s':'')+' moved to the parking garage.'):'. Restore from the hidden list below.'),'warn');},
   iceRestore:d=>{delete ICE_DECISIONS[iceKey(d.wk,d.venue)];saveIceDecisions();render();showToast('Restored: '+d.venue+' \u00b7 '+d.wk,'good');},
   iceReset:()=>{if(!Object.keys(ICE_DECISIONS).length){showToast('No ice decisions to reset.','');return;}if(!confirm('Clear all your ice have / need / unsourced / hidden decisions?'))return;ICE_DECISIONS={};saveIceDecisions();render();showToast('All ice decisions cleared.','good');},
   venueAdd:()=>{const val=id=>{const e=document.getElementById(id);return e?String(e.value).trim():'';};
@@ -7218,7 +7224,7 @@ render();
     +'display:flex;align-items:center;gap:7px;cursor:default;user-select:none;transition:.2s';
   // BUILD MARKER: shown next to the sync status so "which version am I actually running?" is never a
   // guessing game again. Bump this string whenever the sync/boot logic changes.
-  const FSL_BUILD='2026-08-02k';
+  const FSL_BUILD='2026-08-02l';
   window.__fslBuild=FSL_BUILD;
   function setPill(txt,color){ pill.innerHTML='<span style="width:8px;height:8px;border-radius:50%;background:'+(color||'#8a8a90')+';display:inline-block"></span>'+txt+'<span style="opacity:.55;font-weight:600;margin-left:7px">build '+FSL_BUILD+'</span>'; }
   pill.style.cursor='pointer';
