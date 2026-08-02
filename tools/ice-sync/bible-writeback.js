@@ -131,13 +131,16 @@ const APP_SLOT_TO_BIBLE = {
   'Edmonton — Silent Ice Center - Hesco||Hesco Arena'       : ['Edmonton', 'SISE HESCO', 'Silent Ice Center - Hesco Arena'],
   'Kimberley — Civic Centre (user ice)||Kimberley Civic Center' : ['Kimberley', 'Civic Center', 'Kimberley Civic Centre'],
 
+  // Nov 06: three slots on the Morinville venue whose surface named a different building
+  // (Downtown Community Arena ×2, SISE HATCH ×1). She confirmed the VENUE is the true one —
+  // "add nov 6 morinville to bible now" — so the stray surface labels are dropped and these go
+  // in as plain Morinville ice. Morinville and Downtown Community Arena remain separate
+  // buildings everywhere else.
+  'Edmonton — Morinville Silent Ice Gardens||Downtown Community Arena' : MORINVILLE,
+  'Edmonton — Morinville Silent Ice Gardens||SISE HATCH'              : MORINVILLE,
+
   // ---- deliberately NOT written -------------------------------------------------------
-  // Venue says Morinville, surface names a different building. She ruled: leave these out of
-  // the Bible and fix the venue in the app first. Morinville and Downtown Community Arena are
-  // two separate locations.
-  'Edmonton — Morinville Silent Ice Gardens||Downtown Community Arena' : null,
-  'Edmonton — Morinville Silent Ice Gardens||SISE HATCH'              : null,
-  // same shape: venue says Hesco, surface says Hatch
+  // Venue says Hesco, surface says Hatch — not ruled on, so left out.
   'Edmonton — Silent Ice Center - Hesco||Hatch Arena'                 : null,
   // "Delta/Coquitlam" is one venue record standing for two different buildings
   'Delta/Coquitlam - Planet Ice||Planet Ice Coquitlam'                : null,
@@ -311,9 +314,12 @@ const getJson = url => new Promise((res, rej) => {
     renamed++;
   }
 
-  // 2. append, borrowing the number formats from the first data row so the new rows look native
-  const zOf = C => { const cell = ws[at(range.s.r + 1, C)]; return cell && cell.z ? cell.z : undefined; };
-  const zDate = zOf(0), zStart = zOf(4), zEnd = zOf(5);
+  // 2. append. The existing cells carry their format in a style, not an inline `z`, so borrowing
+  //    from row 1 yields undefined and the new rows render as raw numbers — "46332" instead of a
+  //    date, "0.520833333" instead of 12:30. Set the formats explicitly to match how the sheet
+  //    already displays: dd/mm/yyyy dates and 24-hour times.
+  const zOf = (C, fallback) => { const cell = ws[at(range.s.r + 1, C)]; return (cell && cell.z) || fallback; };
+  const zDate = zOf(0, 'dd/mm/yyyy'), zStart = zOf(4, 'hh:mm'), zEnd = zOf(5, 'hh:mm');
   let R = range.e.r;
   toAppend.forEach(t => {
     R++;
@@ -326,6 +332,17 @@ const getJson = url => new Promise((res, rej) => {
   });
   range.e.r = R;
   ws['!ref'] = XLSX.utils.encode_range(range);
+
+  // 3. repair any Date/Start/End cell left as a bare number by an earlier run, so the whole
+  //    column displays consistently rather than showing serials to whoever opens the workbook.
+  let fixedFmt = 0;
+  for (let r2 = range.s.r + 1; r2 <= range.e.r; r2++) {
+    [[0, zDate], [4, zStart], [5, zEnd]].forEach(([C, z]) => {
+      const cell = ws[at(r2, C)];
+      if (cell && cell.t === 'n' && !cell.z && !cell.s) { cell.z = z; delete cell.w; fixedFmt++; }
+    });
+  }
+  if (fixedFmt) console.log('re-formatted ' + fixedFmt + ' unformatted date/time cells from earlier runs');
 
   XLSX.writeFile(wb, BIBLE);
   console.log('WROTE: ' + renamed + ' surfaces renamed, ' + toAppend.length + ' rows appended -> ' +
