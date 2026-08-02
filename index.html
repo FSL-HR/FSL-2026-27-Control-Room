@@ -4576,7 +4576,7 @@ function staffView(){
 const XP=(function(){
   const DIVORDER=['12U AAA','14U AA','14U AAA','16U AA','16U AAA','19U AAA'];
   const DIVFILL={'12U AAA':'#DDEBF7','14U AA':'#E2EFDA','14U AAA':'#C6E0B4','16U AA':'#FCE4D6','16U AAA':'#F8CBAD','19U AAA':'#E6D0F5'};
-  let STATE={kind:'team',key:null,key2:null};
+  let STATE={kind:'team',key:null,key2:null,role:'all'};   // role: staff-schedule filter — all | rep | tk
   function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
   function escA(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');}
   const dow=d=>({Fri:0,Sat:1,Sun:2}[d]??9);
@@ -4949,6 +4949,7 @@ const XP=(function(){
   function setKind(el){STATE.kind=el.value;STATE.key=null;STATE.key2=null;ensureKey();render();}
   function setKey(el){STATE.key=el.value;STATE.key2=null;ensureKey2();render();}
   function setKey2(el){STATE.key2=el.value;render();}
+  function setRole(el){STATE.role=el.value;render();}
   // --- Team itineraries export: one tab, a table per team, grouped by division ---------
   // Mirrors the on-screen itinerary: weekend, date, location, # games, trip type (Home / Local drive / Fly).
   const ITIN_COLS=['Weekend','Date','Location','Games','Type'];
@@ -5249,17 +5250,22 @@ const XP=(function(){
   }
   function staffFiltered(){
     const s=staffScope(); let rows=staffDutyRows();
-    if(s.kind==='person') return rows.filter(r=>r.pid===s.pid);
-    if(s.kind==='month')  rows=rows.filter(r=>r.month.key===s.key);
-    if(s.kind==='weekend')rows=rows.filter(r=>r.wk===s.key);
+    if(s.kind==='person') rows=rows.filter(r=>r.pid===s.pid);
+    else if(s.kind==='month')  rows=rows.filter(r=>r.month.key===s.key);
+    else if(s.kind==='weekend')rows=rows.filter(r=>r.wk===s.key);
+    const role=STATE.role||'all';   // rep / timekeeper / both — applies to every scope
+    if(role==='rep') rows=rows.filter(r=>r.role==='Rep');
+    else if(role==='tk') rows=rows.filter(r=>r.role==='Timekeeper');
     return rows;
   }
   function staffTitle(){
     const s=staffScope();
-    if(s.kind==='person')  return 'FSL — Schedule for '+(staffName(s.pid)||'(unknown)');
-    if(s.kind==='month')   return 'FSL — Rep & Timekeeper schedule · '+((staffMonths().find(m=>m.key===s.key)||{}).label||s.key);
-    if(s.kind==='weekend') return 'FSL — Rep & Timekeeper schedule · '+s.key+' ('+(WKDATE[s.key]||'')+')';
-    return 'FSL — Rep & Timekeeper schedule · whole season';
+    const role=STATE.role||'all';
+    const rTag=role==='rep'?' — reps only':(role==='tk'?' — timekeeping only':'');
+    if(s.kind==='person')  return 'FSL — Schedule for '+(staffName(s.pid)||'(unknown)')+rTag;
+    if(s.kind==='month')   return 'FSL — Rep & Timekeeper schedule · '+((staffMonths().find(m=>m.key===s.key)||{}).label||s.key)+rTag;
+    if(s.kind==='weekend') return 'FSL — Rep & Timekeeper schedule · '+s.key+' ('+(WKDATE[s.key]||'')+')'+rTag;
+    return 'FSL — Rep & Timekeeper schedule · whole season'+rTag;
   }
   function staffInner(forXls){
     const nc=STAFF_COLS.length, bd=forXls?'#999999':'#556', cbd=forXls?'#cccccc':'#d9d9e3';
@@ -5354,12 +5360,17 @@ const XP=(function(){
         <label style="font-size:12px;font-weight:700">Report<br><select data-actchange="xpKind" style="${selSty}">${typeOpts.map(([v,l])=>`<option value="${v}" ${v===STATE.kind?'selected':''}>${l}</option>`).join('')}</select></label>
         <label style="font-size:12px;font-weight:700">${kindLabel(STATE.kind)}<br><select data-actchange="xpKey" style="${selSty}">${items.map(([v,l])=>`<option value="${escA(v)}" ${v===STATE.key?'selected':''}>${esc(l)}</option>`).join('')}</select></label>
         ${wkSel}
+        ${isStaff?`<label style="font-size:12px;font-weight:700">Role<br><select data-actchange="xpRole" style="${selSty}">
+          <option value="all" ${(STATE.role||'all')==='all'?'selected':''}>Reps &amp; timekeepers</option>
+          <option value="rep" ${STATE.role==='rep'?'selected':''}>Reps only</option>
+          <option value="tk" ${STATE.role==='tk'?'selected':''}>Timekeeping only</option>
+        </select></label>`:''}
         <button data-act="xpExport" style="${prim}">\u2b07 Export to Excel</button>
         ${info}
       </div>
       <div style="margin-top:14px">${preview}</div>`;
   }
-  return {view,spec,itemsFor,itemsFor2,xlsHtml,toXls,setKind,setKey,setKey2,doExport,_state:()=>STATE,
+  return {view,spec,itemsFor,itemsFor2,xlsHtml,toXls,setKind,setKey,setKey2,setRole,doExport,_state:()=>STATE,
     bcastSheetRows,bcastAllRows,bcastTier,bcastXls,BCAST_FILM,BCAST_MUST,BCAST_TIERS,
     repsRows,repsScopeWks,repsXls,
     staffDutyRows,staffFiltered,staffMonths,staffXls,staffScope};
@@ -6258,6 +6269,7 @@ const ACTIONS={
   pgRemove:d=>PG.removeParked(d),
   xpKind:el=>XP.setKind(el),
   xpKey:el=>XP.setKey(el),
+  xpRole:el=>XP.setRole(el),
   // --- reps & timekeepers ---
   staffWk:el=>{ STAFF_WK=el.value; render(); },
   staffSetRep:el=>{ const d=el.dataset; setRepAt(d.wk,d.venue,d.idx,el.value); render(); },
@@ -6738,7 +6750,7 @@ render();
     +'display:flex;align-items:center;gap:7px;cursor:default;user-select:none;transition:.2s';
   // BUILD MARKER: shown next to the sync status so "which version am I actually running?" is never a
   // guessing game again. Bump this string whenever the sync/boot logic changes.
-  const FSL_BUILD='2026-08-01c';
+  const FSL_BUILD='2026-08-01d';
   window.__fslBuild=FSL_BUILD;
   function setPill(txt,color){ pill.innerHTML='<span style="width:8px;height:8px;border-radius:50%;background:'+(color||'#8a8a90')+';display:inline-block"></span>'+txt+'<span style="opacity:.55;font-weight:600;margin-left:7px">build '+FSL_BUILD+'</span>'; }
   pill.style.cursor='pointer';
