@@ -1928,7 +1928,7 @@ function saveConflictAck(){try{localStorage.setItem('fsl_conflict_ack_v1',JSON.s
 function confId(c){ const s=c.sev+'|'+c.rule+'|'+(c.wk||'')+'|'+c.msg; let h=5381; for(let i=0;i<s.length;i++){ h=((h*33)^s.charCodeAt(i))|0; } return 'c'+(h>>>0).toString(36); }
 function iceEscA(s){return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');}
 function iceDerivedHave(wk,venue){
-  if(clusterName(venue)==='Aberdeen'&&aberdeenExempt(wk)) return true;
+  if(clusterName(venue)==='Aberdeen'&&aberdeenExempt(wk,venue)) return true;
   return realAvailTotal(wk,venue)>0;
 }
 function iceHaveState(wk,venue){
@@ -2091,8 +2091,12 @@ function _realAvailDayBase(wk,venue,day){
   }
   return 0;
 }
-function aberdeenExempt(wk){
+function aberdeenExempt(wk,venue){
   // League rule: Aberdeen weekends with fewer than 18 total games need NO sourced ice.
+  // The exemption only makes sense where ice is actually HELD (2026-08-02, user). If the games
+  // sit on a venue with no real ice at all, they still need ice found, and the sourcing list has
+  // to say so — otherwise Nov 27 and Jan 08 stay invisible precisely because they are small.
+  if(venue!=null){ try{ if(!realAvailTotal(wk,venue)) return false; }catch(e){} }
   return gamesFor(wk).filter(g=>clusterName(g.venue)==='Aberdeen').length<18;
 }
 function sourcedFor(wk,venue){
@@ -2105,7 +2109,7 @@ function sourcedFor(wk,venue){
   // used-vs-real math below (realAvailTotal already reflects CSV-imported / added real ice).
   const used=gamesFor(wk).filter(g=>g.venue===venue).length;
   if(dec==='del') return used;
-  if(dec!=='no'&&clusterName(venue)==='Aberdeen'&&aberdeenExempt(wk)) return 0;
+  if(dec!=='no'&&clusterName(venue)==='Aberdeen'&&aberdeenExempt(wk,venue)) return 0;
   const real=(dec==='no')?0:realAvailTotal(wk,venue);
   return Math.max(0,used-real);
 }
@@ -2134,7 +2138,7 @@ function iceDoesNotExist(wk,venue){
   // A venue you added after the original doc is unsourced by default (needs sourcing)
   // until you explicitly mark it Have — so the hypothetical-times planning aid is offered.
   if(isAddedVenue(wk,venue)) return true;
-  if(clusterName(venue)==='Aberdeen' && aberdeenExempt(wk)) return false; // league flex
+  if(clusterName(venue)==='Aberdeen' && aberdeenExempt(wk,venue)) return false; // league flex
   return realAvailTotal(wk,venue)<=0;         // no real contracted ice
 }
 // A pod (venue-weekend) is "unsourced" only when it has games AND no real contracted ice at all.
@@ -2217,7 +2221,7 @@ function iceToFindView(){
       const vg=gamesFor(wk).filter(g=>g.venue===venue);
       const real=realAvailTotal(wk,venue);
       const rawDef=Math.max(0,vg.length-real);
-      const exempt=clusterName(venue)==='Aberdeen'&&aberdeenExempt(wk);
+      const exempt=clusterName(venue)==='Aberdeen'&&aberdeenExempt(wk,venue);
       const deficit=exempt?0:rawDef;
       if(exempt&&rawDef>0)exemptSlots+=rawDef;
       if(deficit>0){
@@ -6115,7 +6119,7 @@ const PG=(function(){
   // slot still has to be sourced. (Aberdeen under-18 flex weekends are exempt — they never need an ask.)
   function isUnsourcedTarget(wk,venue){
     try{
-      if(typeof aberdeenExempt==='function' && aberdeenExempt(wk) && /Aberdeen/i.test(venue)) return false;
+      if(typeof aberdeenExempt==='function' && aberdeenExempt(wk,venue) && /Aberdeen/i.test(venue)) return false;
       const real=(typeof realAvailTotal==='function')?realAvailTotal(wk,venue):0;
       return real<=0;
     }catch(e){ return false; }
@@ -7209,7 +7213,7 @@ render();
     +'display:flex;align-items:center;gap:7px;cursor:default;user-select:none;transition:.2s';
   // BUILD MARKER: shown next to the sync status so "which version am I actually running?" is never a
   // guessing game again. Bump this string whenever the sync/boot logic changes.
-  const FSL_BUILD='2026-08-02i';
+  const FSL_BUILD='2026-08-02j';
   window.__fslBuild=FSL_BUILD;
   function setPill(txt,color){ pill.innerHTML='<span style="width:8px;height:8px;border-radius:50%;background:'+(color||'#8a8a90')+';display:inline-block"></span>'+txt+'<span style="opacity:.55;font-weight:600;margin-left:7px">build '+FSL_BUILD+'</span>'; }
   pill.style.cursor='pointer';
