@@ -5541,8 +5541,8 @@ const XP=(function(){
   const impRows=()=>impGames().map(impRow);
   function impTitle(){
     const s=impScope();
-    if(s.kind==='month') return 'FSL 2026-27 game import · '+((impMonths().find(m=>m.key===s.key)||{}).label||s.key);
-    return 'FSL 2026-27 game import · whole season';
+    if(s.kind==='month') return 'FSL 2026-27 RAMP import · '+((impMonths().find(m=>m.key===s.key)||{}).label||s.key);
+    return 'FSL 2026-27 RAMP import · whole season';
   }
   const impQ=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"';
   function impCsv(){
@@ -5572,6 +5572,7 @@ const XP=(function(){
       }
       out+=`<tr><td colspan="${IMP_COLS.length}" style="background:#FFF4E5;padding:5px 8px;border:1px solid ${bd};font-size:11.5px;line-height:1.6;color:#5a4630">${w}</td></tr>`;
     }
+    out+=`<tr><td colspan="${IMP_COLS.length}" style="background:#F3F6FB;padding:4px 8px;border:1px solid ${bd};font-size:11.5px;color:#41506b">Columns RAMP fills in itself are left blank on purpose: SubDivision, the two Display names, Home/Away Score, Completed, OT, SO and Notes.</td></tr>`;
     out+='<tr>'+IMP_COLS.map(th).join('')+'</tr>';
     rows.slice(0,CAP).forEach((r,i)=>{
       out+='<tr>'+r.map(c=>`<td style="padding:3px 8px;border:1px solid ${bd};font-size:11.5px;white-space:nowrap;background:${i%2?'#FAFAFC':'#fff'}">${esc(c)}</td>`).join('')+'</tr>';
@@ -5584,7 +5585,7 @@ const XP=(function(){
     if(STATE.kind==='import'){ const n=impRows().length;
       if(!n){showToast('No games in this selection.','warn');return;}
       const nr=impNotReady(); impCsv();
-      showToast('Exported '+n+' game'+(n===1?'':'s')+' in the upload template'+(nr?(' \u2014 '+nr+' still need a date/time'):'')+'.',nr?'warn':'good'); return; }
+      showToast('Exported '+n+' game'+(n===1?'':'s')+' for RAMP'+(nr?(' \u2014 '+nr+' still need a date/time'):'')+'.',nr?'warn':'good'); return; }
     if(STATE.kind==='staffsched'){ const n=staffFiltered().length; staffXls();
       showToast('Exported '+n+' staff duty row'+(n===1?'':'s')+'.','good'); return; }
     if(STATE.kind==='reps'){ const wks=repsScopeWks(); let reps=0; wks.forEach(w=>{reps+=repsRows(w).length;});
@@ -5598,7 +5599,7 @@ const XP=(function(){
     ensureKey();
     const prim='padding:6px 14px;border-radius:8px;border:1px solid transparent;background:var(--ok);color:#fff;font-size:12px;font-weight:700;cursor:pointer;';
     const selSty='margin-top:3px;padding:4px 8px;border:1px solid var(--line-l);border-radius:7px;font-size:12px;max-width:340px';
-    const typeOpts=[['league','\uD83C\uDFD2 Whole league (all divisions)'],['itineraries','\uD83D\uDCCB Team itineraries (all teams by division)'],['broadcast','\uD83C\uDFA5 Broadcast plan (arenas by weekend, ranked)'],['reps','\uD83E\uDDCD Rep plan (one rep per arena, by weekend)'],['staffsched','\uD83D\uDCC5 Rep & timekeeper schedules (season / month / weekend / person)'],['import','\uD83D\uDCC4 Game import CSV \u2014 upload template (season / month)'],['team','Team schedule'],['division','Division schedule'],['weekend','Weekend schedule'],['city','Venue schedule (by city)'],['arena','Arena schedule (by building)'],['arenawknd','Arena \u2014 one weekend (send to the arena)'],['sourced','\uD83D\uDD34 Ice to source (incl. over-capacity)'],['unused','\uD83D\uDFE2 Unused ice (spare real slots)']];
+    const typeOpts=[['league','\uD83C\uDFD2 Whole league (all divisions)'],['itineraries','\uD83D\uDCCB Team itineraries (all teams by division)'],['broadcast','\uD83C\uDFA5 Broadcast plan (arenas by weekend, ranked)'],['reps','\uD83E\uDDCD Rep plan (one rep per arena, by weekend)'],['staffsched','\uD83D\uDCC5 Rep & timekeeper schedules (season / month / weekend / person)'],['import','\uD83D\uDCE4 Export to RAMP \u2014 game import CSV (season / month)'],['team','Team schedule'],['division','Division schedule'],['weekend','Weekend schedule'],['city','Venue schedule (by city)'],['arena','Arena schedule (by building)'],['arenawknd','Arena \u2014 one weekend (send to the arena)'],['sourced','\uD83D\uDD34 Ice to source (incl. over-capacity)'],['unused','\uD83D\uDFE2 Unused ice (spare real slots)']];
     const items=itemsFor(STATE.kind);
     const isItin=STATE.kind==='itineraries';
     const isBcast=STATE.kind==='broadcast';
@@ -7018,7 +7019,7 @@ render();
     +'display:flex;align-items:center;gap:7px;cursor:default;user-select:none;transition:.2s';
   // BUILD MARKER: shown next to the sync status so "which version am I actually running?" is never a
   // guessing game again. Bump this string whenever the sync/boot logic changes.
-  const FSL_BUILD='2026-08-02c';
+  const FSL_BUILD='2026-08-02d';
   window.__fslBuild=FSL_BUILD;
   function setPill(txt,color){ pill.innerHTML='<span style="width:8px;height:8px;border-radius:50%;background:'+(color||'#8a8a90')+';display:inline-block"></span>'+txt+'<span style="opacity:.55;font-weight:600;margin-left:7px">build '+FSL_BUILD+'</span>'; }
   pill.style.cursor='pointer';
