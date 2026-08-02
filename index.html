@@ -1505,6 +1505,38 @@ function backfillEndTimes(){
   });
   return n;
 }
+// Every placed game should name the ice surface it is on (2026-08-02, user). The Bible sync has
+// carried a per-slot surface since 2026-07-31, and placeIntoSlots copies it onto the game — but
+// games placed BEFORE that date kept a blank surface, because at the time there was nothing to
+// copy. This is the safety net: for a game that has a venue, day and start time but no surface,
+// adopt the surface of the real slot it is sitting on.
+// Only fills when the answer is unambiguous — if two slots share that day and start time and name
+// different surfaces (a venue running two sheets at once), we cannot tell which one the game is on,
+// so it is left blank rather than guessed. Idempotent, and never overwrites a surface already set.
+function backfillSheets(){
+  const cache=new Map();
+  const slotsFor=(wk,venue)=>{
+    const k=wk+'|||'+venue;
+    if(!cache.has(k)){ let s=[]; try{ s=realSlotListFor(wk,venue)||[]; }catch(e){ s=[]; } cache.set(k,s); }
+    return cache.get(k);
+  };
+  // Some Bible rows carry a placeholder in the surface column ("TBD", "Ice Surface TBD") rather
+  // than a real sheet name. Copying that onto a game would replace an honest blank with a fake
+  // answer, and it reads as a real surface everywhere downstream — so treat it as no surface.
+  const placeholderSurface=s=>!s||/^(tbd|n\/?a|none|ice surface tbd|surface tbd)$/i.test(String(s).trim());
+  let n=0;
+  games.forEach(g=>{
+    if(!g.venue||!g.day||!g.time||g.sheet) return;
+    const st=toMin(g.time); if(st==null) return;
+    const hits=slotsFor(g.weekend,g.venue).filter(s=>s.day===g.day&&s.start===st&&s.sheet&&!placeholderSurface(s.sheet));
+    if(!hits.length) return;
+    const names=[...new Set(hits.map(s=>String(s.sheet).trim()))];
+    if(names.length!==1) return;                 // two sheets at once — can't tell which; leave blank
+    g.sheet=names[0]; n++;
+    try{ if(typeof GAME_TIMES!=='undefined' && GAME_TIMES[String(g.id)]) GAME_TIMES[String(g.id)].sheet=g.sheet; }catch(e){}
+  });
+  return n;
+}
 function render(){
   _matchNo=null;
   const app=document.getElementById('app');
@@ -1921,26 +1953,51 @@ function iceHiddenSection(hidRows){
 }
 
 /* ============ ICE ALLOCATION ============ */
-/* BIBLE IS ICE TRUTH (2026-07-28) — "ghost ice".
-   Some venue-weekends carry contracted-looking capacity that came from a months-old baked snapshot
-   (IMP import / realSlotsV2) and does NOT appear in the current ICE ALLOCATION BIBLE. Only Bible
-   ice is actually held, so once the sync has loaded, that phantom capacity must stop counting as
-   real — but the ice and its games STAY on the weekend, labelled UNSOURCED (user's call), exactly
-   like ice removed on the Ice Allocation page.
-   Never applies to: ice the user marked SECURED ('have'), or slots the user added by hand — those
-   remain real, and bibleOmitsIce reports the user-added count so it survives. Before the sync has
-   loaded we cannot know what the Bible holds, so nothing is reclassified. */
+/* "Ghost ice" — capacity that looks contracted but isn't held anywhere.
+   Some venue-weekends carry capacity that came from a months-old baked snapshot (IMP import /
+   realSlotsV2). That phantom capacity must not count as real ice — but the ice and its games STAY
+   on the weekend, labelled UNSOURCED (user's call), exactly like ice removed on the Ice Allocation
+   page.
+
+   HOW ICE IS HELD (2026-08-02, user) — the ICE ALLOCATION BIBLE is ONE way, not the only way.
+   Any ONE of these means the ice is real and needs no sourcing:
+     1. the ICE ALLOCATION BIBLE holds it (the sync),
+     2. the venue-weekend is marked "Real ice" on the Ice Allocation page,
+     3. the user marked it SECURED ('have'),
+     4. slots the user added by hand (always real; counted even when 1-3 don't apply).
+   Anything else — "Unsourced (hypothetical)", "To source", "Sourced ice — user-provided", or a
+   venue-weekend with no record at all — is still ghost ice.
+   Before the sync has loaded we cannot know what the Bible holds, so nothing is reclassified. */
 function bibleLoaded(){ return !!(DATA.bibleSlots && Object.keys(DATA.bibleSlots).length); }
+// True when a venue-weekend is marked "Real ice" on the Ice Allocation page. Covers the plain
+// "Real ice", "Real ice (added)", and the annotated forms ("Real ice | +2 sourced (...)",
+// "Real ice — HSL confirmed (...)"). Deliberately does NOT cover "Sourced ice — user-provided"
+// or "Sourced - user ice" — those record an ask that got filled, not held ice, and the user asked
+// only for the "Real ice" marking to count.
+function markedRealIce(wk,venue){
+  try{
+    const v=DATA.venues.find(x=>x.weekend===wk&&x.venue===venue);
+    return !!(v && /^Real ice/i.test(String(v.status||'').trim()));
+  }catch(e){ return false; }
+}
 function bibleOmitsIce(wk,venue){
   try{
     if(!bibleLoaded()) return null;                                     // sync hasn't landed yet
     if(DATA.bibleSlots[wk+'|||'+venue]) return null;                    // the Bible holds this ice
+    if(markedRealIce(wk,venue)) return null;                            // marked "Real ice" — held, not ghost
     if(typeof iceDecision==='function' && iceDecision(wk,venue)==='have') return null;  // user says secured
     const adds=(typeof slotAddsFor==='function')?(slotAddsFor(wk,venue).total||0):0;
     return {userAdded:adds};                                            // real ice = only what the user added
   }catch(e){ return null; }
 }
 function realAvailTotal(wk,venue){
+  const n=_realAvailTotalBase(wk,venue);
+  if(markedRealIce(wk,venue) && !(DATA.bibleSlots&&DATA.bibleSlots[wk+'|||'+venue])){
+    try{ const a=(typeof slotAddsFor==='function')?(slotAddsFor(wk,venue).total||0):0; return Math.max(n,a); }catch(e){}
+  }
+  return n;
+}
+function _realAvailTotalBase(wk,venue){
   { const go=bibleOmitsIce(wk,venue); if(go) return go.userAdded; }   // ghost ice: only user-added slots are real
   // TRUE contracted ice for a venue-weekend — ONE reconciled source of truth so the
   // sourcing math (used-vs-real) and the "unsourced pod" flag can never disagree.
@@ -1956,7 +2013,12 @@ function realAvailTotal(wk,venue){
   //  TIMES RULE: capacity counts only count as REAL ice when actual slot TIMES are known for
   //  this venue-weekend (Bible/import/added slots). Ice with no times can't be scheduled, so it
   //  is treated as unsourced — the pod gets hypothetical times and shows up as a sourcing ask.
-  try{ const s=realSlotListFor(wk,venue); if(!s||!s.length) return 0; }catch(e){}
+  // TIMES RULE, with the "Real ice" exception (2026-08-02, user). Normally capacity only counts
+  // as real once actual slot TIMES are known, because ice you can't put a game on can't be
+  // scheduled. But marking a venue-weekend "Real ice" is the user saying she HOLDS it and simply
+  // hasn't entered the times yet — so it must stop showing up as ice to source. Its caps count,
+  // and the pod keeps hypothetical times until the times arrive.
+  if(!markedRealIce(wk,venue)){ try{ const s=realSlotListFor(wk,venue); if(!s||!s.length) return 0; }catch(e){} }
   const v=DATA.venues.find(x=>x.weekend===wk&&x.venue===venue);
   if(v&&v.realImport){
     return Math.max(0,(v.capFri||0)+(v.capSat||0)+(v.capSun||0));
@@ -1973,11 +2035,19 @@ function realAvailTotal(wk,venue){
 // Per-day real ice, using the same precedence as realAvailTotal so day-level and
 // total-level sourcing math stay consistent.
 function realAvailDay(wk,venue,day){
+  const n=_realAvailDayBase(wk,venue,day);
+  if(markedRealIce(wk,venue) && !(DATA.bibleSlots&&DATA.bibleSlots[wk+'|||'+venue])){
+    try{ const a=(typeof slotAddsFor==='function')?(slotAddsFor(wk,venue)[day]||0):0; return Math.max(n,a); }catch(e){}
+  }
+  return n;
+}
+function _realAvailDayBase(wk,venue,day){
   const ck={Fri:'capFri',Sat:'capSat',Sun:'capSun',Mon:'capMon'}[day]; if(!ck) return 0;
   // Ghost ice (see bibleOmitsIce): only the user's own added slots on this day count as real.
   { const go=bibleOmitsIce(wk,venue);
     if(go){ try{ return Math.max(0, (slotAddsFor(wk,venue)[day]||0)); }catch(e){ return 0; } } }
-  try{ const s=realSlotListFor(wk,venue); if(!s||!s.length) return 0; }catch(e){}   // TIMES RULE (see realAvailTotal)
+  // TIMES RULE + "Real ice" exception — see _realAvailTotalBase.
+  if(!markedRealIce(wk,venue)){ try{ const s=realSlotListFor(wk,venue); if(!s||!s.length) return 0; }catch(e){} }
   const v=DATA.venues.find(x=>x.weekend===wk&&x.venue===venue);
   if(day==='Mon') return Math.max(0, monCapFor(v));   // holiday Monday (Aberdeen Feb 12 — held day we time ourselves)
   if(v&&v.realImport) return Math.max(0,(v[ck]||0));
@@ -6792,6 +6862,7 @@ try{applyManualTimes();}catch(e){}
 // Must run AFTER applyManualTimes — a stale MANUAL_TIMES record with end:'' (not null) would
 // otherwise re-blank whatever this just backfilled.
 try{backfillEndTimes();}catch(e){}
+try{backfillSheets();}catch(e){}
 render();
 (function(){var s=document.getElementById('pubstamp');if(s&&DATA.published&&DATA.published.stamp)s.textContent='Published '+DATA.published.stamp;})();
 
@@ -6996,6 +7067,7 @@ render();
     // Must run AFTER applyManualTimes — a stale MANUAL_TIMES record with end:'' (not null) would
     // otherwise re-blank whatever this just backfilled.
     try{backfillEndTimes();}catch(e){}
+    try{backfillSheets();}catch(e){}
     try{ if(Array.isArray(o.activityLog) && typeof window.__actLogMerge==='function'){
       window.__actLogMerge(o.activityLog);
       const L=window.__actLogGet?window.__actLogGet():[];
@@ -7019,7 +7091,7 @@ render();
     +'display:flex;align-items:center;gap:7px;cursor:default;user-select:none;transition:.2s';
   // BUILD MARKER: shown next to the sync status so "which version am I actually running?" is never a
   // guessing game again. Bump this string whenever the sync/boot logic changes.
-  const FSL_BUILD='2026-08-02d';
+  const FSL_BUILD='2026-08-02e';
   window.__fslBuild=FSL_BUILD;
   function setPill(txt,color){ pill.innerHTML='<span style="width:8px;height:8px;border-radius:50%;background:'+(color||'#8a8a90')+';display:inline-block"></span>'+txt+'<span style="opacity:.55;font-weight:600;margin-left:7px">build '+FSL_BUILD+'</span>'; }
   pill.style.cursor='pointer';
