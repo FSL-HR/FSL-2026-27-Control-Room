@@ -5487,8 +5487,13 @@ const XP=(function(){
     'morinvillesilenticegardens|morinvillesilenticegardens':'Morinville Silent Ice Gardens',
     // Banff — she confirmed Fenlands is the Banff Recreation Centre, Arena 1
     'banfffenlandsarena|':'Banff Recreation Centre - Arena 1',
-    // Calgary — she confirmed Calgary East Arena is the East Calgary Twin, Blue sheet
-    'calgarycalgaryeastarena|':'East Calgary Twin Arena Blue',
+    // Calgary East Twin. All nine games there (Sep 18) sit on the RED sheet per the Bible, and
+    // she confirmed Red is correct — so Red is also the default when no surface is recorded. The
+    // registry export she supplied lists only the Blue arena, so "East Calgary Twin Arena Red"
+    // must exist in RAMP under exactly that spelling for these to match.
+    'calgarycalgaryeastarena|':'East Calgary Twin Arena Red',
+    'calgarycalgaryeastarena|redarena':'East Calgary Twin Arena Red',
+    'calgarycalgaryeastarena|bluearena':'East Calgary Twin Arena Blue',
     // Morinville — the town has one arena in the registry, and she confirmed the app's
     // Morinville names all mean the same building
     'morinvillemorinvillearena|':'Morinville Silent Ice Gardens',
@@ -7091,7 +7096,7 @@ render();
     +'display:flex;align-items:center;gap:7px;cursor:default;user-select:none;transition:.2s';
   // BUILD MARKER: shown next to the sync status so "which version am I actually running?" is never a
   // guessing game again. Bump this string whenever the sync/boot logic changes.
-  const FSL_BUILD='2026-08-02e';
+  const FSL_BUILD='2026-08-02f';
   window.__fslBuild=FSL_BUILD;
   function setPill(txt,color){ pill.innerHTML='<span style="width:8px;height:8px;border-radius:50%;background:'+(color||'#8a8a90')+';display:inline-block"></span>'+txt+'<span style="opacity:.55;font-weight:600;margin-left:7px">build '+FSL_BUILD+'</span>'; }
   pill.style.cursor='pointer';
