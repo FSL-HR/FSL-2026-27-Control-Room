@@ -3928,6 +3928,52 @@ function clearManualTime(id){ delete MANUAL_TIMES[String(id)]; saveManualTimes()
    STAFF is the roster: a name is remembered the first time it is used and offered thereafter.
    The person id is derived from the name, so the same person typed on two different machines
    collapses to one roster entry when the cloud merge runs instead of duplicating. */
+
+/* ===== WHAT THE TEAMS WERE TOLD =========================================================
+   Once a schedule has gone out, the question stops being "what does the schedule say" and
+   becomes "who do I have to phone". SENT_SNAP records every game exactly as it stood when she
+   pressed "Mark as sent", and sentChanges() diffs the live schedule against it.
+
+   Stored as ONE atomic snapshot, not a per-key map: if she marks-as-sent on her machine and
+   Chelsi does the same on hers, a per-key merge would splice two different sends into a
+   baseline that never existed. The cloud merge therefore keeps whichever copy has the later
+   ts (see merge3). Values are packed as one unit-separated string per game so a 768-game
+   snapshot costs ~60KB in the synced doc rather than several hundred. */
+var SENT_SNAP=(function(){try{return JSON.parse(localStorage.getItem('fsl_sent_snap_v1')||'null');}catch(e){return null;}})();
+function saveSentSnap(){try{localStorage.setItem('fsl_sent_snap_v1',SENT_SNAP?JSON.stringify(SENT_SNAP):'null');}catch(e){}}
+const SENT_FIELDS=['weekend','day','time','endTime','venue','sheet','division','home','away'];
+const SENT_LABEL={weekend:'Weekend',day:'Day',time:'Start time',endTime:'End time',
+  venue:'Location',sheet:'Ice surface',division:'Division',home:'Home team',away:'Away team'};
+const _sentRow=g=>SENT_FIELDS.map(f=>String(g[f]==null?'':g[f])).join('\u001f');
+function markSentNow(label){
+  const m={}; games.forEach(g=>{ m[String(g.id)]=_sentRow(g); });
+  SENT_SNAP={ts:Date.now(),label:String(label||''),n:games.length,games:m};
+  saveSentSnap();
+}
+function sentSnapWhen(){ try{ return SENT_SNAP&&SENT_SNAP.ts?new Date(SENT_SNAP.ts).toLocaleString():''; }catch(e){ return ''; } }
+/* One entry per game that no longer matches what was sent. A game whose opponent changed
+   affects the team that was dropped as well as the one added, so both are reported. */
+function sentChanges(){
+  if(!SENT_SNAP||!SENT_SNAP.games) return null;
+  const out=[], seen={};
+  games.forEach(g=>{
+    const id=String(g.id); seen[id]=1;
+    const was=SENT_SNAP.games[id], now=_sentRow(g);
+    if(was===undefined){ out.push({kind:'ADDED',g,diffs:[],teams:[g.home,g.away].filter(Boolean),division:g.division}); return; }
+    if(was===now) return;
+    const o=String(was).split('\u001f');
+    const diffs=[];
+    SENT_FIELDS.forEach((f,i)=>{ const a=o[i]||'', b=String(g[f]==null?'':g[f]); if(a!==b) diffs.push({f,from:a,to:b}); });
+    const teams=[...new Set([g.home,g.away,o[7],o[8]].filter(Boolean))];
+    out.push({kind:'CHANGED',g,diffs,teams,division:g.division||o[6],was:o});
+  });
+  Object.keys(SENT_SNAP.games).forEach(id=>{
+    if(seen[id]) return;
+    const o=String(SENT_SNAP.games[id]).split('\u001f');
+    out.push({kind:'REMOVED',g:null,id,diffs:[],teams:[o[7],o[8]].filter(Boolean),division:o[6],was:o});
+  });
+  return out;
+}
 var STAFF=(function(){try{return JSON.parse(localStorage.getItem('fsl_staff_v1')||'{}')||{};}catch(e){return {};}})();
 function saveStaff(){try{localStorage.setItem('fsl_staff_v1',JSON.stringify(STAFF));}catch(e){}}
 var REP_ASSIGN=(function(){try{return JSON.parse(localStorage.getItem('fsl_rep_assign_v1')||'{}')||{};}catch(e){return {};}})();
@@ -4858,6 +4904,7 @@ const XP=(function(){
     return 'Needs sourcing';
   }
   function itemsFor(kind){
+    if(kind==='changes')return [['ALL','Every change since the schedule was sent']];
     if(kind==='import'){
       const out=[['ALL','Whole season \u2014 every game']];
       impMonths().forEach(m=>out.push(['MO:'+m.key,'Month \u2014 '+m.label]));
@@ -4894,7 +4941,7 @@ const XP=(function(){
       .map(w=>{const n=games.filter(g=>g.venue===STATE.key&&g.weekend===w).length;
         return [w,w+'  ('+(WKDATE[w]||'')+')  \u2014  '+n+' game'+(n===1?'':'s')];});
   }
-  const kindLabel=k=>({league:'Scope',import:'Scope',itineraries:'Scope',broadcast:'Scope',reps:'Scope',staffsched:'Scope',sourced:'Scope',unused:'Scope',team:'Team',division:'Division',weekend:'Weekend',city:'City',arena:'Arena / building',arenawknd:'Arena / building'}[k]||'Item');
+  const kindLabel=k=>({league:'Scope',import:'Scope',changes:'Scope',itineraries:'Scope',broadcast:'Scope',reps:'Scope',staffsched:'Scope',sourced:'Scope',unused:'Scope',team:'Team',division:'Division',weekend:'Weekend',city:'City',arena:'Arena / building',arenawknd:'Arena / building'}[k]||'Item');
   function spec(kind,key,key2){
     let title='',cols=[],rows=[],color=()=>'#ffffff',legend='',note='';
     if(kind==='league'){
@@ -5776,9 +5823,80 @@ const XP=(function(){
     });
     return `<div style="max-height:62vh;overflow:auto;border:1px solid var(--line-l);border-radius:8px"><table style="border-collapse:collapse;min-width:100%">${out}</table></div>`;
   }
+  // --- Changes since the schedule was sent -------------------------------------------------
+  // Grouped by TEAM, because the question this answers is "who do I have to tell". A game whose
+  // opponent changed is listed for the team that was dropped as well as the one added.
+  const CHG_COLS=['Game #','Weekend','What changed','Was','Now'];
+  function chgTeamRows(){
+    const ch=(typeof sentChanges==='function')?sentChanges():null;
+    if(!ch) return null;
+    const byTeam=new Map();
+    ch.forEach(c=>{ (c.teams||[]).forEach(t=>{ const k=(c.division||'?')+'\u0000'+t;
+      if(!byTeam.has(k)) byTeam.set(k,{division:c.division||'?',team:t,items:[]});
+      byTeam.get(k).items.push(c); }); });
+    return [...byTeam.values()].sort((a,b)=>
+      (DIVORDER.indexOf(a.division)-DIVORDER.indexOf(b.division))||a.team.localeCompare(b.team));
+  }
+  const chgWhen=()=>(typeof sentSnapWhen==='function')?sentSnapWhen():'';
+  function chgTitle(){
+    const w=chgWhen();
+    return 'FSL \u2014 Changes since the schedule was sent to teams'+(w?(' \u00b7 sent '+w):'');
+  }
+  function chgInner(forXls){
+    const nc=CHG_COLS.length, bd=forXls?'#999999':'#556', cbd=forXls?'#cccccc':'#d9d9e3';
+    const pad=forXls?'4px':'3px 8px';
+    const th=c=>`<th style="background:#2f3b5c;color:#fff;padding:4px 6px;border:1px solid ${bd};font-size:11px;text-align:left;white-space:nowrap">${esc(c)}</th>`;
+    const groups=chgTeamRows();
+    if(groups===null) return `<tr><td colspan="${nc}" style="background:#FFF4E5;padding:${pad};border:1px solid ${cbd};font-size:12px">Nothing has been marked as sent yet. Press <b>\uD83D\uDCCC Mark as sent to teams</b> once the schedule has gone out \u2014 from then on this sheet lists every change since, and who to tell.</td></tr>`;
+    let out=`<tr><td colspan="${nc}" style="background:#111;color:#fff;font-weight:bold;font-size:13pt;padding:6px;border:1px solid ${bd}">${esc(chgTitle())}</td></tr>`;
+    if(!groups.length) return out+`<tr><td colspan="${nc}" style="background:#E7F6EC;padding:${pad};border:1px solid ${cbd};font-size:12px">No changes since it was sent \u2014 nobody needs telling.</td></tr>`;
+    const nGames=new Set(); groups.forEach(gr=>gr.items.forEach(i=>nGames.add(i.g?String(i.g.id):i.id)));
+    out+=`<tr><td colspan="${nc}" style="background:#EEEDFE;padding:${pad};border:1px solid ${cbd};font-size:12px"><b>${groups.length}</b> team${groups.length===1?'':'s'} to update \u00b7 <b>${nGames.size}</b> game${nGames.size===1?'':'s'} changed \u00b7 sent ${esc(chgWhen())}</td></tr>`;
+    groups.forEach(gr=>{
+      out+=`<tr><td colspan="${nc}" style="background:#1f2a44;color:#fff;font-weight:bold;font-size:12pt;padding:5px;border:1px solid ${bd}">${esc(gr.team)} \u00b7 ${esc(gr.division)} \u2014 ${gr.items.length} change${gr.items.length===1?'':'s'}</td></tr>`;
+      out+='<tr>'+CHG_COLS.map(th).join('')+'</tr>';
+      gr.items.slice().sort((a,b)=>{
+        const wa=(a.g?a.g.weekend:(a.was&&a.was[0]))||'', wb=(b.g?b.g.weekend:(b.was&&b.was[0]))||'';
+        return WK.indexOf(wa)-WK.indexOf(wb);
+      }).forEach((c,i)=>{
+        const bg=i%2?'#FAFAFC':'#ffffff';
+        const td=v=>`<td style="padding:${pad};border:1px solid ${cbd};font-size:11.5px;background:${bg};vertical-align:top">${v}</td>`;
+        const no=c.g?(c.g.gameNo==null?'':c.g.gameNo):'';
+        const wk=(c.g?c.g.weekend:(c.was&&c.was[0]))||'';
+        if(c.kind==='ADDED'){
+          out+='<tr>'+td(esc(no))+td(esc(wk))+td('<b>NEW GAME</b>')+td('\u2014')+
+               td(esc([c.g.day,c.g.time,c.g.venue,c.g.home+' v '+c.g.away].filter(Boolean).join(' \u00b7 ')))+'</tr>';
+        } else if(c.kind==='REMOVED'){
+          out+='<tr>'+td('')+td(esc(wk))+td('<b>GAME REMOVED / UNPLACED</b>')+
+               td(esc([c.was[1],c.was[2],c.was[4]].filter(Boolean).join(' \u00b7 ')))+td('\u2014')+'</tr>';
+        } else {
+          c.diffs.forEach((d,j)=>{
+            out+='<tr>'+td(esc(j===0?no:''))+td(esc(j===0?wk:''))+td(esc(SENT_LABEL[d.f]||d.f))+
+                 td(esc(d.from||'(blank)'))+td('<b>'+esc(d.to||'(blank)')+'</b>')+'</tr>';
+          });
+        }
+      });
+    });
+    return out;
+  }
+  function chgPreview(){
+    return `<div style="max-height:62vh;overflow:auto;border:1px solid var(--line-l);border-radius:8px"><table style="border-collapse:collapse;min-width:100%">${chgInner(false)}</table></div>`;
+  }
+  function chgXls(){
+    let s='<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel"><head><meta charset="utf-8"><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>Changes</x:Name><x:WorksheetOptions><x:FreezePanes/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--></head><body>';
+    s+='<table border="1" style="border-collapse:collapse;font-family:Calibri,Arial;font-size:11pt">'+chgInner(true)+'</table></body></html>';
+    const blob=new Blob(['\ufeff'+s],{type:'application/vnd.ms-excel'});
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+    a.download=chgTitle().replace(/[^A-Za-z0-9]+/g,'_').replace(/^_+|_+$/g,'')+'.xls';
+    document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},0);
+  }
   function doExport(){ensureKey();
     if(STATE.kind==='itineraries'){ const n=DATA.teams.length; itinXls(); showToast('Exported '+n+' team itineraries (grouped by division) \u2014 FSL_Team_Itineraries.xls','good'); return; }
     if(STATE.kind==='broadcast'){ const n=bcastAllRows().length; bcastXls(); showToast('Exported the broadcast plan \u2014 '+n+' arena-weekend'+(n===1?'':'s')+' ranked by film value \u2014 FSL_Broadcast_Plan.xls','good'); return; }
+    if(STATE.kind==='changes'){ const gr=chgTeamRows();
+      if(gr===null){showToast('Nothing marked as sent yet \u2014 press \u201cMark as sent to teams\u201d first.','warn');return;}
+      if(!gr.length){showToast('No changes since it was sent \u2014 nobody needs telling.','good');return;}
+      chgXls(); showToast('Exported the change log \u2014 '+gr.length+' team'+(gr.length===1?'':'s')+' to update.','good'); return; }
     if(STATE.kind==='import'){ const n=impRows().length;
       if(!n){showToast('No games in this selection.','warn');return;}
       const nr=impNotReady(); impCsv();
@@ -5796,14 +5914,15 @@ const XP=(function(){
     ensureKey();
     const prim='padding:6px 14px;border-radius:8px;border:1px solid transparent;background:var(--ok);color:#fff;font-size:12px;font-weight:700;cursor:pointer;';
     const selSty='margin-top:3px;padding:4px 8px;border:1px solid var(--line-l);border-radius:7px;font-size:12px;max-width:340px';
-    const typeOpts=[['league','\uD83C\uDFD2 Whole league (all divisions)'],['itineraries','\uD83D\uDCCB Team itineraries (all teams by division)'],['broadcast','\uD83C\uDFA5 Broadcast plan (arenas by weekend, ranked)'],['reps','\uD83E\uDDCD Rep plan (one rep per arena, by weekend)'],['staffsched','\uD83D\uDCC5 Rep & timekeeper schedules (season / month / weekend / person)'],['import','\uD83D\uDCE4 Export to RAMP \u2014 game import CSV (season / month)'],['team','Team schedule'],['division','Division schedule'],['weekend','Weekend schedule'],['city','Venue schedule (by city)'],['arena','Arena schedule (by building)'],['arenawknd','Arena \u2014 one weekend (send to the arena)'],['sourced','\uD83D\uDD34 Ice to source (incl. over-capacity)'],['unused','\uD83D\uDFE2 Unused ice (spare real slots)']];
+    const typeOpts=[['league','\uD83C\uDFD2 Whole league (all divisions)'],['itineraries','\uD83D\uDCCB Team itineraries (all teams by division)'],['broadcast','\uD83C\uDFA5 Broadcast plan (arenas by weekend, ranked)'],['reps','\uD83E\uDDCD Rep plan (one rep per arena, by weekend)'],['staffsched','\uD83D\uDCC5 Rep & timekeeper schedules (season / month / weekend / person)'],['import','\uD83D\uDCE4 Export to RAMP \u2014 game import CSV (season / month)'],['changes','\uD83D\uDCE3 Changes since sent to teams (who to update)'],['team','Team schedule'],['division','Division schedule'],['weekend','Weekend schedule'],['city','Venue schedule (by city)'],['arena','Arena schedule (by building)'],['arenawknd','Arena \u2014 one weekend (send to the arena)'],['sourced','\uD83D\uDD34 Ice to source (incl. over-capacity)'],['unused','\uD83D\uDFE2 Unused ice (spare real slots)']];
     const items=itemsFor(STATE.kind);
     const isItin=STATE.kind==='itineraries';
     const isBcast=STATE.kind==='broadcast';
     const isReps=STATE.kind==='reps';
     const isStaff=STATE.kind==='staffsched';
     const isImport=STATE.kind==='import';
-    const isMulti=isItin||isBcast||isReps||isStaff||isImport;   // multi-table reports build their own markup, not via spec()
+    const isChg=STATE.kind==='changes';
+    const isMulti=isItin||isBcast||isReps||isStaff||isImport||isChg;   // multi-table reports build their own markup, not via spec()
     const sp=(!isMulti&&STATE.key!=null&&(!needsWk(STATE.kind)||STATE.key2!=null))?spec(STATE.kind,STATE.key,STATE.key2):null;
     const wkSel=needsWk(STATE.kind)?`<label style="font-size:12px;font-weight:700">Weekend<br><select data-actchange="xpKey2" style="${selSty}">${itemsFor2().map(([v,l])=>`<option value="${escA(v)}" ${v===STATE.key2?'selected':''}>${esc(l)}</option>`).join('')}</select></label>`:'';
     const info=isItin
@@ -5818,7 +5937,7 @@ const XP=(function(){
           let reps=0, gms=0; wks.forEach(w=>{const rs=repsRows(w); reps+=rs.length; gms+=rs.reduce((s,r)=>s+r.games,0);});
           return `<div style="font-size:12px;color:var(--mut-d)">${wks.length>1?('<b>'+wks.length+'</b> weekends \u00b7 '):''}<b>${reps}</b> rep${reps===1?'':'s'} needed \u00b7 <b>${gms}</b> game${gms===1?'':'s'} \u00b7 one rep per arena</div>`;})()
       : (sp?`<div style="font-size:12px;color:var(--mut-d)"><b>${sp.rows.length}</b> ${(sp.kind==='sourced'||sp.kind==='unused')?'venue-weekend'+(sp.rows.length===1?'':'s'):'games'} \u00b7 ${esc(sp.legend)}</div>`:'');
-    const preview=isItin?itinPreview():isBcast?bcastPreview():isReps?repsPreview():isStaff?staffPreview():isImport?impPreview():(sp?renderTable(sp):'<div class="dt">No selection.</div>');
+    const preview=isItin?itinPreview():isBcast?bcastPreview():isReps?repsPreview():isStaff?staffPreview():isImport?impPreview():isChg?chgPreview():(sp?renderTable(sp):'<div class="dt">No selection.</div>');
     return `<div class="wk-head"><h2>\uD83D\uDCE4 Schedule exports</h2>
       <div class="dt">Pick a report and an item, preview it, and download a color-coded Excel file. Reflects the live schedule, including any times you have applied. (Excel may say the file type differs from the extension on open \u2014 that is normal for this styled format; click Yes.)</div></div>
       <div class="card" style="padding:14px;display:flex;gap:16px;flex-wrap:wrap;align-items:flex-end">
@@ -5830,6 +5949,7 @@ const XP=(function(){
           <option value="rep" ${STATE.role==='rep'?'selected':''}>Reps only</option>
           <option value="tk" ${STATE.role==='tk'?'selected':''}>Timekeeping only</option>
         </select></label>`:''}
+        ${isChg?`<button data-act="markSent" style="padding:6px 14px;border-radius:8px;border:1px solid var(--line-l);background:#fff;color:var(--mut-d);font-size:12px;font-weight:700;cursor:pointer" title="Record the schedule exactly as it stands now, as the version the teams have">\uD83D\uDCCC Mark as sent to teams</button>`:''}
         <button data-act="xpExport" style="${prim}">\u2b07 Export to ${isImport?'CSV':'Excel'}</button>
         ${info}
       </div>
@@ -5839,6 +5959,7 @@ const XP=(function(){
     bcastSheetRows,bcastAllRows,bcastTier,bcastXls,BCAST_FILM,BCAST_MUST,BCAST_TIERS,
     repsRows,repsScopeWks,repsXls,
     staffDutyRows,staffFiltered,staffMonths,staffXls,staffScope,
+    CHG_COLS,chgTeamRows,chgXls,chgTitle,
     IMP_COLS,impRows,impMonths,impCsv,impDate,impTime,impArena,impBuilding,impArenaAudit,impOfficial,ARENA_OFFICIAL,RAMP_ARENAS,impRegistrySurface,RAMP_TEAMS,rampTeam,impTeamAudit,impMonthOf,impNotReady,impTitle};
 })();
 window.XP=XP;
@@ -6471,7 +6592,7 @@ window.PG=PG;
 var UNDO_STACK=[];
 var REDO_STACK=[];   // forward history: undo() pushes here; any NEW action (pushUndo) clears it
 var SOLVE_REPORT={}; // wk -> last auto-solve result (per-venue day splits, flags, review items)
-const MUTATING=new Set(['iceHave','iceNo','iceHeld','iceDel','iceRestore','iceReset','venueAdd','venueAddDel','impApply','impReset','pgPark','pgParkVenue','pgParkDiv','pgAssign','podSwap','podTime','slotAssign','pgPlaceAt','pgPlaceAll','pgPodMove','pgSelMove','pgRestore','pgRemove','autosolve','toggleLock','toggleVenueLock','pgTbd','timeSet','timeUnlock','slotAddDel','hypoTime','hypoClear','hypoLock','slotDrop','matchupSet','matchupSwap','timeAll',
+const MUTATING=new Set(['markSent','iceHave','iceNo','iceHeld','iceDel','iceRestore','iceReset','venueAdd','venueAddDel','impApply','impReset','pgPark','pgParkVenue','pgParkDiv','pgAssign','podSwap','podTime','slotAssign','pgPlaceAt','pgPlaceAll','pgPodMove','pgSelMove','pgRestore','pgRemove','autosolve','toggleLock','toggleVenueLock','pgTbd','timeSet','timeUnlock','slotAddDel','hypoTime','hypoClear','hypoLock','slotDrop','matchupSet','matchupSwap','timeAll',
   'staffSetRep','staffSetTk','staffDrop','staffClearOrphans']);;   // staffWk is a view switch, not a mutation
 // Full-state snapshot. Includes EVERY persistent store a user action can touch \u2014 omitting one
 // (previously MANUAL_TIMES, SLOT_ADDS, DATA.realIce caps, MATCHUP_LOG, VENUE_ADDS, CONFLICT_ACK)
@@ -6481,7 +6602,8 @@ function _snapState(label){ return JSON.stringify({
   games:games, gid:gid, ice:ICE_DECISIONS, times:GAME_TIMES, manual:MANUAL_TIMES, parking:PARKING,
   locked:LOCKED, removed:REMOVED_GAMES, hypo:HYPO_TIMES, tbd:TBD_NEEDS, venAdds:VENUE_ADDS,
   slotAdds:SLOT_ADDS, slotApplied:_SLOT_ADDS_APPLIED, realIce:DATA.realIce, matchLog:MATCHUP_LOG,
-  confAck:CONFLICT_ACK, staff:STAFF, repAssign:REP_ASSIGN, tkAssign:TK_ASSIGN, label:label||'' }); }
+  confAck:CONFLICT_ACK, staff:STAFF, repAssign:REP_ASSIGN, tkAssign:TK_ASSIGN,
+  sentSnap:(typeof SENT_SNAP!=='undefined'?SENT_SNAP:undefined), label:label||'' }); }
 // Restore a snapshot. localStorage-backed stores are reassigned (nothing holds a long-lived ref to
 // them \u2014 same pattern the original undo used); DATA.realIce and the slot-add guard are restored IN
 // PLACE so the ice overlays that read DATA.realIce by reference keep pointing at live data.
@@ -6502,6 +6624,7 @@ function _applyState(s){
   if(s.staff){STAFF=s.staff;saveStaff();}
   if(s.repAssign){REP_ASSIGN=s.repAssign;saveRepAssign();}
   if(s.tkAssign){TK_ASSIGN=s.tkAssign;saveTkAssign();}
+  if('sentSnap' in s){SENT_SNAP=s.sentSnap||null;saveSentSnap();}
   if(s.slotApplied){Object.keys(_SLOT_ADDS_APPLIED).forEach(k=>delete _SLOT_ADDS_APPLIED[k]);Object.assign(_SLOT_ADDS_APPLIED,s.slotApplied);}
   if(s.realIce){DATA.realIce=DATA.realIce||{};Object.keys(DATA.realIce).forEach(k=>delete DATA.realIce[k]);Object.assign(DATA.realIce,s.realIce);}
   SOLVE_REPORT={};
@@ -6533,6 +6656,13 @@ const ACTIONS={
   dlPick:el=>{ if(el.dataset.kind==='div'){ DL_SCOPE.div=el.value; }
     else { const p=String(el.value).split('|||'); DL_SCOPE.div=p[0]; DL_SCOPE.team=p[1]; }
     render(); },
+  markSent:()=>{
+    const had=(typeof SENT_SNAP!=='undefined'&&SENT_SNAP&&SENT_SNAP.ts)?sentSnapWhen():'';
+    if(had && !confirm('Replace the \u201csent to teams\u201d baseline?\n\nThe current one is from '+had+'. Replacing it means the change log starts again from today, and anything you have not told teams yet stops being listed.'))return;
+    markSentNow('');
+    render();
+    showToast('\uD83D\uDCCC Marked as sent \u2014 '+games.length+' games recorded. Changes from here on show in \u201cChanges since sent\u201d.','good');
+  },
   pgPark:d=>PG.park(d),
   pgParkVenue:d=>PG.parkVenue(d),
   pgParkDiv:d=>PG.parkDivision(d),
@@ -6812,7 +6942,8 @@ const ACTIONS={
       parking:(typeof PARKING!=='undefined'?PARKING:undefined),
       staff:(typeof STAFF!=='undefined'?STAFF:undefined),
       repAssign:(typeof REP_ASSIGN!=='undefined'?REP_ASSIGN:undefined),
-      tkAssign:(typeof TK_ASSIGN!=='undefined'?TK_ASSIGN:undefined)};
+      tkAssign:(typeof TK_ASSIGN!=='undefined'?TK_ASSIGN:undefined),
+      sentSnap:(typeof SENT_SNAP!=='undefined'?SENT_SNAP:undefined)};
     const blob=new Blob([JSON.stringify(payload,null,1)],{type:'application/json'});
     const a=document.createElement('a');a.href=URL.createObjectURL(blob);
     a.download='FSL_schedule_'+new Date().toISOString().slice(0,10)+'.json';
@@ -6906,6 +7037,9 @@ const ACTIONS={
               Object.keys(REP_ASSIGN).forEach(k=>delete REP_ASSIGN[k]);
               Object.keys(payloadObj.repAssign).forEach(k=>{REP_ASSIGN[k]=payloadObj.repAssign[k];});
               try{saveRepAssign();}catch(e){}
+            }
+            if(payloadObj.sentSnap!==undefined && typeof SENT_SNAP!=='undefined'){
+              SENT_SNAP=payloadObj.sentSnap||null; try{saveSentSnap();}catch(e){}
             }
             if(payloadObj.tkAssign && typeof payloadObj.tkAssign==='object' && typeof TK_ASSIGN!=='undefined'){
               Object.keys(TK_ASSIGN).forEach(k=>delete TK_ASSIGN[k]);
@@ -7072,6 +7206,11 @@ render();
       gameTimes:M('gameTimes'), manualTimes:M('manualTimes'), hypoTimes:M('hypoTimes'),
       matchupLog:M('matchupLog'), parking:M('parking'),
       staff:M('staff'), repAssign:M('repAssign'), tkAssign:M('tkAssign'),
+      // Not merged per key: two people marking-as-sent would otherwise splice two different
+      // sends into a baseline that never existed. Keep the later send whole.
+      sentSnap:(function(){ const a=local&&local.sentSnap, b=remote&&remote.sentSnap;
+        if(!a) return b||undefined; if(!b) return a;
+        return ((b.ts||0)>(a.ts||0))?b:a; })(),
       venueAdds:_mergeSet(base&&base.venueAdds, local&&local.venueAdds, remote&&remote.venueAdds, stableStr),
       slotAdds:_mergeSet(base&&base.slotAdds, local&&local.slotAdds, remote&&remote.slotAdds, stableStr),
       removedGames:_mergeSet(base&&base.removedGames, local&&local.removedGames, remote&&remote.removedGames, e=>String(e)),
@@ -7126,6 +7265,7 @@ render();
       staff:(typeof STAFF!=='undefined'?STAFF:undefined),
       repAssign:(typeof REP_ASSIGN!=='undefined'?REP_ASSIGN:undefined),
       tkAssign:(typeof TK_ASSIGN!=='undefined'?TK_ASSIGN:undefined),
+      sentSnap:(typeof SENT_SNAP!=='undefined'?SENT_SNAP:undefined),
       activityLog:(typeof window.__actLogGet==='function'?window.__actLogGet():undefined)};
   }
 
@@ -7179,6 +7319,7 @@ render();
         Object.keys(REP_ASSIGN).forEach(k=>delete REP_ASSIGN[k]);
         Object.keys(o.repAssign).forEach(k=>{REP_ASSIGN[k]=o.repAssign[k];}); try{saveRepAssign();}catch(e){}
       }
+      if(o.sentSnap!==undefined && typeof SENT_SNAP!=='undefined'){ SENT_SNAP=o.sentSnap||null; try{saveSentSnap();}catch(e){} }
       if(o.tkAssign && typeof o.tkAssign==='object' && typeof TK_ASSIGN!=='undefined'){
         Object.keys(TK_ASSIGN).forEach(k=>delete TK_ASSIGN[k]);
         Object.keys(o.tkAssign).forEach(k=>{TK_ASSIGN[k]=o.tkAssign[k];}); try{saveTkAssign();}catch(e){}
@@ -7224,7 +7365,7 @@ render();
     +'display:flex;align-items:center;gap:7px;cursor:default;user-select:none;transition:.2s';
   // BUILD MARKER: shown next to the sync status so "which version am I actually running?" is never a
   // guessing game again. Bump this string whenever the sync/boot logic changes.
-  const FSL_BUILD='2026-08-02l';
+  const FSL_BUILD='2026-08-02m';
   window.__fslBuild=FSL_BUILD;
   function setPill(txt,color){ pill.innerHTML='<span style="width:8px;height:8px;border-radius:50%;background:'+(color||'#8a8a90')+';display:inline-block"></span>'+txt+'<span style="opacity:.55;font-weight:600;margin-left:7px">build '+FSL_BUILD+'</span>'; }
   pill.style.cursor='pointer';
