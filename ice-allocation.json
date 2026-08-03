@@ -1,7 +1,7 @@
 {
-  "generatedAt": "2026-08-02T14:12:31-0600",
+  "generatedAt": "2026-08-03T12:00:03-06:00",
   "source": "ICE ALLOCATION BIBLE.xlsx",
-  "totalSlots": 879,
+  "totalSlots": 877,
   "weekends": {
     "Oct 02": {
       "Delta — Planet Ice Delta": {
@@ -1557,22 +1557,6 @@
             "The Rinks at Summit Centre West Rink"
           ]
         }
-      },
-      "Coquitlam — Planet Ice": {
-        "Fri": [],
-        "Sat": [
-          "18:45",
-          "20:15"
-        ],
-        "Sun": [],
-        "surfaces": {
-          "Fri": [],
-          "Sat": [
-            "",
-            ""
-          ],
-          "Sun": []
-        }
       }
     },
     "Feb 12": {
@@ -3092,12 +3076,11 @@
       }
     }
   },
-  "newThisSync": [
-    "Nov 06|Edmonton — Morinville Silent Ice Gardens|Fri|12:30",
-    "Nov 06|Edmonton — Morinville Silent Ice Gardens|Fri|20:15",
-    "Nov 06|Edmonton — Morinville Silent Ice Gardens|Sat|13:15"
+  "newThisSync": [],
+  "removedThisSync": [
+    "Dec 11|Coquitlam — Planet Ice|Sat|18:45",
+    "Dec 11|Coquitlam — Planet Ice|Sat|20:15"
   ],
-  "removedThisSync": [],
   "contentChanged": true,
   "isBaseline": false,
   "slotKeys": [
@@ -3122,8 +3105,6 @@
     "Dec 11|Abbotsford — Rinks at Summit Center|Sat|09:00",
     "Dec 11|Abbotsford — Rinks at Summit Center|Sun|09:15",
     "Dec 11|Abbotsford — Rinks at Summit Center|Sun|11:30",
-    "Dec 11|Coquitlam — Planet Ice|Sat|18:45",
-    "Dec 11|Coquitlam — Planet Ice|Sat|20:15",
     "Dec 11|Edmonton — Downtown Community Arena|Sat|11:15",
     "Dec 11|Edmonton — Downtown Community Arena|Sat|13:30",
     "Dec 11|Edmonton — Morinville Silent Ice Gardens|Sun|08:00",
