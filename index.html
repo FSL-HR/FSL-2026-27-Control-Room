@@ -6971,6 +6971,33 @@ const ACTIONS={
             if(!g||miss.length) throw new Error('game #'+(i+1)+(g&&g.id?' (id '+g.id+')':'')+' is missing: '+(g?miss.join(', '):'(empty)'));
           }
         }catch(e){ showToast('Could not load file: '+e.message,'bad'); return; }
+        /* STALE-FILE GUARD (2026-08-05) ----------------------------------------------------
+           A saved file is a SNAPSHOT. Loading one that predates the shared document silently
+           throws away everything done since — and Load is deliberately authoritative, so it wins
+           the next sync and the loss reaches the server. This is exactly how work went missing:
+           a file built at 17:33 was still sitting in Downloads while the doc moved 391 games on.
+           Compare the file against the last-synced base (localStorage, no network needed) and
+           make her confirm, with real numbers, before anything is touched. */
+        try{
+          const _sb=JSON.parse(localStorage.getItem('fsl_sync_base_v1')||'null');
+          const base=_sb&&_sb.p;
+          if(base && Array.isArray(base.games) && base.games.length){
+            const sig=g=>[g.weekend,g.day,g.time,g.endTime,g.venue,g.sheet,g.home,g.away].join('|');
+            const cur=new Map(base.games.map(g=>[String(g.id),sig(g)]));
+            let diff=0; arr.forEach(g=>{ const k=cur.get(String(g.id)); if(k!==undefined&&k!==sig(g)) diff++; });
+            const fT=Date.parse((o&&o.exported)||'')||0, bT=Date.parse(base.exported||'')||0;
+            const older=fT&&bT&&fT<bT;
+            if(diff && older){
+              const mins=Math.round((bT-fT)/60000);
+              const age=mins<90?(mins+' minutes'):(mins<2880?(Math.round(mins/60)+' hours'):(Math.round(mins/1440)+' days'));
+              const msg='This file is '+age+' OLDER than the schedule already saved.\n\n'+
+                diff+' game'+(diff===1?'':'s')+' differ between them. Loading replaces the saved schedule '+
+                'with this file, so any work done since the file was made \u2014 by you or by anyone else '+
+                '\u2014 is lost.\n\nLoad it anyway?';
+              if(!confirm(msg)){ showToast('Load cancelled \u2014 nothing changed.','warn'); return; }
+            }
+          }
+        }catch(e){}
         // File is valid — apply it. A later redraw error must NOT be reported as a load failure.
         // Claim authority BEFORE touching any store: the save* wrappers below each trigger a cloud
         // push, and those pushes must already know this state is a deliberate Load (see the second
@@ -7365,7 +7392,7 @@ render();
     +'display:flex;align-items:center;gap:7px;cursor:default;user-select:none;transition:.2s';
   // BUILD MARKER: shown next to the sync status so "which version am I actually running?" is never a
   // guessing game again. Bump this string whenever the sync/boot logic changes.
-  const FSL_BUILD='2026-08-02m';
+  const FSL_BUILD='2026-08-05a';
   window.__fslBuild=FSL_BUILD;
   function setPill(txt,color){ pill.innerHTML='<span style="width:8px;height:8px;border-radius:50%;background:'+(color||'#8a8a90')+';display:inline-block"></span>'+txt+'<span style="opacity:.55;font-weight:600;margin-left:7px">build '+FSL_BUILD+'</span>'; }
   pill.style.cursor='pointer';

@@ -1,7 +1,7 @@
 {
-  "generatedAt": "2026-08-02T14:12:31-0600",
+  "generatedAt": "2026-08-05T09:44:36-06:00",
   "source": "ICE ALLOCATION BIBLE.xlsx",
-  "totalSlots": 879,
+  "totalSlots": 872,
   "weekends": {
     "Oct 02": {
       "Delta — Planet Ice Delta": {
@@ -1428,26 +1428,28 @@
       },
       "Winnipeg — 7 Oaks Arena": {
         "Fri": [
+          "10:30",
           "13:00",
           "15:30",
           "18:00",
           "20:30"
         ],
         "Sat": [
-          "08:45",
+          "08:30",
           "13:15",
           "15:00",
-          "15:30",
-          "17:45",
-          "20:00"
+          "15:45",
+          "18:15",
+          "20:45"
         ],
         "Sun": [
           "10:45",
           "13:30",
-          "15:15"
+          "15:30"
         ],
         "surfaces": {
           "Fri": [
+            "Seven Oaks Arena - Blue",
             "Seven Oaks Arena - Blue",
             "Seven Oaks Arena - Blue",
             "Seven Oaks Arena - Red",
@@ -1517,14 +1519,12 @@
       "Edmonton — Downtown Community Arena": {
         "Fri": [],
         "Sat": [
-          "11:15",
           "13:30"
         ],
         "Sun": [],
         "surfaces": {
           "Fri": [],
           "Sat": [
-            "Downtown Community Arena",
             "Downtown Community Arena"
           ],
           "Sun": []
@@ -1556,22 +1556,6 @@
             "The Rinks at Summit Centre West Rink",
             "The Rinks at Summit Centre West Rink"
           ]
-        }
-      },
-      "Coquitlam — Planet Ice": {
-        "Fri": [],
-        "Sat": [
-          "18:45",
-          "20:15"
-        ],
-        "Sun": [],
-        "surfaces": {
-          "Fri": [],
-          "Sat": [
-            "",
-            ""
-          ],
-          "Sun": []
         }
       }
     },
@@ -1750,24 +1734,6 @@
             "Planet Ice - Total Sport Entertainment (Ice 4)",
             "Planet Ice - Total Sport Entertainment (Ice 3)"
           ]
-        }
-      },
-      "Edmonton — Downtown Community Arena": {
-        "Fri": [
-          "15:15"
-        ],
-        "Sat": [
-          "19:15"
-        ],
-        "Sun": [],
-        "surfaces": {
-          "Fri": [
-            "Downtown Community Arena"
-          ],
-          "Sat": [
-            "Downtown Community Arena"
-          ],
-          "Sun": []
         }
       }
     },
@@ -2279,7 +2245,6 @@
         ],
         "Sat": [
           "09:30",
-          "11:45",
           "15:15",
           "20:30"
         ],
@@ -2292,7 +2257,6 @@
             "Seven Oaks Arena - Blue"
           ],
           "Sat": [
-            "Seven Oaks Arena - Blue",
             "Seven Oaks Arena - Blue",
             "Seven Oaks Arena - Blue",
             "Seven Oaks Arena - Blue"
@@ -2693,24 +2657,6 @@
             "Great Plains Arena 1"
           ]
         }
-      },
-      "Edmonton — Downtown Community Arena": {
-        "Fri": [],
-        "Sat": [
-          "15:15"
-        ],
-        "Sun": [
-          "11:30"
-        ],
-        "surfaces": {
-          "Fri": [],
-          "Sat": [
-            "Downtown Community Arena"
-          ],
-          "Sun": [
-            "Downtown Community Arena"
-          ]
-        }
       }
     },
     "Jan 29": {
@@ -3093,11 +3039,26 @@
     }
   },
   "newThisSync": [
-    "Nov 06|Edmonton — Morinville Silent Ice Gardens|Fri|12:30",
-    "Nov 06|Edmonton — Morinville Silent Ice Gardens|Fri|20:15",
-    "Nov 06|Edmonton — Morinville Silent Ice Gardens|Sat|13:15"
+    "Nov 06|Winnipeg — 7 Oaks Arena|Fri|10:30",
+    "Nov 06|Winnipeg — 7 Oaks Arena|Sat|08:30",
+    "Nov 06|Winnipeg — 7 Oaks Arena|Sat|15:45",
+    "Nov 06|Winnipeg — 7 Oaks Arena|Sat|18:15",
+    "Nov 06|Winnipeg — 7 Oaks Arena|Sat|20:45",
+    "Nov 06|Winnipeg — 7 Oaks Arena|Sun|15:30"
   ],
-  "removedThisSync": [],
+  "removedThisSync": [
+    "Dec 11|Edmonton — Downtown Community Arena|Sat|11:15",
+    "Feb 12|Edmonton — Downtown Community Arena|Fri|15:15",
+    "Feb 12|Edmonton — Downtown Community Arena|Sat|19:15",
+    "Jan 08|Edmonton — Downtown Community Arena|Sat|15:15",
+    "Jan 08|Edmonton — Downtown Community Arena|Sun|11:30",
+    "Nov 06|Winnipeg — 7 Oaks Arena|Sat|08:45",
+    "Nov 06|Winnipeg — 7 Oaks Arena|Sat|15:30",
+    "Nov 06|Winnipeg — 7 Oaks Arena|Sat|17:45",
+    "Nov 06|Winnipeg — 7 Oaks Arena|Sat|20:00",
+    "Nov 06|Winnipeg — 7 Oaks Arena|Sun|15:15",
+    "Sep 25|Winnipeg — 7 Oaks Arena|Sat|11:45"
+  ],
   "contentChanged": true,
   "isBaseline": false,
   "slotKeys": [
@@ -3122,9 +3083,6 @@
     "Dec 11|Abbotsford — Rinks at Summit Center|Sat|09:00",
     "Dec 11|Abbotsford — Rinks at Summit Center|Sun|09:15",
     "Dec 11|Abbotsford — Rinks at Summit Center|Sun|11:30",
-    "Dec 11|Coquitlam — Planet Ice|Sat|18:45",
-    "Dec 11|Coquitlam — Planet Ice|Sat|20:15",
-    "Dec 11|Edmonton — Downtown Community Arena|Sat|11:15",
     "Dec 11|Edmonton — Downtown Community Arena|Sat|13:30",
     "Dec 11|Edmonton — Morinville Silent Ice Gardens|Sun|08:00",
     "Dec 11|Edmonton — Morinville Silent Ice Gardens|Sun|10:30",
@@ -3203,8 +3161,6 @@
     "Feb 12|Coquitlam — Planet Ice|Sun|10:00",
     "Feb 12|Coquitlam — Planet Ice|Sun|10:15",
     "Feb 12|Coquitlam — Planet Ice|Sun|12:30",
-    "Feb 12|Edmonton — Downtown Community Arena|Fri|15:15",
-    "Feb 12|Edmonton — Downtown Community Arena|Sat|19:15",
     "Feb 12|Edmonton — Silent Ice Center (Hatch+Hesco)|Sun|08:15",
     "Feb 12|Edmonton — Silent Ice Center (Hatch+Hesco)|Sun|10:30",
     "Feb 12|Edmonton — Silent Ice Center (Hatch+Hesco)|Sun|12:45",
@@ -3296,8 +3252,6 @@
     "Jan 08|Calgary — GPRC|Sun|11:00",
     "Jan 08|Calgary — GPRC|Sun|13:00",
     "Jan 08|Calgary — GPRC|Sun|13:15",
-    "Jan 08|Edmonton — Downtown Community Arena|Sat|15:15",
-    "Jan 08|Edmonton — Downtown Community Arena|Sun|11:30",
     "Jan 15|Abbotsford — Rinks at Summit Center|Fri|13:30",
     "Jan 15|Abbotsford — Rinks at Summit Center|Fri|14:00",
     "Jan 15|Abbotsford — Rinks at Summit Center|Fri|16:30",
@@ -3417,19 +3371,20 @@
     "Nov 06|Edmonton — Morinville Silent Ice Gardens|Fri|20:15",
     "Nov 06|Edmonton — Morinville Silent Ice Gardens|Sat|13:15",
     "Nov 06|Edmonton — Morinville Silent Ice Gardens|Sat|20:15",
+    "Nov 06|Winnipeg — 7 Oaks Arena|Fri|10:30",
     "Nov 06|Winnipeg — 7 Oaks Arena|Fri|13:00",
     "Nov 06|Winnipeg — 7 Oaks Arena|Fri|15:30",
     "Nov 06|Winnipeg — 7 Oaks Arena|Fri|18:00",
     "Nov 06|Winnipeg — 7 Oaks Arena|Fri|20:30",
-    "Nov 06|Winnipeg — 7 Oaks Arena|Sat|08:45",
+    "Nov 06|Winnipeg — 7 Oaks Arena|Sat|08:30",
     "Nov 06|Winnipeg — 7 Oaks Arena|Sat|13:15",
     "Nov 06|Winnipeg — 7 Oaks Arena|Sat|15:00",
-    "Nov 06|Winnipeg — 7 Oaks Arena|Sat|15:30",
-    "Nov 06|Winnipeg — 7 Oaks Arena|Sat|17:45",
-    "Nov 06|Winnipeg — 7 Oaks Arena|Sat|20:00",
+    "Nov 06|Winnipeg — 7 Oaks Arena|Sat|15:45",
+    "Nov 06|Winnipeg — 7 Oaks Arena|Sat|18:15",
+    "Nov 06|Winnipeg — 7 Oaks Arena|Sat|20:45",
     "Nov 06|Winnipeg — 7 Oaks Arena|Sun|10:45",
     "Nov 06|Winnipeg — 7 Oaks Arena|Sun|13:30",
-    "Nov 06|Winnipeg — 7 Oaks Arena|Sun|15:15",
+    "Nov 06|Winnipeg — 7 Oaks Arena|Sun|15:30",
     "Nov 13|Calgary — 7 Chiefs Sportsplex (JPHL Contract)|Fri|08:00",
     "Nov 13|Calgary — 7 Chiefs Sportsplex (JPHL Contract)|Fri|08:45",
     "Nov 13|Calgary — 7 Chiefs Sportsplex (JPHL Contract)|Fri|10:30",
@@ -3926,7 +3881,6 @@
     "Sep 25|Winnipeg — 7 Oaks Arena|Fri|14:00",
     "Sep 25|Winnipeg — 7 Oaks Arena|Fri|19:30",
     "Sep 25|Winnipeg — 7 Oaks Arena|Sat|09:30",
-    "Sep 25|Winnipeg — 7 Oaks Arena|Sat|11:45",
     "Sep 25|Winnipeg — 7 Oaks Arena|Sat|15:15",
     "Sep 25|Winnipeg — 7 Oaks Arena|Sat|20:30",
     "Sep 25|Winnipeg — 7 Oaks Arena|Sun|09:00"
@@ -3937,7 +3891,7 @@
     "Cowichan|Shawnigan Lake Arena",
     "Edmonton|Downtown Community Arena"
   ],
-  "outOfSeasonSkipped": 151,
+  "outOfSeasonSkipped": 154,
   "badRows": [],
   "assumptions": [
     "Both \"SISE HATCH CO\" and \"SISE HESCO\" map to \"Edmonton — Silent Ice Center (Hatch+Hesco)\".",
