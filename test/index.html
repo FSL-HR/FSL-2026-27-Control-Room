@@ -5619,32 +5619,46 @@ const XP=(function(){
     'winnipeg7oaksarena|7oaksarenaredrink':'Seven Oaks Arena - Red'
   };
   // --- Official team names (RAMP) ------------------------------------------------------
-  // The registered roster, from her "Teams final" list. RAMP matches teams by name within a
-  // division, so these are the only spellings it will accept.
+  // The registered roster, taken from RAMP's own team export ("Teams (11).csv", the one carrying
+  // RAMP ids and logins). RAMP matches teams by name WITHIN a division, so these are the only
+  // spellings it accepts — and the same name legitimately appears in two divisions (16U AAA and
+  // 16U AA both have "16U Angels Pro Hockey"), which is why the lookup is always per division.
   //
-  // The app carries a tier suffix on AA teams ("Calgary Glaciers- AA", "Vancouver Aeros-AA")
-  // because several clubs field both a AAA and a AA team and the board has to tell them apart.
-  // RAMP doesn't need that — the division already says AA — so the suffix comes off on export.
-  // Purcell's "- Green" / "- Gold" DO stay: they are two different teams in one division, so the
-  // suffix is the only thing distinguishing them.
+  // Naming changed 2026-08-05: every RAMP team is now prefixed with its age group — "12U Jr.
+  // Ooks", "19U Aurora Hockey Club". Two steps convert a board name:
+  //   1. drop the tier suffix the board uses to tell a club's AAA and AA sides apart
+  //      ("Calgary Glaciers- AA", "Vancouver Aeros-AA") — RAMP's division already says AA;
+  //   2. prefix the age group for the division.
+  // Purcell's "- Green" / "- Gold" survive step 1 because only a trailing "-AA" is stripped, and
+  // they are two different teams in one division so the suffix is all that separates them.
+  //
+  // Verified when written: all 50 team/division pairs in the schedule map to exactly one
+  // registered name, and every registered team has games.
+  const RAMP_AGE={'12U AAA':'12U','14U AA':'14U','14U AAA':'14U','16U AA':'16U','16U AAA':'16U','19U AAA':'19U'};
   const RAMP_TEAMS={
-    '12U AAA':['Angels Pro Hockey','Bow Valley Nationals','Calgary Glaciers','Cowichan Valley Ravens','Jr. Ooks','Jr. Rustlers','Langley Leafs','Sask Phantoms','Vancouver Aeros'],
-    '14U AA':['Angels Pro Hockey','Bow Valley Nationals','Calgary Glaciers','Langley Leafs','Manitoba Mavericks','Sask Phantoms','Vancouver Aeros'],
-    '14U AAA':['Bow Valley Nationals','Calgary Glaciers','Cowichan Valley Ravens','Jr. Ooks','Jr. Rustlers','Langley Leafs','Peace Country Northstars','Vancouver Aeros'],
-    '16U AA':['Angels Pro Hockey','Calgary Glaciers','Calgary Phoenix','Langley Leafs','Manitoba Mavericks','Sask Phantoms','Victoria Hockey Academy'],
-    '16U AAA':['Angels Pro Hockey','Aurora Hockey Club','Bow Valley Nationals','Calgary Glaciers','Jr. Ooks','Jr. Rustlers','Langley Leafs','Purcell Collegiate','Sask Phantoms','Tri City Express','Vancouver Aeros'],
-    '19U AAA':['Aurora Hockey Club','Bow Valley Nationals','Calgary Glaciers','Jr. Ooks','Jr. Rustlers','Langley Leafs','Purcell Collegiate- Gold','Purcell Collegiate- Green','Sask Phantoms']
+'12U AAA':['12U Angels Pro Hockey','12U Bow Valley Nationals','12U Calgary Glaciers','12U Cowichan Valley Ravens','12U Jr. Ooks','12U Jr. Rustlers','12U Langley Leafs','12U Sask Phantoms','12U Vancouver Aeros'],
+    '14U AA':['14U Angels Pro Hockey','14U Bow Valley Nationals','14U Calgary Glaciers','14U Langley Leafs','14U Manitoba Mavericks','14U Sask Phantoms','14U Vancouver Aeros'],
+    '14U AAA':['14U Bow Valley Nationals','14U Calgary Glaciers','14U Cowichan Valley Ravens','14U Jr. Ooks','14U Jr. Rustlers','14U Langley Leafs','14U Peace Country Northstars','14U Vancouver Aeros'],
+    '16U AA':['16U Angels Pro Hockey','16U Calgary Glaciers','16U Calgary Phoenix','16U Langley Leafs','16U Manitoba Mavericks','16U Sask Phantoms','16U Victoria Hockey Academy'],
+    '16U AAA':['16U Angels Pro Hockey','16U Aurora Hockey Club','16U Bow Valley Nationals','16U Calgary Glaciers','16U Jr. Ooks','16U Jr. Rustlers','16U Langley Leafs','16U Purcell Collegiate','16U Sask Phantoms','16U Tri City Express','16U Vancouver Aeros'],
+    '19U AAA':['19U Aurora Hockey Club','19U Bow Valley Nationals','19U Calgary Glaciers','19U Jr. Ooks','19U Langley Leafs','19U Purcell Collegiate- Gold','19U Purcell Collegiate- Green','19U Sask Phantoms']
   };
+
   // Roster name for a team, within its division. Falls back to the app's own name when nothing
   // matches, so an unknown team still exports and is reported rather than silently dropped.
   function rampTeam(division,name){
     const n=String(name==null?'':name).trim();
     const roster=RAMP_TEAMS[division];
     if(!roster||!n) return n;
-    if(roster.indexOf(n)>=0) return n;
-    const bare=n.replace(/\s*-\s*AA\s*$/i,'').trim();     // drop the board's AA tier suffix
-    if(roster.indexOf(bare)>=0) return bare;
-    return n;
+    if(roster.indexOf(n)>=0) return n;                       // already a registered name
+    const bare=n.replace(/\s*-\s*AA\s*$/i,'').trim();       // drop the board's AA tier suffix
+    const age=RAMP_AGE[division];
+    if(age){
+      const pref=age+' '+bare;
+      if(roster.indexOf(pref)>=0) return pref;               // age-prefixed, the current convention
+    }
+    if(roster.indexOf(bare)>=0) return bare;                 // un-prefixed, tolerated
+    return n;                                                // unknown — exported as-is and reported
   }
   const rampTeamOk=(division,name)=>{
     const roster=RAMP_TEAMS[division];
@@ -7402,7 +7416,7 @@ render();
     +'display:flex;align-items:center;gap:7px;cursor:default;user-select:none;transition:.2s';
   // BUILD MARKER: shown next to the sync status so "which version am I actually running?" is never a
   // guessing game again. Bump this string whenever the sync/boot logic changes.
-  const FSL_BUILD='2026-08-05a';
+  const FSL_BUILD='2026-08-05b';
   window.__fslBuild=FSL_BUILD;
   function setPill(txt,color){ pill.innerHTML='<span style="width:8px;height:8px;border-radius:50%;background:'+(color||'#8a8a90')+';display:inline-block"></span>'+txt+'<span style="opacity:.55;font-weight:600;margin-left:7px">build '+FSL_BUILD+'</span>'; }
   pill.style.cursor='pointer';
