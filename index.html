@@ -1156,13 +1156,14 @@ function detectConflicts(scope){
       });
     })();
     (function(){
+      // REMOVED 2026-08-06 — "Cowichan hosts at home" used to fire whenever an island team carried the
+      // HOME label at a Lower Mainland venue. That conflated two different things: hosting is decided by
+      // the venue, and home/away is only a label on the fixture. Everywhere else in this engine (see
+      // "Play the host") a host is a team whose homeCluster matches the venue's cluster — the home tag
+      // never enters into it. Where an island team plays is already governed by the venue, so this rule
+      // added nothing except a false hard flag that blocked home/away balancing. ISLC stays — the
+      // showcase-slate rule below uses it properly, against the VENUE's cluster.
       const ISLC=c=>c==='Cowichan'||c==='Victoria';
-      pool.forEach(g=>{ if(!g.venue) return;
-        const hc=clOf(g.home,g.division);
-        if(hc&&ISLC(hc)&&clusterName(g.venue)==='Lower Mainland')
-          out.push({sev:'hard',rule:'Cowichan hosts at home',
-            msg:`${g.home} (${g.division}) is the home team vs ${g.away} at ${g.venue} (${g.weekend}) — island teams host at Cowichan, not on the mainland.`,wk:g.weekend});
-      });
       (function(){
         const cw={};
         pool.forEach(g=>{ if(!g.venue||!ISLC(clusterName(g.venue))) return;
@@ -7406,7 +7407,7 @@ render();
     +'display:flex;align-items:center;gap:7px;cursor:default;user-select:none;transition:.2s';
   // BUILD MARKER: shown next to the sync status so "which version am I actually running?" is never a
   // guessing game again. Bump this string whenever the sync/boot logic changes.
-  const FSL_BUILD='2026-08-05b';
+  const FSL_BUILD='2026-08-06a';
   window.__fslBuild=FSL_BUILD;
   function setPill(txt,color){ pill.innerHTML='<span style="width:8px;height:8px;border-radius:50%;background:'+(color||'#8a8a90')+';display:inline-block"></span>'+txt+'<span style="opacity:.55;font-weight:600;margin-left:7px">build '+FSL_BUILD+'</span>'; }
   pill.style.cursor='pointer';
