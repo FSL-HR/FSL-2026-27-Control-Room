@@ -1,7 +1,7 @@
 {
-  "generatedAt": "2026-08-05T09:44:36-06:00",
+  "generatedAt": "2026-08-06T09:14:47-06:00",
   "source": "ICE ALLOCATION BIBLE.xlsx",
-  "totalSlots": 872,
+  "totalSlots": 874,
   "weekends": {
     "Oct 02": {
       "Delta — Planet Ice Delta": {
@@ -422,7 +422,7 @@
           ]
         }
       },
-      "Cowichan — Shawnigan Lake Arena": {
+      "Cowichan — Charlie Purdey Arena": {
         "Fri": [
           "16:30",
           "18:45"
@@ -439,18 +439,18 @@
         ],
         "surfaces": {
           "Fri": [
-            "Shawnigan Lake School Arena",
-            "Shawnigan Lake School Arena"
+            "Charlie Purdey Arena",
+            "Charlie Purdey Arena"
           ],
           "Sat": [
-            "Shawnigan Lake School Arena",
-            "Shawnigan Lake School Arena",
-            "Shawnigan Lake School Arena",
-            "Shawnigan Lake School Arena"
+            "Charlie Purdey Arena",
+            "Charlie Purdey Arena",
+            "Charlie Purdey Arena",
+            "Charlie Purdey Arena"
           ],
           "Sun": [
-            "Shawnigan Lake School Arena",
-            "Shawnigan Lake School Arena"
+            "Charlie Purdey Arena",
+            "Charlie Purdey Arena"
           ]
         }
       }
@@ -592,7 +592,7 @@
           ]
         }
       },
-      "Cowichan — Shawnigan Lake Arena": {
+      "Cowichan — Charlie Purdey Arena": {
         "Fri": [
           "18:15",
           "20:30"
@@ -609,18 +609,18 @@
         ],
         "surfaces": {
           "Fri": [
-            "Shawnigan Lake School Arena",
-            "Shawnigan Lake School Arena"
+            "Charlie Purdey Arena",
+            "Charlie Purdey Arena"
           ],
           "Sat": [
-            "Shawnigan Lake School Arena",
-            "Shawnigan Lake School Arena",
-            "Shawnigan Lake School Arena",
-            "Shawnigan Lake School Arena"
+            "Charlie Purdey Arena",
+            "Charlie Purdey Arena",
+            "Charlie Purdey Arena",
+            "Charlie Purdey Arena"
           ],
           "Sun": [
-            "Shawnigan Lake School Arena",
-            "Shawnigan Lake School Arena"
+            "Charlie Purdey Arena",
+            "Charlie Purdey Arena"
           ]
         }
       }
@@ -780,15 +780,15 @@
     "Oct 16": {
       "Edmonton — Silent Ice Center (Hatch+Hesco)": {
         "Fri": [
+          "08:00",
           "09:30",
-          "10:00",
+          "10:30",
           "11:45",
-          "12:30",
+          "13:00",
           "14:00",
-          "15:00",
+          "15:30",
           "16:15",
-          "17:30",
-          "20:00"
+          "18:00"
         ],
         "Sat": [
           "08:15",
@@ -806,14 +806,13 @@
           "08:00",
           "08:15",
           "10:15",
-          "10:30",
+          "10:45",
           "12:30",
-          "12:45",
+          "13:15",
           "14:45"
         ],
         "surfaces": {
           "Fri": [
-            "Silent Ice Center - Hatch Co. Arena",
             "Silent Ice Center - Hesco Arena",
             "Silent Ice Center - Hatch Co. Arena",
             "Silent Ice Center - Hesco Arena",
@@ -821,6 +820,7 @@
             "Silent Ice Center - Hesco Arena",
             "Silent Ice Center - Hatch Co. Arena",
             "Silent Ice Center - Hesco Arena",
+            "Silent Ice Center - Hatch Co. Arena",
             "Silent Ice Center - Hesco Arena"
           ],
           "Sat": [
@@ -859,6 +859,24 @@
             "Downtown Community Arena",
             "Downtown Community Arena"
           ],
+          "Sun": []
+        }
+      },
+      "Morinville — Morinville Silent Ice Gardens": {
+        "Fri": [
+          "09:15",
+          "11:30",
+          "13:45"
+        ],
+        "Sat": [],
+        "Sun": [],
+        "surfaces": {
+          "Fri": [
+            "Morinville Silent Ice Gardens",
+            "Morinville Silent Ice Gardens",
+            "Morinville Silent Ice Gardens"
+          ],
+          "Sat": [],
           "Sun": []
         }
       }
@@ -1470,7 +1488,7 @@
           ]
         }
       },
-      "Cowichan — Shawnigan Lake Arena": {
+      "Cowichan — Charlie Purdey Arena": {
         "Fri": [
           "16:30",
           "18:45"
@@ -1485,16 +1503,16 @@
         ],
         "surfaces": {
           "Fri": [
-            "Shawnigan Lake School Arena",
-            "Shawnigan Lake School Arena"
+            "Charlie Purdey Arena",
+            "Charlie Purdey Arena"
           ],
           "Sat": [
-            "Shawnigan Lake School Arena",
-            "Shawnigan Lake School Arena",
-            "Shawnigan Lake School Arena"
+            "Charlie Purdey Arena",
+            "Charlie Purdey Arena",
+            "Charlie Purdey Arena"
           ],
           "Sun": [
-            "Shawnigan Lake School Arena"
+            "Charlie Purdey Arena"
           ]
         }
       }
@@ -1889,9 +1907,7 @@
           "17:45",
           "20:00"
         ],
-        "Sun": [
-          "16:45"
-        ],
+        "Sun": [],
         "surfaces": {
           "Fri": [
             "Father David Bauer Arena"
@@ -1901,9 +1917,7 @@
             "Father David Bauer Arena",
             "Father David Bauer Arena"
           ],
-          "Sun": [
-            "Father David Bauer Arena"
-          ]
+          "Sun": []
         }
       }
     },
@@ -2524,7 +2538,7 @@
           ]
         }
       },
-      "Cowichan — Shawnigan Lake Arena": {
+      "Cowichan — Charlie Purdey Arena": {
         "Fri": [
           "19:45"
         ],
@@ -2539,16 +2553,16 @@
         ],
         "surfaces": {
           "Fri": [
-            "Shawnigan Lake School Arena"
+            "Charlie Purdey Arena"
           ],
           "Sat": [
-            "Shawnigan Lake School Arena",
-            "Shawnigan Lake School Arena",
-            "Shawnigan Lake School Arena"
+            "Charlie Purdey Arena",
+            "Charlie Purdey Arena",
+            "Charlie Purdey Arena"
           ],
           "Sun": [
-            "Shawnigan Lake School Arena",
-            "Shawnigan Lake School Arena"
+            "Charlie Purdey Arena",
+            "Charlie Purdey Arena"
           ]
         }
       }
@@ -2908,7 +2922,7 @@
           ]
         }
       },
-      "Cowichan — Shawnigan Lake Arena": {
+      "Cowichan — Charlie Purdey Arena": {
         "Fri": [
           "18:45"
         ],
@@ -2921,14 +2935,14 @@
         ],
         "surfaces": {
           "Fri": [
-            "Shawnigan Lake School Arena"
+            "Charlie Purdey Arena"
           ],
           "Sat": [
-            "Shawnigan Lake School Arena",
-            "Shawnigan Lake School Arena"
+            "Charlie Purdey Arena",
+            "Charlie Purdey Arena"
           ],
           "Sun": [
-            "Shawnigan Lake School Arena"
+            "Charlie Purdey Arena"
           ]
         }
       },
@@ -2976,7 +2990,7 @@
       }
     },
     "Dec 04": {
-      "Cowichan — Shawnigan Lake Arena": {
+      "Cowichan — Charlie Purdey Arena": {
         "Fri": [
           "14:00",
           "16:15",
@@ -2997,22 +3011,22 @@
         ],
         "surfaces": {
           "Fri": [
-            "Shawnigan Lake School Arena",
-            "Shawnigan Lake School Arena",
-            "Shawnigan Lake School Arena"
+            "Charlie Purdey Arena",
+            "Charlie Purdey Arena",
+            "Charlie Purdey Arena"
           ],
           "Sat": [
-            "Shawnigan Lake School Arena",
-            "Shawnigan Lake School Arena",
-            "Shawnigan Lake School Arena",
-            "Shawnigan Lake School Arena",
-            "Shawnigan Lake School Arena",
-            "Shawnigan Lake School Arena"
+            "Charlie Purdey Arena",
+            "Charlie Purdey Arena",
+            "Charlie Purdey Arena",
+            "Charlie Purdey Arena",
+            "Charlie Purdey Arena",
+            "Charlie Purdey Arena"
           ],
           "Sun": [
-            "Shawnigan Lake School Arena",
-            "Shawnigan Lake School Arena",
-            "Shawnigan Lake School Arena"
+            "Charlie Purdey Arena",
+            "Charlie Purdey Arena",
+            "Charlie Purdey Arena"
           ]
         }
       },
@@ -3039,32 +3053,62 @@
     }
   },
   "newThisSync": [
-    "Nov 06|Winnipeg — 7 Oaks Arena|Fri|10:30",
-    "Nov 06|Winnipeg — 7 Oaks Arena|Sat|08:30",
-    "Nov 06|Winnipeg — 7 Oaks Arena|Sat|15:45",
-    "Nov 06|Winnipeg — 7 Oaks Arena|Sat|18:15",
-    "Nov 06|Winnipeg — 7 Oaks Arena|Sat|20:45",
-    "Nov 06|Winnipeg — 7 Oaks Arena|Sun|15:30"
+    "Dec 04|Cowichan — Charlie Purdey Arena|Fri|14:00",
+    "Dec 04|Cowichan — Charlie Purdey Arena|Fri|16:15",
+    "Dec 04|Cowichan — Charlie Purdey Arena|Fri|19:30",
+    "Dec 04|Cowichan — Charlie Purdey Arena|Sat|08:00",
+    "Dec 04|Cowichan — Charlie Purdey Arena|Sat|10:15",
+    "Dec 04|Cowichan — Charlie Purdey Arena|Sat|12:45",
+    "Dec 04|Cowichan — Charlie Purdey Arena|Sat|15:00",
+    "Dec 04|Cowichan — Charlie Purdey Arena|Sat|17:15",
+    "Dec 04|Cowichan — Charlie Purdey Arena|Sat|19:45",
+    "Dec 04|Cowichan — Charlie Purdey Arena|Sun|09:00",
+    "Dec 04|Cowichan — Charlie Purdey Arena|Sun|11:15",
+    "Dec 04|Cowichan — Charlie Purdey Arena|Sun|13:30",
+    "Feb 05|Cowichan — Charlie Purdey Arena|Fri|16:30",
+    "Feb 05|Cowichan — Charlie Purdey Arena|Fri|18:45",
+    "Feb 05|Cowichan — Charlie Purdey Arena|Sat|10:00",
+    "Feb 05|Cowichan — Charlie Purdey Arena|Sat|12:15",
+    "Feb 05|Cowichan — Charlie Purdey Arena|Sat|17:00",
+    "Feb 05|Cowichan — Charlie Purdey Arena|Sat|19:30",
+    "Feb 05|Cowichan — Charlie Purdey Arena|Sun|09:00",
+    "Feb 05|Cowichan — Charlie Purdey Arena|Sun|11:30",
+    "Feb 19|Cowichan — Charlie Purdey Arena|Fri|18:15",
+    "Feb 19|Cowichan — Charlie Purdey Arena|Fri|20:30",
+    "Feb 19|Cowichan — Charlie Purdey Arena|Sat|09:30",
+    "Feb 19|Cowichan — Charlie Purdey Arena|Sat|11:45",
+    "Feb 19|Cowichan — Charlie Purdey Arena|Sat|17:30",
+    "Feb 19|Cowichan — Charlie Purdey Arena|Sat|19:45",
+    "Feb 19|Cowichan — Charlie Purdey Arena|Sun|09:00",
+    "Feb 19|Cowichan — Charlie Purdey Arena|Sun|11:15",
+    "Nov 06|Cowichan — Charlie Purdey Arena|Fri|16:30",
+    "Nov 06|Cowichan — Charlie Purdey Arena|Fri|18:45",
+    "Nov 06|Cowichan — Charlie Purdey Arena|Sat|10:00",
+    "Nov 06|Cowichan — Charlie Purdey Arena|Sat|12:15",
+    "Nov 06|Cowichan — Charlie Purdey Arena|Sat|19:30",
+    "Nov 06|Cowichan — Charlie Purdey Arena|Sun|10:00",
+    "Nov 13|Cowichan — Charlie Purdey Arena|Fri|18:45",
+    "Nov 13|Cowichan — Charlie Purdey Arena|Sat|09:00",
+    "Nov 13|Cowichan — Charlie Purdey Arena|Sat|19:45",
+    "Nov 13|Cowichan — Charlie Purdey Arena|Sun|10:30",
+    "Oct 09|Cowichan — Charlie Purdey Arena|Fri|19:45",
+    "Oct 09|Cowichan — Charlie Purdey Arena|Sat|10:30",
+    "Oct 09|Cowichan — Charlie Purdey Arena|Sat|13:45",
+    "Oct 09|Cowichan — Charlie Purdey Arena|Sat|18:00",
+    "Oct 09|Cowichan — Charlie Purdey Arena|Sun|09:00",
+    "Oct 09|Cowichan — Charlie Purdey Arena|Sun|11:30",
+    "Oct 16|Edmonton — Silent Ice Center (Hatch+Hesco)|Fri|08:00",
+    "Oct 16|Edmonton — Silent Ice Center (Hatch+Hesco)|Fri|10:30",
+    "Oct 16|Edmonton — Silent Ice Center (Hatch+Hesco)|Fri|13:00",
+    "Oct 16|Edmonton — Silent Ice Center (Hatch+Hesco)|Fri|15:30",
+    "Oct 16|Edmonton — Silent Ice Center (Hatch+Hesco)|Fri|18:00",
+    "Oct 16|Edmonton — Silent Ice Center (Hatch+Hesco)|Sun|10:45",
+    "Oct 16|Edmonton — Silent Ice Center (Hatch+Hesco)|Sun|13:15",
+    "Oct 16|Morinville — Morinville Silent Ice Gardens|Fri|09:15",
+    "Oct 16|Morinville — Morinville Silent Ice Gardens|Fri|11:30",
+    "Oct 16|Morinville — Morinville Silent Ice Gardens|Fri|13:45"
   ],
   "removedThisSync": [
-    "Dec 11|Edmonton — Downtown Community Arena|Sat|11:15",
-    "Feb 12|Edmonton — Downtown Community Arena|Fri|15:15",
-    "Feb 12|Edmonton — Downtown Community Arena|Sat|19:15",
-    "Jan 08|Edmonton — Downtown Community Arena|Sat|15:15",
-    "Jan 08|Edmonton — Downtown Community Arena|Sun|11:30",
-    "Nov 06|Winnipeg — 7 Oaks Arena|Sat|08:45",
-    "Nov 06|Winnipeg — 7 Oaks Arena|Sat|15:30",
-    "Nov 06|Winnipeg — 7 Oaks Arena|Sat|17:45",
-    "Nov 06|Winnipeg — 7 Oaks Arena|Sat|20:00",
-    "Nov 06|Winnipeg — 7 Oaks Arena|Sun|15:15",
-    "Sep 25|Winnipeg — 7 Oaks Arena|Sat|11:45"
-  ],
-  "contentChanged": true,
-  "isBaseline": false,
-  "slotKeys": [
-    "Dec 04|Abbotsford — Rinks at Summit Center|Sat|09:15",
-    "Dec 04|Abbotsford — Rinks at Summit Center|Sat|11:30",
-    "Dec 04|Abbotsford — Rinks at Summit Center|Sun|11:00",
     "Dec 04|Cowichan — Shawnigan Lake Arena|Fri|14:00",
     "Dec 04|Cowichan — Shawnigan Lake Arena|Fri|16:15",
     "Dec 04|Cowichan — Shawnigan Lake Arena|Fri|19:30",
@@ -3077,6 +3121,65 @@
     "Dec 04|Cowichan — Shawnigan Lake Arena|Sun|09:00",
     "Dec 04|Cowichan — Shawnigan Lake Arena|Sun|11:15",
     "Dec 04|Cowichan — Shawnigan Lake Arena|Sun|13:30",
+    "Feb 05|Cowichan — Shawnigan Lake Arena|Fri|16:30",
+    "Feb 05|Cowichan — Shawnigan Lake Arena|Fri|18:45",
+    "Feb 05|Cowichan — Shawnigan Lake Arena|Sat|10:00",
+    "Feb 05|Cowichan — Shawnigan Lake Arena|Sat|12:15",
+    "Feb 05|Cowichan — Shawnigan Lake Arena|Sat|17:00",
+    "Feb 05|Cowichan — Shawnigan Lake Arena|Sat|19:30",
+    "Feb 05|Cowichan — Shawnigan Lake Arena|Sun|09:00",
+    "Feb 05|Cowichan — Shawnigan Lake Arena|Sun|11:30",
+    "Feb 19|Cowichan — Shawnigan Lake Arena|Fri|18:15",
+    "Feb 19|Cowichan — Shawnigan Lake Arena|Fri|20:30",
+    "Feb 19|Cowichan — Shawnigan Lake Arena|Sat|09:30",
+    "Feb 19|Cowichan — Shawnigan Lake Arena|Sat|11:45",
+    "Feb 19|Cowichan — Shawnigan Lake Arena|Sat|17:30",
+    "Feb 19|Cowichan — Shawnigan Lake Arena|Sat|19:45",
+    "Feb 19|Cowichan — Shawnigan Lake Arena|Sun|09:00",
+    "Feb 19|Cowichan — Shawnigan Lake Arena|Sun|11:15",
+    "Nov 06|Cowichan — Shawnigan Lake Arena|Fri|16:30",
+    "Nov 06|Cowichan — Shawnigan Lake Arena|Fri|18:45",
+    "Nov 06|Cowichan — Shawnigan Lake Arena|Sat|10:00",
+    "Nov 06|Cowichan — Shawnigan Lake Arena|Sat|12:15",
+    "Nov 06|Cowichan — Shawnigan Lake Arena|Sat|19:30",
+    "Nov 06|Cowichan — Shawnigan Lake Arena|Sun|10:00",
+    "Nov 13|Cowichan — Shawnigan Lake Arena|Fri|18:45",
+    "Nov 13|Cowichan — Shawnigan Lake Arena|Sat|09:00",
+    "Nov 13|Cowichan — Shawnigan Lake Arena|Sat|19:45",
+    "Nov 13|Cowichan — Shawnigan Lake Arena|Sun|10:30",
+    "Oct 09|Cowichan — Shawnigan Lake Arena|Fri|19:45",
+    "Oct 09|Cowichan — Shawnigan Lake Arena|Sat|10:30",
+    "Oct 09|Cowichan — Shawnigan Lake Arena|Sat|13:45",
+    "Oct 09|Cowichan — Shawnigan Lake Arena|Sat|18:00",
+    "Oct 09|Cowichan — Shawnigan Lake Arena|Sun|09:00",
+    "Oct 09|Cowichan — Shawnigan Lake Arena|Sun|11:30",
+    "Oct 16|Edmonton — Silent Ice Center (Hatch+Hesco)|Fri|10:00",
+    "Oct 16|Edmonton — Silent Ice Center (Hatch+Hesco)|Fri|12:30",
+    "Oct 16|Edmonton — Silent Ice Center (Hatch+Hesco)|Fri|15:00",
+    "Oct 16|Edmonton — Silent Ice Center (Hatch+Hesco)|Fri|17:30",
+    "Oct 16|Edmonton — Silent Ice Center (Hatch+Hesco)|Fri|20:00",
+    "Oct 16|Edmonton — Silent Ice Center (Hatch+Hesco)|Sun|10:30",
+    "Oct 16|Edmonton — Silent Ice Center (Hatch+Hesco)|Sun|12:45",
+    "Sep 11|Calgary — Father David Bauer Arena|Sun|16:45"
+  ],
+  "contentChanged": true,
+  "isBaseline": false,
+  "slotKeys": [
+    "Dec 04|Abbotsford — Rinks at Summit Center|Sat|09:15",
+    "Dec 04|Abbotsford — Rinks at Summit Center|Sat|11:30",
+    "Dec 04|Abbotsford — Rinks at Summit Center|Sun|11:00",
+    "Dec 04|Cowichan — Charlie Purdey Arena|Fri|14:00",
+    "Dec 04|Cowichan — Charlie Purdey Arena|Fri|16:15",
+    "Dec 04|Cowichan — Charlie Purdey Arena|Fri|19:30",
+    "Dec 04|Cowichan — Charlie Purdey Arena|Sat|08:00",
+    "Dec 04|Cowichan — Charlie Purdey Arena|Sat|10:15",
+    "Dec 04|Cowichan — Charlie Purdey Arena|Sat|12:45",
+    "Dec 04|Cowichan — Charlie Purdey Arena|Sat|15:00",
+    "Dec 04|Cowichan — Charlie Purdey Arena|Sat|17:15",
+    "Dec 04|Cowichan — Charlie Purdey Arena|Sat|19:45",
+    "Dec 04|Cowichan — Charlie Purdey Arena|Sun|09:00",
+    "Dec 04|Cowichan — Charlie Purdey Arena|Sun|11:15",
+    "Dec 04|Cowichan — Charlie Purdey Arena|Sun|13:30",
     "Dec 11|Abbotsford — Rinks at Summit Center|Fri|11:45",
     "Dec 11|Abbotsford — Rinks at Summit Center|Fri|14:00",
     "Dec 11|Abbotsford — Rinks at Summit Center|Sat|08:45",
@@ -3086,14 +3189,14 @@
     "Dec 11|Edmonton — Downtown Community Arena|Sat|13:30",
     "Dec 11|Edmonton — Morinville Silent Ice Gardens|Sun|08:00",
     "Dec 11|Edmonton — Morinville Silent Ice Gardens|Sun|10:30",
-    "Feb 05|Cowichan — Shawnigan Lake Arena|Fri|16:30",
-    "Feb 05|Cowichan — Shawnigan Lake Arena|Fri|18:45",
-    "Feb 05|Cowichan — Shawnigan Lake Arena|Sat|10:00",
-    "Feb 05|Cowichan — Shawnigan Lake Arena|Sat|12:15",
-    "Feb 05|Cowichan — Shawnigan Lake Arena|Sat|17:00",
-    "Feb 05|Cowichan — Shawnigan Lake Arena|Sat|19:30",
-    "Feb 05|Cowichan — Shawnigan Lake Arena|Sun|09:00",
-    "Feb 05|Cowichan — Shawnigan Lake Arena|Sun|11:30",
+    "Feb 05|Cowichan — Charlie Purdey Arena|Fri|16:30",
+    "Feb 05|Cowichan — Charlie Purdey Arena|Fri|18:45",
+    "Feb 05|Cowichan — Charlie Purdey Arena|Sat|10:00",
+    "Feb 05|Cowichan — Charlie Purdey Arena|Sat|12:15",
+    "Feb 05|Cowichan — Charlie Purdey Arena|Sat|17:00",
+    "Feb 05|Cowichan — Charlie Purdey Arena|Sat|19:30",
+    "Feb 05|Cowichan — Charlie Purdey Arena|Sun|09:00",
+    "Feb 05|Cowichan — Charlie Purdey Arena|Sun|11:30",
     "Feb 05|Delta — Planet Ice Delta|Fri|18:45",
     "Feb 05|Delta — Planet Ice Delta|Fri|20:00",
     "Feb 05|Delta — Planet Ice Delta|Sat|16:15",
@@ -3177,14 +3280,14 @@
     "Feb 19|Aberdeen — Aberdeen Rec Center|Sun|08:30",
     "Feb 19|Aberdeen — Aberdeen Rec Center|Sun|10:45",
     "Feb 19|Aberdeen — Aberdeen Rec Center|Sun|13:00",
-    "Feb 19|Cowichan — Shawnigan Lake Arena|Fri|18:15",
-    "Feb 19|Cowichan — Shawnigan Lake Arena|Fri|20:30",
-    "Feb 19|Cowichan — Shawnigan Lake Arena|Sat|09:30",
-    "Feb 19|Cowichan — Shawnigan Lake Arena|Sat|11:45",
-    "Feb 19|Cowichan — Shawnigan Lake Arena|Sat|17:30",
-    "Feb 19|Cowichan — Shawnigan Lake Arena|Sat|19:45",
-    "Feb 19|Cowichan — Shawnigan Lake Arena|Sun|09:00",
-    "Feb 19|Cowichan — Shawnigan Lake Arena|Sun|11:15",
+    "Feb 19|Cowichan — Charlie Purdey Arena|Fri|18:15",
+    "Feb 19|Cowichan — Charlie Purdey Arena|Fri|20:30",
+    "Feb 19|Cowichan — Charlie Purdey Arena|Sat|09:30",
+    "Feb 19|Cowichan — Charlie Purdey Arena|Sat|11:45",
+    "Feb 19|Cowichan — Charlie Purdey Arena|Sat|17:30",
+    "Feb 19|Cowichan — Charlie Purdey Arena|Sat|19:45",
+    "Feb 19|Cowichan — Charlie Purdey Arena|Sun|09:00",
+    "Feb 19|Cowichan — Charlie Purdey Arena|Sun|11:15",
     "Feb 19|Delta — Planet Ice Delta|Fri|18:45",
     "Feb 19|Delta — Planet Ice Delta|Fri|19:15",
     "Feb 19|Delta — Planet Ice Delta|Fri|20:00",
@@ -3361,12 +3464,12 @@
     "Nov 06|Aberdeen — Aberdeen Rec Center|Sun|08:30",
     "Nov 06|Aberdeen — Aberdeen Rec Center|Sun|10:45",
     "Nov 06|Aberdeen — Aberdeen Rec Center|Sun|13:00",
-    "Nov 06|Cowichan — Shawnigan Lake Arena|Fri|16:30",
-    "Nov 06|Cowichan — Shawnigan Lake Arena|Fri|18:45",
-    "Nov 06|Cowichan — Shawnigan Lake Arena|Sat|10:00",
-    "Nov 06|Cowichan — Shawnigan Lake Arena|Sat|12:15",
-    "Nov 06|Cowichan — Shawnigan Lake Arena|Sat|19:30",
-    "Nov 06|Cowichan — Shawnigan Lake Arena|Sun|10:00",
+    "Nov 06|Cowichan — Charlie Purdey Arena|Fri|16:30",
+    "Nov 06|Cowichan — Charlie Purdey Arena|Fri|18:45",
+    "Nov 06|Cowichan — Charlie Purdey Arena|Sat|10:00",
+    "Nov 06|Cowichan — Charlie Purdey Arena|Sat|12:15",
+    "Nov 06|Cowichan — Charlie Purdey Arena|Sat|19:30",
+    "Nov 06|Cowichan — Charlie Purdey Arena|Sun|10:00",
     "Nov 06|Edmonton — Morinville Silent Ice Gardens|Fri|12:30",
     "Nov 06|Edmonton — Morinville Silent Ice Gardens|Fri|20:15",
     "Nov 06|Edmonton — Morinville Silent Ice Gardens|Sat|13:15",
@@ -3427,10 +3530,10 @@
     "Nov 13|Calgary — GPRC|Sun|12:00",
     "Nov 13|Calgary — GPRC|Sun|12:30",
     "Nov 13|Calgary — GPRC|Sun|13:45",
-    "Nov 13|Cowichan — Shawnigan Lake Arena|Fri|18:45",
-    "Nov 13|Cowichan — Shawnigan Lake Arena|Sat|09:00",
-    "Nov 13|Cowichan — Shawnigan Lake Arena|Sat|19:45",
-    "Nov 13|Cowichan — Shawnigan Lake Arena|Sun|10:30",
+    "Nov 13|Cowichan — Charlie Purdey Arena|Fri|18:45",
+    "Nov 13|Cowichan — Charlie Purdey Arena|Sat|09:00",
+    "Nov 13|Cowichan — Charlie Purdey Arena|Sat|19:45",
+    "Nov 13|Cowichan — Charlie Purdey Arena|Sun|10:30",
     "Nov 13|Lloydminster — Servus Sports Center|Fri|15:15",
     "Nov 13|Lloydminster — Servus Sports Center|Fri|15:30",
     "Nov 13|Lloydminster — Servus Sports Center|Fri|17:45",
@@ -3575,12 +3678,12 @@
     "Oct 09|Canmore — Canmore Arena|Sun|08:15",
     "Oct 09|Canmore — Canmore Arena|Sun|10:45",
     "Oct 09|Canmore — Canmore Arena|Sun|13:00",
-    "Oct 09|Cowichan — Shawnigan Lake Arena|Fri|19:45",
-    "Oct 09|Cowichan — Shawnigan Lake Arena|Sat|10:30",
-    "Oct 09|Cowichan — Shawnigan Lake Arena|Sat|13:45",
-    "Oct 09|Cowichan — Shawnigan Lake Arena|Sat|18:00",
-    "Oct 09|Cowichan — Shawnigan Lake Arena|Sun|09:00",
-    "Oct 09|Cowichan — Shawnigan Lake Arena|Sun|11:30",
+    "Oct 09|Cowichan — Charlie Purdey Arena|Fri|19:45",
+    "Oct 09|Cowichan — Charlie Purdey Arena|Sat|10:30",
+    "Oct 09|Cowichan — Charlie Purdey Arena|Sat|13:45",
+    "Oct 09|Cowichan — Charlie Purdey Arena|Sat|18:00",
+    "Oct 09|Cowichan — Charlie Purdey Arena|Sun|09:00",
+    "Oct 09|Cowichan — Charlie Purdey Arena|Sun|11:30",
     "Oct 09|Lloydminster — Servus Sports Center|Fri|15:00",
     "Oct 09|Lloydminster — Servus Sports Center|Fri|17:15",
     "Oct 09|Lloydminster — Servus Sports Center|Fri|19:30",
@@ -3611,15 +3714,15 @@
     "Oct 09|Winnipeg — 7 Oaks Arena|Sun|11:15",
     "Oct 16|Edmonton — Downtown Community Arena|Sat|10:15",
     "Oct 16|Edmonton — Downtown Community Arena|Sat|12:30",
+    "Oct 16|Edmonton — Silent Ice Center (Hatch+Hesco)|Fri|08:00",
     "Oct 16|Edmonton — Silent Ice Center (Hatch+Hesco)|Fri|09:30",
-    "Oct 16|Edmonton — Silent Ice Center (Hatch+Hesco)|Fri|10:00",
+    "Oct 16|Edmonton — Silent Ice Center (Hatch+Hesco)|Fri|10:30",
     "Oct 16|Edmonton — Silent Ice Center (Hatch+Hesco)|Fri|11:45",
-    "Oct 16|Edmonton — Silent Ice Center (Hatch+Hesco)|Fri|12:30",
+    "Oct 16|Edmonton — Silent Ice Center (Hatch+Hesco)|Fri|13:00",
     "Oct 16|Edmonton — Silent Ice Center (Hatch+Hesco)|Fri|14:00",
-    "Oct 16|Edmonton — Silent Ice Center (Hatch+Hesco)|Fri|15:00",
+    "Oct 16|Edmonton — Silent Ice Center (Hatch+Hesco)|Fri|15:30",
     "Oct 16|Edmonton — Silent Ice Center (Hatch+Hesco)|Fri|16:15",
-    "Oct 16|Edmonton — Silent Ice Center (Hatch+Hesco)|Fri|17:30",
-    "Oct 16|Edmonton — Silent Ice Center (Hatch+Hesco)|Fri|20:00",
+    "Oct 16|Edmonton — Silent Ice Center (Hatch+Hesco)|Fri|18:00",
     "Oct 16|Edmonton — Silent Ice Center (Hatch+Hesco)|Sat|08:15",
     "Oct 16|Edmonton — Silent Ice Center (Hatch+Hesco)|Sat|09:30",
     "Oct 16|Edmonton — Silent Ice Center (Hatch+Hesco)|Sat|10:30",
@@ -3633,10 +3736,13 @@
     "Oct 16|Edmonton — Silent Ice Center (Hatch+Hesco)|Sun|08:00",
     "Oct 16|Edmonton — Silent Ice Center (Hatch+Hesco)|Sun|08:15",
     "Oct 16|Edmonton — Silent Ice Center (Hatch+Hesco)|Sun|10:15",
-    "Oct 16|Edmonton — Silent Ice Center (Hatch+Hesco)|Sun|10:30",
+    "Oct 16|Edmonton — Silent Ice Center (Hatch+Hesco)|Sun|10:45",
     "Oct 16|Edmonton — Silent Ice Center (Hatch+Hesco)|Sun|12:30",
-    "Oct 16|Edmonton — Silent Ice Center (Hatch+Hesco)|Sun|12:45",
+    "Oct 16|Edmonton — Silent Ice Center (Hatch+Hesco)|Sun|13:15",
     "Oct 16|Edmonton — Silent Ice Center (Hatch+Hesco)|Sun|14:45",
+    "Oct 16|Morinville — Morinville Silent Ice Gardens|Fri|09:15",
+    "Oct 16|Morinville — Morinville Silent Ice Gardens|Fri|11:30",
+    "Oct 16|Morinville — Morinville Silent Ice Gardens|Fri|13:45",
     "Oct 23|Abbotsford — Rinks at Summit Center|Fri|17:00",
     "Oct 23|Abbotsford — Rinks at Summit Center|Fri|19:30",
     "Oct 23|Abbotsford — Rinks at Summit Center|Sat|08:00",
@@ -3752,7 +3858,6 @@
     "Sep 11|Calgary — Father David Bauer Arena|Sat|11:00",
     "Sep 11|Calgary — Father David Bauer Arena|Sat|17:45",
     "Sep 11|Calgary — Father David Bauer Arena|Sat|20:00",
-    "Sep 11|Calgary — Father David Bauer Arena|Sun|16:45",
     "Sep 11|Canmore — Canmore Arena|Fri|08:30",
     "Sep 11|Canmore — Canmore Arena|Fri|11:00",
     "Sep 11|Canmore — Canmore Arena|Fri|13:30",
@@ -3888,8 +3993,9 @@
   "unmappedVenues": [
     "Calgary|Calgary East Arena",
     "Coquitlam|Planet Ice",
-    "Cowichan|Shawnigan Lake Arena",
-    "Edmonton|Downtown Community Arena"
+    "Cowichan|Charlie Purdey Arena",
+    "Edmonton|Downtown Community Arena",
+    "Morinville|Morinville Silent Ice Gardens"
   ],
   "outOfSeasonSkipped": 154,
   "badRows": [],
