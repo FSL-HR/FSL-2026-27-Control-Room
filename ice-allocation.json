@@ -1,7 +1,7 @@
 {
-  "generatedAt": "2026-08-06T09:14:47-06:00",
+  "generatedAt": "2026-08-06T12:00:07-06:00",
   "source": "ICE ALLOCATION BIBLE.xlsx",
-  "totalSlots": 874,
+  "totalSlots": 842,
   "weekends": {
     "Oct 02": {
       "Delta — Planet Ice Delta": {
@@ -1755,561 +1755,27 @@
         }
       }
     },
-    "Sep 11": {
+    "Oct 09": {
       "Canmore — Canmore Arena": {
         "Fri": [
-          "08:30",
-          "11:00",
-          "13:30",
-          "15:45"
-        ],
-        "Sat": [
-          "15:30",
-          "18:00",
-          "18:00",
-          "20:30"
-        ],
-        "Sun": [
-          "13:30"
-        ],
-        "surfaces": {
-          "Fri": [
-            "Alex Kaleta Arena",
-            "Alex Kaleta Arena",
-            "Alex Kaleta Arena",
-            "Thelma Crowe Arena"
-          ],
-          "Sat": [
-            "Alex Kaleta Arena",
-            "Alex Kaleta Arena",
-            "Thelma Crowe Arena",
-            "Alex Kaleta Arena"
-          ],
-          "Sun": [
-            "Thelma Crowe Arena"
-          ]
-        }
-      },
-      "Lloydminster — Servus Sports Center": {
-        "Fri": [
-          "12:00",
-          "12:15",
-          "14:15",
-          "14:30",
-          "16:30",
-          "16:45",
-          "19:00"
-        ],
-        "Sat": [
-          "08:00",
-          "08:15",
-          "10:15",
-          "10:30",
-          "12:30",
-          "12:45",
-          "14:45",
-          "15:00",
-          "17:00",
-          "17:15",
-          "19:15",
-          "19:30"
-        ],
-        "Sun": [
-          "07:45",
-          "08:00",
-          "10:00",
-          "10:15",
-          "12:15",
-          "12:30"
-        ],
-        "surfaces": {
-          "Fri": [
-            "Servus Sports Centre Robert B. Holmes Arena",
-            "Servus Sports Centre Rusway Arena",
-            "Servus Sports Centre Robert B. Holmes Arena",
-            "Servus Sports Centre Rusway Arena",
-            "Servus Sports Centre Robert B. Holmes Arena",
-            "Servus Sports Centre Rusway Arena",
-            "Servus Sports Centre Rusway Arena"
-          ],
-          "Sat": [
-            "Servus Sports Centre Rusway Arena",
-            "Servus Sports Centre Robert B. Holmes Arena",
-            "Servus Sports Centre Rusway Arena",
-            "Servus Sports Centre Robert B. Holmes Arena",
-            "Servus Sports Centre Rusway Arena",
-            "Servus Sports Centre Robert B. Holmes Arena",
-            "Servus Sports Centre Rusway Arena",
-            "Servus Sports Centre Robert B. Holmes Arena",
-            "Servus Sports Centre Rusway Arena",
-            "Servus Sports Centre Robert B. Holmes Arena",
-            "Servus Sports Centre Rusway Arena",
-            "Servus Sports Centre Robert B. Holmes Arena"
-          ],
-          "Sun": [
-            "Servus Sports Centre Rusway Arena",
-            "Servus Sports Centre Robert B. Holmes Arena",
-            "Servus Sports Centre Rusway Arena",
-            "Servus Sports Centre Robert B. Holmes Arena",
-            "Servus Sports Centre Rusway Arena",
-            "Servus Sports Centre Robert B. Holmes Arena"
-          ]
-        }
-      },
-      "Banff — Fenlands Arena": {
-        "Fri": [
-          "15:00",
-          "17:30",
-          "20:00"
-        ],
-        "Sat": [
-          "08:30",
-          "11:00",
-          "13:30",
-          "16:00",
           "18:30"
         ],
-        "Sun": [
-          "08:30",
-          "11:00",
-          "13:30",
-          "16:00",
-          "18:30"
-        ],
-        "surfaces": {
-          "Fri": [
-            "Banff Recreation Centre - Arena 1",
-            "Banff Recreation Centre - Arena 1",
-            "Banff Recreation Centre - Arena 1"
-          ],
-          "Sat": [
-            "Banff Recreation Centre - Arena 1",
-            "Banff Recreation Centre - Arena 1",
-            "Banff Recreation Centre - Arena 1",
-            "Banff Recreation Centre - Arena 1",
-            "Banff Recreation Centre - Arena 1"
-          ],
-          "Sun": [
-            "Banff Recreation Centre - Arena 1",
-            "Banff Recreation Centre - Arena 1",
-            "Banff Recreation Centre - Arena 1",
-            "Banff Recreation Centre - Arena 1",
-            "Banff Recreation Centre - Arena 1"
-          ]
-        }
-      },
-      "Calgary — Father David Bauer Arena": {
-        "Fri": [
-          "10:15"
-        ],
         "Sat": [
-          "11:00",
-          "17:45",
-          "20:00"
-        ],
-        "Sun": [],
-        "surfaces": {
-          "Fri": [
-            "Father David Bauer Arena"
-          ],
-          "Sat": [
-            "Father David Bauer Arena",
-            "Father David Bauer Arena",
-            "Father David Bauer Arena"
-          ],
-          "Sun": []
-        }
-      }
-    },
-    "Sep 18": {
-      "Canmore — Canmore Arena": {
-        "Fri": [
-          "10:30",
-          "12:00",
-          "14:30",
-          "15:30",
-          "17:00",
-          "17:45",
-          "19:30",
-          "20:00"
-        ],
-        "Sat": [
-          "14:45",
-          "17:15",
-          "19:45"
-        ],
-        "Sun": [],
-        "surfaces": {
-          "Fri": [
-            "Thelma Crowe Arena",
-            "Alex Kaleta Arena",
-            "Alex Kaleta Arena",
-            "Thelma Crowe Arena",
-            "Alex Kaleta Arena",
-            "Thelma Crowe Arena",
-            "Alex Kaleta Arena",
-            "Thelma Crowe Arena"
-          ],
-          "Sat": [
-            "Thelma Crowe Arena",
-            "Thelma Crowe Arena",
-            "Thelma Crowe Arena"
-          ],
-          "Sun": []
-        }
-      },
-      "Abbotsford — Rinks at Summit Center": {
-        "Fri": [
-          "15:00",
-          "15:15",
-          "17:45"
-        ],
-        "Sat": [
-          "08:00",
-          "08:45",
-          "10:30",
-          "16:00",
-          "18:30",
-          "18:45"
-        ],
-        "Sun": [
-          "08:00",
-          "10:30",
-          "13:00"
-        ],
-        "surfaces": {
-          "Fri": [
-            "The Rinks at Summit Centre East Rink",
-            "The Rinks at Summit Centre West Rink",
-            "The Rinks at Summit Centre West Rink"
-          ],
-          "Sat": [
-            "The Rinks at Summit Centre West Rink",
-            "The Rinks at Summit Centre East Rink",
-            "The Rinks at Summit Centre West Rink",
-            "The Rinks at Summit Centre West Rink",
-            "The Rinks at Summit Centre West Rink",
-            "The Rinks at Summit Centre East Rink"
-          ],
-          "Sun": [
-            "The Rinks at Summit Centre West Rink",
-            "The Rinks at Summit Centre West Rink",
-            "The Rinks at Summit Centre West Rink"
-          ]
-        }
-      },
-      "Cochrane — SLS Center": {
-        "Fri": [
-          "09:30",
-          "10:15",
-          "12:00",
-          "12:00",
-          "12:15",
-          "12:45",
-          "14:30",
-          "14:30",
-          "14:45",
-          "15:15",
-          "17:00",
-          "17:00",
-          "17:15",
-          "17:45",
-          "19:30",
-          "19:30"
-        ],
-        "Sat": [
-          "08:00",
-          "08:00",
-          "08:00",
-          "08:15",
-          "10:30",
-          "10:30",
-          "10:30",
-          "10:45",
-          "13:00",
-          "13:00",
-          "16:15",
-          "16:15",
-          "18:15",
-          "18:45",
-          "18:45"
-        ],
-        "Sun": [
-          "08:00",
-          "08:00",
-          "08:00",
-          "08:15",
-          "10:30",
-          "10:30",
-          "10:30",
-          "10:45",
-          "13:00",
-          "13:00",
-          "13:00"
-        ],
-        "surfaces": {
-          "Fri": [
-            "SLS Centre - Totem 2",
-            "SLS Centre - Totem 1",
-            "SLS Centre - Totem 2",
-            "SLS Centre - Totem 2",
-            "SLS Centre - Totem 1",
-            "SLS Centre - Totem 1",
-            "SLS Centre - Totem 2",
-            "SLS Centre - Totem 2",
-            "SLS Centre - Totem 1",
-            "SLS Centre - Totem 1",
-            "SLS Centre - Totem 2",
-            "SLS Centre - Totem 2",
-            "SLS Centre - Totem 1",
-            "SLS Centre - Totem 1",
-            "SLS Centre - Totem 2",
-            "SLS Centre - Totem 2"
-          ],
-          "Sat": [
-            "SLS Centre - Totem 1",
-            "SLS Centre - Totem 1",
-            "SLS Centre - Totem 2",
-            "SLS Centre - Totem 2",
-            "SLS Centre - Totem 1",
-            "SLS Centre - Totem 1",
-            "SLS Centre - Totem 2",
-            "SLS Centre - Totem 2",
-            "SLS Centre - Totem 1",
-            "SLS Centre - Totem 1",
-            "SLS Centre - Totem 2",
-            "SLS Centre - Totem 2",
-            "SLS Centre - Totem 1",
-            "SLS Centre - Totem 2",
-            "SLS Centre - Totem 2"
-          ],
-          "Sun": [
-            "SLS Centre - Totem 1",
-            "SLS Centre - Totem 1",
-            "SLS Centre - Totem 2",
-            "SLS Centre - Totem 2",
-            "SLS Centre - Totem 1",
-            "SLS Centre - Totem 1",
-            "SLS Centre - Totem 2",
-            "SLS Centre - Totem 2",
-            "SLS Centre - Totem 1",
-            "SLS Centre - Totem 1",
-            "SLS Centre - Totem 2"
-          ]
-        }
-      },
-      "Calgary — Calgary East Arena": {
-        "Fri": [
-          "13:45",
-          "16:00",
-          "18:15"
-        ],
-        "Sat": [
-          "08:00",
-          "10:15",
-          "12:45",
-          "15:15",
-          "17:30"
-        ],
-        "Sun": [
-          "08:00",
-          "10:15"
-        ],
-        "surfaces": {
-          "Fri": [
-            "East Calgary Twin Arena Red",
-            "East Calgary Twin Arena Red",
-            "East Calgary Twin Arena Red"
-          ],
-          "Sat": [
-            "East Calgary Twin Arena Red",
-            "East Calgary Twin Arena Red",
-            "East Calgary Twin Arena Red",
-            "East Calgary Twin Arena Red",
-            "East Calgary Twin Arena Red"
-          ],
-          "Sun": [
-            "East Calgary Twin Arena Red",
-            "East Calgary Twin Arena Red"
-          ]
-        }
-      }
-    },
-    "Sep 25": {
-      "Canmore — Canmore Arena": {
-        "Fri": [
-          "08:30",
-          "16:15",
-          "17:45"
-        ],
-        "Sat": [
-          "08:15",
-          "16:45",
-          "19:15"
+          "14:00",
+          "16:30"
         ],
         "Sun": [
           "08:15"
         ],
         "surfaces": {
           "Fri": [
-            "Alex Kaleta Arena",
-            "Alex Kaleta Arena",
             "Thelma Crowe Arena"
           ],
           "Sat": [
             "Thelma Crowe Arena",
-            "Thelma Crowe Arena",
             "Thelma Crowe Arena"
           ],
           "Sun": [
-            "Thelma Crowe Arena"
-          ]
-        }
-      },
-      "Abbotsford — Rinks at Summit Center": {
-        "Fri": [
-          "10:15",
-          "12:30",
-          "12:45",
-          "15:00",
-          "15:15",
-          "17:30",
-          "17:45",
-          "20:15"
-        ],
-        "Sat": [
-          "08:00",
-          "08:45",
-          "12:45",
-          "15:15",
-          "16:00",
-          "17:45"
-        ],
-        "Sun": [
-          "08:00",
-          "08:15",
-          "10:30",
-          "10:45",
-          "13:00",
-          "13:15"
-        ],
-        "surfaces": {
-          "Fri": [
-            "The Rinks at Summit Centre West Rink",
-            "The Rinks at Summit Centre East Rink",
-            "The Rinks at Summit Centre West Rink",
-            "The Rinks at Summit Centre East Rink",
-            "The Rinks at Summit Centre West Rink",
-            "The Rinks at Summit Centre East Rink",
-            "The Rinks at Summit Centre West Rink",
-            "The Rinks at Summit Centre West Rink"
-          ],
-          "Sat": [
-            "The Rinks at Summit Centre East Rink",
-            "The Rinks at Summit Centre West Rink",
-            "The Rinks at Summit Centre West Rink",
-            "The Rinks at Summit Centre West Rink",
-            "The Rinks at Summit Centre East Rink",
-            "The Rinks at Summit Centre West Rink"
-          ],
-          "Sun": [
-            "The Rinks at Summit Centre West Rink",
-            "The Rinks at Summit Centre East Rink",
-            "The Rinks at Summit Centre West Rink",
-            "The Rinks at Summit Centre East Rink",
-            "The Rinks at Summit Centre West Rink",
-            "The Rinks at Summit Centre East Rink"
-          ]
-        }
-      },
-      "Edmonton — Morinville Silent Ice Gardens": {
-        "Fri": [
-          "16:00",
-          "18:30"
-        ],
-        "Sat": [
-          "10:00",
-          "14:15",
-          "16:30",
-          "18:00"
-        ],
-        "Sun": [
-          "09:00"
-        ],
-        "surfaces": {
-          "Fri": [
-            "Morinville Silent Ice Gardens",
-            "Morinville Silent Ice Gardens"
-          ],
-          "Sat": [
-            "Morinville Silent Ice Gardens",
-            "Morinville Silent Ice Gardens",
-            "Morinville Silent Ice Gardens",
-            "Morinville Silent Ice Gardens"
-          ],
-          "Sun": [
-            "Morinville Silent Ice Gardens"
-          ]
-        }
-      },
-      "Winnipeg — 7 Oaks Arena": {
-        "Fri": [
-          "14:00",
-          "19:30"
-        ],
-        "Sat": [
-          "09:30",
-          "15:15",
-          "20:30"
-        ],
-        "Sun": [
-          "09:00"
-        ],
-        "surfaces": {
-          "Fri": [
-            "Seven Oaks Arena - Blue",
-            "Seven Oaks Arena - Blue"
-          ],
-          "Sat": [
-            "Seven Oaks Arena - Blue",
-            "Seven Oaks Arena - Blue",
-            "Seven Oaks Arena - Blue"
-          ],
-          "Sun": [
-            "Seven Oaks Arena - Blue"
-          ]
-        }
-      }
-    },
-    "Oct 09": {
-      "Canmore — Canmore Arena": {
-        "Fri": [
-          "14:00",
-          "18:30"
-        ],
-        "Sat": [
-          "14:00",
-          "16:30",
-          "19:00"
-        ],
-        "Sun": [
-          "08:15",
-          "10:45",
-          "13:00"
-        ],
-        "surfaces": {
-          "Fri": [
-            "Alex Kaleta Arena",
-            "Thelma Crowe Arena"
-          ],
-          "Sat": [
-            "Thelma Crowe Arena",
-            "Thelma Crowe Arena",
-            "Thelma Crowe Arena"
-          ],
-          "Sun": [
-            "Thelma Crowe Arena",
-            "Thelma Crowe Arena",
             "Thelma Crowe Arena"
           ]
         }
@@ -2563,6 +2029,300 @@
           "Sun": [
             "Charlie Purdey Arena",
             "Charlie Purdey Arena"
+          ]
+        }
+      }
+    },
+    "Sep 18": {
+      "Abbotsford — Rinks at Summit Center": {
+        "Fri": [
+          "15:00",
+          "15:15",
+          "17:45"
+        ],
+        "Sat": [
+          "08:00",
+          "08:45",
+          "10:30",
+          "16:00",
+          "18:30",
+          "18:45"
+        ],
+        "Sun": [
+          "08:00",
+          "10:30",
+          "13:00"
+        ],
+        "surfaces": {
+          "Fri": [
+            "The Rinks at Summit Centre East Rink",
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre West Rink"
+          ],
+          "Sat": [
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre East Rink",
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre East Rink"
+          ],
+          "Sun": [
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre West Rink"
+          ]
+        }
+      },
+      "Cochrane — SLS Center": {
+        "Fri": [
+          "09:30",
+          "10:15",
+          "12:00",
+          "12:00",
+          "12:15",
+          "12:45",
+          "14:30",
+          "14:30",
+          "14:45",
+          "15:15",
+          "17:00",
+          "17:00",
+          "17:15",
+          "17:45",
+          "19:30",
+          "19:30"
+        ],
+        "Sat": [
+          "08:00",
+          "08:00",
+          "08:00",
+          "08:15",
+          "10:30",
+          "10:30",
+          "10:30",
+          "10:45",
+          "13:00",
+          "13:00",
+          "16:15",
+          "16:15",
+          "18:15",
+          "18:45",
+          "18:45"
+        ],
+        "Sun": [
+          "08:00",
+          "08:00",
+          "08:00",
+          "08:15",
+          "10:30",
+          "10:30",
+          "10:30",
+          "10:45",
+          "13:00",
+          "13:00",
+          "13:00"
+        ],
+        "surfaces": {
+          "Fri": [
+            "SLS Centre - Totem 2",
+            "SLS Centre - Totem 1",
+            "SLS Centre - Totem 2",
+            "SLS Centre - Totem 2",
+            "SLS Centre - Totem 1",
+            "SLS Centre - Totem 1",
+            "SLS Centre - Totem 2",
+            "SLS Centre - Totem 2",
+            "SLS Centre - Totem 1",
+            "SLS Centre - Totem 1",
+            "SLS Centre - Totem 2",
+            "SLS Centre - Totem 2",
+            "SLS Centre - Totem 1",
+            "SLS Centre - Totem 1",
+            "SLS Centre - Totem 2",
+            "SLS Centre - Totem 2"
+          ],
+          "Sat": [
+            "SLS Centre - Totem 1",
+            "SLS Centre - Totem 1",
+            "SLS Centre - Totem 2",
+            "SLS Centre - Totem 2",
+            "SLS Centre - Totem 1",
+            "SLS Centre - Totem 1",
+            "SLS Centre - Totem 2",
+            "SLS Centre - Totem 2",
+            "SLS Centre - Totem 1",
+            "SLS Centre - Totem 1",
+            "SLS Centre - Totem 2",
+            "SLS Centre - Totem 2",
+            "SLS Centre - Totem 1",
+            "SLS Centre - Totem 2",
+            "SLS Centre - Totem 2"
+          ],
+          "Sun": [
+            "SLS Centre - Totem 1",
+            "SLS Centre - Totem 1",
+            "SLS Centre - Totem 2",
+            "SLS Centre - Totem 2",
+            "SLS Centre - Totem 1",
+            "SLS Centre - Totem 1",
+            "SLS Centre - Totem 2",
+            "SLS Centre - Totem 2",
+            "SLS Centre - Totem 1",
+            "SLS Centre - Totem 1",
+            "SLS Centre - Totem 2"
+          ]
+        }
+      },
+      "Calgary — Calgary East Arena": {
+        "Fri": [
+          "13:45",
+          "16:00",
+          "18:15"
+        ],
+        "Sat": [
+          "08:00",
+          "10:15",
+          "12:45",
+          "15:15",
+          "17:30"
+        ],
+        "Sun": [
+          "08:00",
+          "10:15"
+        ],
+        "surfaces": {
+          "Fri": [
+            "East Calgary Twin Arena Red",
+            "East Calgary Twin Arena Red",
+            "East Calgary Twin Arena Red"
+          ],
+          "Sat": [
+            "East Calgary Twin Arena Red",
+            "East Calgary Twin Arena Red",
+            "East Calgary Twin Arena Red",
+            "East Calgary Twin Arena Red",
+            "East Calgary Twin Arena Red"
+          ],
+          "Sun": [
+            "East Calgary Twin Arena Red",
+            "East Calgary Twin Arena Red"
+          ]
+        }
+      }
+    },
+    "Sep 25": {
+      "Abbotsford — Rinks at Summit Center": {
+        "Fri": [
+          "10:15",
+          "12:30",
+          "12:45",
+          "15:00",
+          "15:15",
+          "17:30",
+          "17:45",
+          "20:15"
+        ],
+        "Sat": [
+          "08:00",
+          "08:45",
+          "12:45",
+          "15:15",
+          "16:00",
+          "17:45"
+        ],
+        "Sun": [
+          "08:00",
+          "08:15",
+          "10:30",
+          "10:45",
+          "13:00",
+          "13:15"
+        ],
+        "surfaces": {
+          "Fri": [
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre East Rink",
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre East Rink",
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre East Rink",
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre West Rink"
+          ],
+          "Sat": [
+            "The Rinks at Summit Centre East Rink",
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre East Rink",
+            "The Rinks at Summit Centre West Rink"
+          ],
+          "Sun": [
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre East Rink",
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre East Rink",
+            "The Rinks at Summit Centre West Rink",
+            "The Rinks at Summit Centre East Rink"
+          ]
+        }
+      },
+      "Edmonton — Morinville Silent Ice Gardens": {
+        "Fri": [
+          "16:00",
+          "18:30"
+        ],
+        "Sat": [
+          "10:00",
+          "14:15",
+          "16:30",
+          "18:00"
+        ],
+        "Sun": [
+          "09:00"
+        ],
+        "surfaces": {
+          "Fri": [
+            "Morinville Silent Ice Gardens",
+            "Morinville Silent Ice Gardens"
+          ],
+          "Sat": [
+            "Morinville Silent Ice Gardens",
+            "Morinville Silent Ice Gardens",
+            "Morinville Silent Ice Gardens",
+            "Morinville Silent Ice Gardens"
+          ],
+          "Sun": [
+            "Morinville Silent Ice Gardens"
+          ]
+        }
+      },
+      "Winnipeg — 7 Oaks Arena": {
+        "Fri": [
+          "14:00",
+          "19:30"
+        ],
+        "Sat": [
+          "09:30",
+          "15:15",
+          "20:30"
+        ],
+        "Sun": [
+          "09:00"
+        ],
+        "surfaces": {
+          "Fri": [
+            "Seven Oaks Arena - Blue",
+            "Seven Oaks Arena - Blue"
+          ],
+          "Sat": [
+            "Seven Oaks Arena - Blue",
+            "Seven Oaks Arena - Blue",
+            "Seven Oaks Arena - Blue"
+          ],
+          "Sun": [
+            "Seven Oaks Arena - Blue"
           ]
         }
       }
@@ -2989,6 +2749,134 @@
         }
       }
     },
+    "Sep 11": {
+      "Lloydminster — Servus Sports Center": {
+        "Fri": [
+          "12:00",
+          "12:15",
+          "14:15",
+          "14:30",
+          "16:30",
+          "16:45",
+          "19:00"
+        ],
+        "Sat": [
+          "08:00",
+          "08:15",
+          "10:15",
+          "10:30",
+          "12:30",
+          "12:45",
+          "14:45",
+          "15:00",
+          "17:00",
+          "17:15",
+          "19:15",
+          "19:30"
+        ],
+        "Sun": [
+          "07:45",
+          "08:00",
+          "10:00",
+          "10:15",
+          "12:15",
+          "12:30"
+        ],
+        "surfaces": {
+          "Fri": [
+            "Servus Sports Centre Robert B. Holmes Arena",
+            "Servus Sports Centre Rusway Arena",
+            "Servus Sports Centre Robert B. Holmes Arena",
+            "Servus Sports Centre Rusway Arena",
+            "Servus Sports Centre Robert B. Holmes Arena",
+            "Servus Sports Centre Rusway Arena",
+            "Servus Sports Centre Rusway Arena"
+          ],
+          "Sat": [
+            "Servus Sports Centre Rusway Arena",
+            "Servus Sports Centre Robert B. Holmes Arena",
+            "Servus Sports Centre Rusway Arena",
+            "Servus Sports Centre Robert B. Holmes Arena",
+            "Servus Sports Centre Rusway Arena",
+            "Servus Sports Centre Robert B. Holmes Arena",
+            "Servus Sports Centre Rusway Arena",
+            "Servus Sports Centre Robert B. Holmes Arena",
+            "Servus Sports Centre Rusway Arena",
+            "Servus Sports Centre Robert B. Holmes Arena",
+            "Servus Sports Centre Rusway Arena",
+            "Servus Sports Centre Robert B. Holmes Arena"
+          ],
+          "Sun": [
+            "Servus Sports Centre Rusway Arena",
+            "Servus Sports Centre Robert B. Holmes Arena",
+            "Servus Sports Centre Rusway Arena",
+            "Servus Sports Centre Robert B. Holmes Arena",
+            "Servus Sports Centre Rusway Arena",
+            "Servus Sports Centre Robert B. Holmes Arena"
+          ]
+        }
+      },
+      "Banff — Fenlands Arena": {
+        "Fri": [
+          "15:00",
+          "17:30",
+          "20:00"
+        ],
+        "Sat": [
+          "08:30",
+          "11:00",
+          "13:30",
+          "16:00",
+          "18:30"
+        ],
+        "Sun": [
+          "08:30",
+          "11:00",
+          "13:30",
+          "16:00",
+          "18:30"
+        ],
+        "surfaces": {
+          "Fri": [
+            "Banff Recreation Centre - Arena 1",
+            "Banff Recreation Centre - Arena 1",
+            "Banff Recreation Centre - Arena 1"
+          ],
+          "Sat": [
+            "Banff Recreation Centre - Arena 1",
+            "Banff Recreation Centre - Arena 1",
+            "Banff Recreation Centre - Arena 1",
+            "Banff Recreation Centre - Arena 1",
+            "Banff Recreation Centre - Arena 1"
+          ],
+          "Sun": [
+            "Banff Recreation Centre - Arena 1",
+            "Banff Recreation Centre - Arena 1",
+            "Banff Recreation Centre - Arena 1",
+            "Banff Recreation Centre - Arena 1",
+            "Banff Recreation Centre - Arena 1"
+          ]
+        }
+      },
+      "Calgary — Father David Bauer Arena": {
+        "Fri": [],
+        "Sat": [
+          "11:00",
+          "17:45",
+          "20:00"
+        ],
+        "Sun": [],
+        "surfaces": {
+          "Fri": [],
+          "Sat": [
+            "Father David Bauer Arena",
+            "Father David Bauer Arena",
+            "Father David Bauer Arena"
+          ],
+          "Sun": []
+        }
+      }
+    },
     "Dec 04": {
       "Cowichan — Charlie Purdey Arena": {
         "Fri": [
@@ -3052,115 +2940,39 @@
       }
     }
   },
-  "newThisSync": [
-    "Dec 04|Cowichan — Charlie Purdey Arena|Fri|14:00",
-    "Dec 04|Cowichan — Charlie Purdey Arena|Fri|16:15",
-    "Dec 04|Cowichan — Charlie Purdey Arena|Fri|19:30",
-    "Dec 04|Cowichan — Charlie Purdey Arena|Sat|08:00",
-    "Dec 04|Cowichan — Charlie Purdey Arena|Sat|10:15",
-    "Dec 04|Cowichan — Charlie Purdey Arena|Sat|12:45",
-    "Dec 04|Cowichan — Charlie Purdey Arena|Sat|15:00",
-    "Dec 04|Cowichan — Charlie Purdey Arena|Sat|17:15",
-    "Dec 04|Cowichan — Charlie Purdey Arena|Sat|19:45",
-    "Dec 04|Cowichan — Charlie Purdey Arena|Sun|09:00",
-    "Dec 04|Cowichan — Charlie Purdey Arena|Sun|11:15",
-    "Dec 04|Cowichan — Charlie Purdey Arena|Sun|13:30",
-    "Feb 05|Cowichan — Charlie Purdey Arena|Fri|16:30",
-    "Feb 05|Cowichan — Charlie Purdey Arena|Fri|18:45",
-    "Feb 05|Cowichan — Charlie Purdey Arena|Sat|10:00",
-    "Feb 05|Cowichan — Charlie Purdey Arena|Sat|12:15",
-    "Feb 05|Cowichan — Charlie Purdey Arena|Sat|17:00",
-    "Feb 05|Cowichan — Charlie Purdey Arena|Sat|19:30",
-    "Feb 05|Cowichan — Charlie Purdey Arena|Sun|09:00",
-    "Feb 05|Cowichan — Charlie Purdey Arena|Sun|11:30",
-    "Feb 19|Cowichan — Charlie Purdey Arena|Fri|18:15",
-    "Feb 19|Cowichan — Charlie Purdey Arena|Fri|20:30",
-    "Feb 19|Cowichan — Charlie Purdey Arena|Sat|09:30",
-    "Feb 19|Cowichan — Charlie Purdey Arena|Sat|11:45",
-    "Feb 19|Cowichan — Charlie Purdey Arena|Sat|17:30",
-    "Feb 19|Cowichan — Charlie Purdey Arena|Sat|19:45",
-    "Feb 19|Cowichan — Charlie Purdey Arena|Sun|09:00",
-    "Feb 19|Cowichan — Charlie Purdey Arena|Sun|11:15",
-    "Nov 06|Cowichan — Charlie Purdey Arena|Fri|16:30",
-    "Nov 06|Cowichan — Charlie Purdey Arena|Fri|18:45",
-    "Nov 06|Cowichan — Charlie Purdey Arena|Sat|10:00",
-    "Nov 06|Cowichan — Charlie Purdey Arena|Sat|12:15",
-    "Nov 06|Cowichan — Charlie Purdey Arena|Sat|19:30",
-    "Nov 06|Cowichan — Charlie Purdey Arena|Sun|10:00",
-    "Nov 13|Cowichan — Charlie Purdey Arena|Fri|18:45",
-    "Nov 13|Cowichan — Charlie Purdey Arena|Sat|09:00",
-    "Nov 13|Cowichan — Charlie Purdey Arena|Sat|19:45",
-    "Nov 13|Cowichan — Charlie Purdey Arena|Sun|10:30",
-    "Oct 09|Cowichan — Charlie Purdey Arena|Fri|19:45",
-    "Oct 09|Cowichan — Charlie Purdey Arena|Sat|10:30",
-    "Oct 09|Cowichan — Charlie Purdey Arena|Sat|13:45",
-    "Oct 09|Cowichan — Charlie Purdey Arena|Sat|18:00",
-    "Oct 09|Cowichan — Charlie Purdey Arena|Sun|09:00",
-    "Oct 09|Cowichan — Charlie Purdey Arena|Sun|11:30",
-    "Oct 16|Edmonton — Silent Ice Center (Hatch+Hesco)|Fri|08:00",
-    "Oct 16|Edmonton — Silent Ice Center (Hatch+Hesco)|Fri|10:30",
-    "Oct 16|Edmonton — Silent Ice Center (Hatch+Hesco)|Fri|13:00",
-    "Oct 16|Edmonton — Silent Ice Center (Hatch+Hesco)|Fri|15:30",
-    "Oct 16|Edmonton — Silent Ice Center (Hatch+Hesco)|Fri|18:00",
-    "Oct 16|Edmonton — Silent Ice Center (Hatch+Hesco)|Sun|10:45",
-    "Oct 16|Edmonton — Silent Ice Center (Hatch+Hesco)|Sun|13:15",
-    "Oct 16|Morinville — Morinville Silent Ice Gardens|Fri|09:15",
-    "Oct 16|Morinville — Morinville Silent Ice Gardens|Fri|11:30",
-    "Oct 16|Morinville — Morinville Silent Ice Gardens|Fri|13:45"
-  ],
+  "newThisSync": [],
   "removedThisSync": [
-    "Dec 04|Cowichan — Shawnigan Lake Arena|Fri|14:00",
-    "Dec 04|Cowichan — Shawnigan Lake Arena|Fri|16:15",
-    "Dec 04|Cowichan — Shawnigan Lake Arena|Fri|19:30",
-    "Dec 04|Cowichan — Shawnigan Lake Arena|Sat|08:00",
-    "Dec 04|Cowichan — Shawnigan Lake Arena|Sat|10:15",
-    "Dec 04|Cowichan — Shawnigan Lake Arena|Sat|12:45",
-    "Dec 04|Cowichan — Shawnigan Lake Arena|Sat|15:00",
-    "Dec 04|Cowichan — Shawnigan Lake Arena|Sat|17:15",
-    "Dec 04|Cowichan — Shawnigan Lake Arena|Sat|19:45",
-    "Dec 04|Cowichan — Shawnigan Lake Arena|Sun|09:00",
-    "Dec 04|Cowichan — Shawnigan Lake Arena|Sun|11:15",
-    "Dec 04|Cowichan — Shawnigan Lake Arena|Sun|13:30",
-    "Feb 05|Cowichan — Shawnigan Lake Arena|Fri|16:30",
-    "Feb 05|Cowichan — Shawnigan Lake Arena|Fri|18:45",
-    "Feb 05|Cowichan — Shawnigan Lake Arena|Sat|10:00",
-    "Feb 05|Cowichan — Shawnigan Lake Arena|Sat|12:15",
-    "Feb 05|Cowichan — Shawnigan Lake Arena|Sat|17:00",
-    "Feb 05|Cowichan — Shawnigan Lake Arena|Sat|19:30",
-    "Feb 05|Cowichan — Shawnigan Lake Arena|Sun|09:00",
-    "Feb 05|Cowichan — Shawnigan Lake Arena|Sun|11:30",
-    "Feb 19|Cowichan — Shawnigan Lake Arena|Fri|18:15",
-    "Feb 19|Cowichan — Shawnigan Lake Arena|Fri|20:30",
-    "Feb 19|Cowichan — Shawnigan Lake Arena|Sat|09:30",
-    "Feb 19|Cowichan — Shawnigan Lake Arena|Sat|11:45",
-    "Feb 19|Cowichan — Shawnigan Lake Arena|Sat|17:30",
-    "Feb 19|Cowichan — Shawnigan Lake Arena|Sat|19:45",
-    "Feb 19|Cowichan — Shawnigan Lake Arena|Sun|09:00",
-    "Feb 19|Cowichan — Shawnigan Lake Arena|Sun|11:15",
-    "Nov 06|Cowichan — Shawnigan Lake Arena|Fri|16:30",
-    "Nov 06|Cowichan — Shawnigan Lake Arena|Fri|18:45",
-    "Nov 06|Cowichan — Shawnigan Lake Arena|Sat|10:00",
-    "Nov 06|Cowichan — Shawnigan Lake Arena|Sat|12:15",
-    "Nov 06|Cowichan — Shawnigan Lake Arena|Sat|19:30",
-    "Nov 06|Cowichan — Shawnigan Lake Arena|Sun|10:00",
-    "Nov 13|Cowichan — Shawnigan Lake Arena|Fri|18:45",
-    "Nov 13|Cowichan — Shawnigan Lake Arena|Sat|09:00",
-    "Nov 13|Cowichan — Shawnigan Lake Arena|Sat|19:45",
-    "Nov 13|Cowichan — Shawnigan Lake Arena|Sun|10:30",
-    "Oct 09|Cowichan — Shawnigan Lake Arena|Fri|19:45",
-    "Oct 09|Cowichan — Shawnigan Lake Arena|Sat|10:30",
-    "Oct 09|Cowichan — Shawnigan Lake Arena|Sat|13:45",
-    "Oct 09|Cowichan — Shawnigan Lake Arena|Sat|18:00",
-    "Oct 09|Cowichan — Shawnigan Lake Arena|Sun|09:00",
-    "Oct 09|Cowichan — Shawnigan Lake Arena|Sun|11:30",
-    "Oct 16|Edmonton — Silent Ice Center (Hatch+Hesco)|Fri|10:00",
-    "Oct 16|Edmonton — Silent Ice Center (Hatch+Hesco)|Fri|12:30",
-    "Oct 16|Edmonton — Silent Ice Center (Hatch+Hesco)|Fri|15:00",
-    "Oct 16|Edmonton — Silent Ice Center (Hatch+Hesco)|Fri|17:30",
-    "Oct 16|Edmonton — Silent Ice Center (Hatch+Hesco)|Fri|20:00",
-    "Oct 16|Edmonton — Silent Ice Center (Hatch+Hesco)|Sun|10:30",
-    "Oct 16|Edmonton — Silent Ice Center (Hatch+Hesco)|Sun|12:45",
-    "Sep 11|Calgary — Father David Bauer Arena|Sun|16:45"
+    "Oct 09|Canmore — Canmore Arena|Fri|14:00",
+    "Oct 09|Canmore — Canmore Arena|Sat|19:00",
+    "Oct 09|Canmore — Canmore Arena|Sun|10:45",
+    "Oct 09|Canmore — Canmore Arena|Sun|13:00",
+    "Sep 11|Calgary — Father David Bauer Arena|Fri|10:15",
+    "Sep 11|Canmore — Canmore Arena|Fri|08:30",
+    "Sep 11|Canmore — Canmore Arena|Fri|11:00",
+    "Sep 11|Canmore — Canmore Arena|Fri|13:30",
+    "Sep 11|Canmore — Canmore Arena|Fri|15:45",
+    "Sep 11|Canmore — Canmore Arena|Sat|15:30",
+    "Sep 11|Canmore — Canmore Arena|Sat|18:00",
+    "Sep 11|Canmore — Canmore Arena|Sat|20:30",
+    "Sep 11|Canmore — Canmore Arena|Sun|13:30",
+    "Sep 18|Canmore — Canmore Arena|Fri|10:30",
+    "Sep 18|Canmore — Canmore Arena|Fri|12:00",
+    "Sep 18|Canmore — Canmore Arena|Fri|14:30",
+    "Sep 18|Canmore — Canmore Arena|Fri|15:30",
+    "Sep 18|Canmore — Canmore Arena|Fri|17:00",
+    "Sep 18|Canmore — Canmore Arena|Fri|17:45",
+    "Sep 18|Canmore — Canmore Arena|Fri|19:30",
+    "Sep 18|Canmore — Canmore Arena|Fri|20:00",
+    "Sep 18|Canmore — Canmore Arena|Sat|14:45",
+    "Sep 18|Canmore — Canmore Arena|Sat|17:15",
+    "Sep 18|Canmore — Canmore Arena|Sat|19:45",
+    "Sep 25|Canmore — Canmore Arena|Fri|08:30",
+    "Sep 25|Canmore — Canmore Arena|Fri|16:15",
+    "Sep 25|Canmore — Canmore Arena|Fri|17:45",
+    "Sep 25|Canmore — Canmore Arena|Sat|08:15",
+    "Sep 25|Canmore — Canmore Arena|Sat|16:45",
+    "Sep 25|Canmore — Canmore Arena|Sat|19:15",
+    "Sep 25|Canmore — Canmore Arena|Sun|08:15"
   ],
   "contentChanged": true,
   "isBaseline": false,
@@ -3670,14 +3482,10 @@
     "Oct 09|Aberdeen — Aberdeen Rec Center|Sun|08:45",
     "Oct 09|Aberdeen — Aberdeen Rec Center|Sun|11:15",
     "Oct 09|Aberdeen — Aberdeen Rec Center|Sun|13:45",
-    "Oct 09|Canmore — Canmore Arena|Fri|14:00",
     "Oct 09|Canmore — Canmore Arena|Fri|18:30",
     "Oct 09|Canmore — Canmore Arena|Sat|14:00",
     "Oct 09|Canmore — Canmore Arena|Sat|16:30",
-    "Oct 09|Canmore — Canmore Arena|Sat|19:00",
     "Oct 09|Canmore — Canmore Arena|Sun|08:15",
-    "Oct 09|Canmore — Canmore Arena|Sun|10:45",
-    "Oct 09|Canmore — Canmore Arena|Sun|13:00",
     "Oct 09|Cowichan — Charlie Purdey Arena|Fri|19:45",
     "Oct 09|Cowichan — Charlie Purdey Arena|Sat|10:30",
     "Oct 09|Cowichan — Charlie Purdey Arena|Sat|13:45",
@@ -3854,18 +3662,9 @@
     "Sep 11|Banff — Fenlands Arena|Sun|13:30",
     "Sep 11|Banff — Fenlands Arena|Sun|16:00",
     "Sep 11|Banff — Fenlands Arena|Sun|18:30",
-    "Sep 11|Calgary — Father David Bauer Arena|Fri|10:15",
     "Sep 11|Calgary — Father David Bauer Arena|Sat|11:00",
     "Sep 11|Calgary — Father David Bauer Arena|Sat|17:45",
     "Sep 11|Calgary — Father David Bauer Arena|Sat|20:00",
-    "Sep 11|Canmore — Canmore Arena|Fri|08:30",
-    "Sep 11|Canmore — Canmore Arena|Fri|11:00",
-    "Sep 11|Canmore — Canmore Arena|Fri|13:30",
-    "Sep 11|Canmore — Canmore Arena|Fri|15:45",
-    "Sep 11|Canmore — Canmore Arena|Sat|15:30",
-    "Sep 11|Canmore — Canmore Arena|Sat|18:00",
-    "Sep 11|Canmore — Canmore Arena|Sat|20:30",
-    "Sep 11|Canmore — Canmore Arena|Sun|13:30",
     "Sep 11|Lloydminster — Servus Sports Center|Fri|12:00",
     "Sep 11|Lloydminster — Servus Sports Center|Fri|12:15",
     "Sep 11|Lloydminster — Servus Sports Center|Fri|14:15",
@@ -3913,17 +3712,6 @@
     "Sep 18|Calgary — Calgary East Arena|Sat|17:30",
     "Sep 18|Calgary — Calgary East Arena|Sun|08:00",
     "Sep 18|Calgary — Calgary East Arena|Sun|10:15",
-    "Sep 18|Canmore — Canmore Arena|Fri|10:30",
-    "Sep 18|Canmore — Canmore Arena|Fri|12:00",
-    "Sep 18|Canmore — Canmore Arena|Fri|14:30",
-    "Sep 18|Canmore — Canmore Arena|Fri|15:30",
-    "Sep 18|Canmore — Canmore Arena|Fri|17:00",
-    "Sep 18|Canmore — Canmore Arena|Fri|17:45",
-    "Sep 18|Canmore — Canmore Arena|Fri|19:30",
-    "Sep 18|Canmore — Canmore Arena|Fri|20:00",
-    "Sep 18|Canmore — Canmore Arena|Sat|14:45",
-    "Sep 18|Canmore — Canmore Arena|Sat|17:15",
-    "Sep 18|Canmore — Canmore Arena|Sat|19:45",
     "Sep 18|Cochrane — SLS Center|Fri|09:30",
     "Sep 18|Cochrane — SLS Center|Fri|10:15",
     "Sep 18|Cochrane — SLS Center|Fri|12:00",
@@ -3969,13 +3757,6 @@
     "Sep 25|Abbotsford — Rinks at Summit Center|Sun|10:45",
     "Sep 25|Abbotsford — Rinks at Summit Center|Sun|13:00",
     "Sep 25|Abbotsford — Rinks at Summit Center|Sun|13:15",
-    "Sep 25|Canmore — Canmore Arena|Fri|08:30",
-    "Sep 25|Canmore — Canmore Arena|Fri|16:15",
-    "Sep 25|Canmore — Canmore Arena|Fri|17:45",
-    "Sep 25|Canmore — Canmore Arena|Sat|08:15",
-    "Sep 25|Canmore — Canmore Arena|Sat|16:45",
-    "Sep 25|Canmore — Canmore Arena|Sat|19:15",
-    "Sep 25|Canmore — Canmore Arena|Sun|08:15",
     "Sep 25|Edmonton — Morinville Silent Ice Gardens|Fri|16:00",
     "Sep 25|Edmonton — Morinville Silent Ice Gardens|Fri|18:30",
     "Sep 25|Edmonton — Morinville Silent Ice Gardens|Sat|10:00",
