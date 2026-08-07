@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-06T12:00:07-06:00",
+  "generatedAt": "2026-08-07T10:55:42-06:00",
   "source": "ICE ALLOCATION BIBLE.xlsx",
   "totalSlots": 842,
   "weekends": {
@@ -594,14 +594,14 @@
       },
       "Cowichan — Charlie Purdey Arena": {
         "Fri": [
-          "18:15",
-          "20:30"
+          "18:00",
+          "20:15"
         ],
         "Sat": [
-          "09:30",
-          "11:45",
-          "17:30",
-          "19:45"
+          "08:00",
+          "10:15",
+          "14:00",
+          "19:15"
         ],
         "Sun": [
           "09:00",
@@ -2880,25 +2880,26 @@
     "Dec 04": {
       "Cowichan — Charlie Purdey Arena": {
         "Fri": [
-          "14:00",
-          "16:15",
-          "19:30"
+          "09:15",
+          "11:45",
+          "14:15",
+          "20:15"
         ],
         "Sat": [
-          "08:00",
-          "10:15",
-          "12:45",
-          "15:00",
-          "17:15",
-          "19:45"
+          "09:15",
+          "11:45",
+          "14:00",
+          "19:00"
         ],
         "Sun": [
           "09:00",
-          "11:15",
-          "13:30"
+          "11:30",
+          "13:45",
+          "16:15"
         ],
         "surfaces": {
           "Fri": [
+            "Charlie Purdey Arena",
             "Charlie Purdey Arena",
             "Charlie Purdey Arena",
             "Charlie Purdey Arena"
@@ -2907,11 +2908,10 @@
             "Charlie Purdey Arena",
             "Charlie Purdey Arena",
             "Charlie Purdey Arena",
-            "Charlie Purdey Arena",
-            "Charlie Purdey Arena",
             "Charlie Purdey Arena"
           ],
           "Sun": [
+            "Charlie Purdey Arena",
             "Charlie Purdey Arena",
             "Charlie Purdey Arena",
             "Charlie Purdey Arena"
@@ -2940,46 +2940,26 @@
       }
     }
   },
-  "newThisSync": [],
-  "removedThisSync": [
-    "Oct 09|Canmore — Canmore Arena|Fri|14:00",
-    "Oct 09|Canmore — Canmore Arena|Sat|19:00",
-    "Oct 09|Canmore — Canmore Arena|Sun|10:45",
-    "Oct 09|Canmore — Canmore Arena|Sun|13:00",
-    "Sep 11|Calgary — Father David Bauer Arena|Fri|10:15",
-    "Sep 11|Canmore — Canmore Arena|Fri|08:30",
-    "Sep 11|Canmore — Canmore Arena|Fri|11:00",
-    "Sep 11|Canmore — Canmore Arena|Fri|13:30",
-    "Sep 11|Canmore — Canmore Arena|Fri|15:45",
-    "Sep 11|Canmore — Canmore Arena|Sat|15:30",
-    "Sep 11|Canmore — Canmore Arena|Sat|18:00",
-    "Sep 11|Canmore — Canmore Arena|Sat|20:30",
-    "Sep 11|Canmore — Canmore Arena|Sun|13:30",
-    "Sep 18|Canmore — Canmore Arena|Fri|10:30",
-    "Sep 18|Canmore — Canmore Arena|Fri|12:00",
-    "Sep 18|Canmore — Canmore Arena|Fri|14:30",
-    "Sep 18|Canmore — Canmore Arena|Fri|15:30",
-    "Sep 18|Canmore — Canmore Arena|Fri|17:00",
-    "Sep 18|Canmore — Canmore Arena|Fri|17:45",
-    "Sep 18|Canmore — Canmore Arena|Fri|19:30",
-    "Sep 18|Canmore — Canmore Arena|Fri|20:00",
-    "Sep 18|Canmore — Canmore Arena|Sat|14:45",
-    "Sep 18|Canmore — Canmore Arena|Sat|17:15",
-    "Sep 18|Canmore — Canmore Arena|Sat|19:45",
-    "Sep 25|Canmore — Canmore Arena|Fri|08:30",
-    "Sep 25|Canmore — Canmore Arena|Fri|16:15",
-    "Sep 25|Canmore — Canmore Arena|Fri|17:45",
-    "Sep 25|Canmore — Canmore Arena|Sat|08:15",
-    "Sep 25|Canmore — Canmore Arena|Sat|16:45",
-    "Sep 25|Canmore — Canmore Arena|Sat|19:15",
-    "Sep 25|Canmore — Canmore Arena|Sun|08:15"
+  "newThisSync": [
+    "Dec 04|Cowichan — Charlie Purdey Arena|Fri|09:15",
+    "Dec 04|Cowichan — Charlie Purdey Arena|Fri|11:45",
+    "Dec 04|Cowichan — Charlie Purdey Arena|Fri|14:15",
+    "Dec 04|Cowichan — Charlie Purdey Arena|Fri|20:15",
+    "Dec 04|Cowichan — Charlie Purdey Arena|Sat|09:15",
+    "Dec 04|Cowichan — Charlie Purdey Arena|Sat|11:45",
+    "Dec 04|Cowichan — Charlie Purdey Arena|Sat|14:00",
+    "Dec 04|Cowichan — Charlie Purdey Arena|Sat|19:00",
+    "Dec 04|Cowichan — Charlie Purdey Arena|Sun|11:30",
+    "Dec 04|Cowichan — Charlie Purdey Arena|Sun|13:45",
+    "Dec 04|Cowichan — Charlie Purdey Arena|Sun|16:15",
+    "Feb 19|Cowichan — Charlie Purdey Arena|Fri|18:00",
+    "Feb 19|Cowichan — Charlie Purdey Arena|Fri|20:15",
+    "Feb 19|Cowichan — Charlie Purdey Arena|Sat|08:00",
+    "Feb 19|Cowichan — Charlie Purdey Arena|Sat|10:15",
+    "Feb 19|Cowichan — Charlie Purdey Arena|Sat|14:00",
+    "Feb 19|Cowichan — Charlie Purdey Arena|Sat|19:15"
   ],
-  "contentChanged": true,
-  "isBaseline": false,
-  "slotKeys": [
-    "Dec 04|Abbotsford — Rinks at Summit Center|Sat|09:15",
-    "Dec 04|Abbotsford — Rinks at Summit Center|Sat|11:30",
-    "Dec 04|Abbotsford — Rinks at Summit Center|Sun|11:00",
+  "removedThisSync": [
     "Dec 04|Cowichan — Charlie Purdey Arena|Fri|14:00",
     "Dec 04|Cowichan — Charlie Purdey Arena|Fri|16:15",
     "Dec 04|Cowichan — Charlie Purdey Arena|Fri|19:30",
@@ -2989,9 +2969,33 @@
     "Dec 04|Cowichan — Charlie Purdey Arena|Sat|15:00",
     "Dec 04|Cowichan — Charlie Purdey Arena|Sat|17:15",
     "Dec 04|Cowichan — Charlie Purdey Arena|Sat|19:45",
-    "Dec 04|Cowichan — Charlie Purdey Arena|Sun|09:00",
     "Dec 04|Cowichan — Charlie Purdey Arena|Sun|11:15",
     "Dec 04|Cowichan — Charlie Purdey Arena|Sun|13:30",
+    "Feb 19|Cowichan — Charlie Purdey Arena|Fri|18:15",
+    "Feb 19|Cowichan — Charlie Purdey Arena|Fri|20:30",
+    "Feb 19|Cowichan — Charlie Purdey Arena|Sat|09:30",
+    "Feb 19|Cowichan — Charlie Purdey Arena|Sat|11:45",
+    "Feb 19|Cowichan — Charlie Purdey Arena|Sat|17:30",
+    "Feb 19|Cowichan — Charlie Purdey Arena|Sat|19:45"
+  ],
+  "contentChanged": true,
+  "isBaseline": false,
+  "slotKeys": [
+    "Dec 04|Abbotsford — Rinks at Summit Center|Sat|09:15",
+    "Dec 04|Abbotsford — Rinks at Summit Center|Sat|11:30",
+    "Dec 04|Abbotsford — Rinks at Summit Center|Sun|11:00",
+    "Dec 04|Cowichan — Charlie Purdey Arena|Fri|09:15",
+    "Dec 04|Cowichan — Charlie Purdey Arena|Fri|11:45",
+    "Dec 04|Cowichan — Charlie Purdey Arena|Fri|14:15",
+    "Dec 04|Cowichan — Charlie Purdey Arena|Fri|20:15",
+    "Dec 04|Cowichan — Charlie Purdey Arena|Sat|09:15",
+    "Dec 04|Cowichan — Charlie Purdey Arena|Sat|11:45",
+    "Dec 04|Cowichan — Charlie Purdey Arena|Sat|14:00",
+    "Dec 04|Cowichan — Charlie Purdey Arena|Sat|19:00",
+    "Dec 04|Cowichan — Charlie Purdey Arena|Sun|09:00",
+    "Dec 04|Cowichan — Charlie Purdey Arena|Sun|11:30",
+    "Dec 04|Cowichan — Charlie Purdey Arena|Sun|13:45",
+    "Dec 04|Cowichan — Charlie Purdey Arena|Sun|16:15",
     "Dec 11|Abbotsford — Rinks at Summit Center|Fri|11:45",
     "Dec 11|Abbotsford — Rinks at Summit Center|Fri|14:00",
     "Dec 11|Abbotsford — Rinks at Summit Center|Sat|08:45",
@@ -3092,12 +3096,12 @@
     "Feb 19|Aberdeen — Aberdeen Rec Center|Sun|08:30",
     "Feb 19|Aberdeen — Aberdeen Rec Center|Sun|10:45",
     "Feb 19|Aberdeen — Aberdeen Rec Center|Sun|13:00",
-    "Feb 19|Cowichan — Charlie Purdey Arena|Fri|18:15",
-    "Feb 19|Cowichan — Charlie Purdey Arena|Fri|20:30",
-    "Feb 19|Cowichan — Charlie Purdey Arena|Sat|09:30",
-    "Feb 19|Cowichan — Charlie Purdey Arena|Sat|11:45",
-    "Feb 19|Cowichan — Charlie Purdey Arena|Sat|17:30",
-    "Feb 19|Cowichan — Charlie Purdey Arena|Sat|19:45",
+    "Feb 19|Cowichan — Charlie Purdey Arena|Fri|18:00",
+    "Feb 19|Cowichan — Charlie Purdey Arena|Fri|20:15",
+    "Feb 19|Cowichan — Charlie Purdey Arena|Sat|08:00",
+    "Feb 19|Cowichan — Charlie Purdey Arena|Sat|10:15",
+    "Feb 19|Cowichan — Charlie Purdey Arena|Sat|14:00",
+    "Feb 19|Cowichan — Charlie Purdey Arena|Sat|19:15",
     "Feb 19|Cowichan — Charlie Purdey Arena|Sun|09:00",
     "Feb 19|Cowichan — Charlie Purdey Arena|Sun|11:15",
     "Feb 19|Delta — Planet Ice Delta|Fri|18:45",
