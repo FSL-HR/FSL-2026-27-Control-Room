@@ -1,7 +1,7 @@
 {
-  "generatedAt": "2026-08-07T10:55:42-06:00",
+  "generatedAt": "2026-08-13T09:33:35-06:00",
   "source": "ICE ALLOCATION BIBLE.xlsx",
-  "totalSlots": 842,
+  "totalSlots": 830,
   "weekends": {
     "Oct 02": {
       "Delta — Planet Ice Delta": {
@@ -882,72 +882,6 @@
       }
     },
     "Oct 23": {
-      "Edmonton — Silent Ice Center (Hatch+Hesco)": {
-        "Fri": [
-          "11:00",
-          "11:45",
-          "13:15",
-          "14:00",
-          "15:30",
-          "16:15",
-          "17:45",
-          "20:00"
-        ],
-        "Sat": [
-          "08:00",
-          "09:30",
-          "10:15",
-          "11:45",
-          "12:30",
-          "14:00",
-          "14:45",
-          "16:15",
-          "17:00",
-          "19:15"
-        ],
-        "Sun": [
-          "08:00",
-          "08:00",
-          "10:15",
-          "10:15",
-          "12:30",
-          "12:30",
-          "14:45"
-        ],
-        "surfaces": {
-          "Fri": [
-            "Silent Ice Center - Hesco Arena",
-            "Silent Ice Center - Hatch Co. Arena",
-            "Silent Ice Center - Hesco Arena",
-            "Silent Ice Center - Hatch Co. Arena",
-            "Silent Ice Center - Hesco Arena",
-            "Silent Ice Center - Hatch Co. Arena",
-            "Silent Ice Center - Hesco Arena",
-            "Silent Ice Center - Hesco Arena"
-          ],
-          "Sat": [
-            "Silent Ice Center - Hesco Arena",
-            "Silent Ice Center - Hatch Co. Arena",
-            "Silent Ice Center - Hesco Arena",
-            "Silent Ice Center - Hatch Co. Arena",
-            "Silent Ice Center - Hesco Arena",
-            "Silent Ice Center - Hatch Co. Arena",
-            "Silent Ice Center - Hesco Arena",
-            "Silent Ice Center - Hatch Co. Arena",
-            "Silent Ice Center - Hesco Arena",
-            "Silent Ice Center - Hesco Arena"
-          ],
-          "Sun": [
-            "Silent Ice Center - Hatch Co. Arena",
-            "Silent Ice Center - Hesco Arena",
-            "Silent Ice Center - Hatch Co. Arena",
-            "Silent Ice Center - Hesco Arena",
-            "Silent Ice Center - Hatch Co. Arena",
-            "Silent Ice Center - Hesco Arena",
-            "Silent Ice Center - Hatch Co. Arena"
-          ]
-        }
-      },
       "Aberdeen — Aberdeen Rec Center": {
         "Fri": [
           "14:45",
@@ -985,6 +919,48 @@
             "Aberdeen Recreation Complex",
             "Aberdeen Recreation Complex",
             "Aberdeen Recreation Complex"
+          ]
+        }
+      },
+      "Edmonton — Silent Ice Center (Hatch+Hesco)": {
+        "Fri": [
+          "14:00",
+          "16:15",
+          "20:00"
+        ],
+        "Sat": [
+          "08:15",
+          "08:30",
+          "13:30",
+          "13:45",
+          "16:00",
+          "16:15"
+        ],
+        "Sun": [
+          "08:00",
+          "08:15",
+          "10:30",
+          "12:45"
+        ],
+        "surfaces": {
+          "Fri": [
+            "Silent Ice Center - Hatch Co. Arena",
+            "Silent Ice Center - Hatch Co. Arena",
+            "Silent Ice Center - Hesco Arena"
+          ],
+          "Sat": [
+            "Silent Ice Center - Hatch Co. Arena",
+            "Silent Ice Center - Hesco Arena",
+            "Silent Ice Center - Hatch Co. Arena",
+            "Silent Ice Center - Hesco Arena",
+            "Silent Ice Center - Hatch Co. Arena",
+            "Silent Ice Center - Hesco Arena"
+          ],
+          "Sun": [
+            "Silent Ice Center - Hatch Co. Arena",
+            "Silent Ice Center - Hesco Arena",
+            "Silent Ice Center - Hatch Co. Arena",
+            "Silent Ice Center - Hatch Co. Arena"
           ]
         }
       },
@@ -2941,42 +2917,33 @@
     }
   },
   "newThisSync": [
-    "Dec 04|Cowichan — Charlie Purdey Arena|Fri|09:15",
-    "Dec 04|Cowichan — Charlie Purdey Arena|Fri|11:45",
-    "Dec 04|Cowichan — Charlie Purdey Arena|Fri|14:15",
-    "Dec 04|Cowichan — Charlie Purdey Arena|Fri|20:15",
-    "Dec 04|Cowichan — Charlie Purdey Arena|Sat|09:15",
-    "Dec 04|Cowichan — Charlie Purdey Arena|Sat|11:45",
-    "Dec 04|Cowichan — Charlie Purdey Arena|Sat|14:00",
-    "Dec 04|Cowichan — Charlie Purdey Arena|Sat|19:00",
-    "Dec 04|Cowichan — Charlie Purdey Arena|Sun|11:30",
-    "Dec 04|Cowichan — Charlie Purdey Arena|Sun|13:45",
-    "Dec 04|Cowichan — Charlie Purdey Arena|Sun|16:15",
-    "Feb 19|Cowichan — Charlie Purdey Arena|Fri|18:00",
-    "Feb 19|Cowichan — Charlie Purdey Arena|Fri|20:15",
-    "Feb 19|Cowichan — Charlie Purdey Arena|Sat|08:00",
-    "Feb 19|Cowichan — Charlie Purdey Arena|Sat|10:15",
-    "Feb 19|Cowichan — Charlie Purdey Arena|Sat|14:00",
-    "Feb 19|Cowichan — Charlie Purdey Arena|Sat|19:15"
+    "Oct 23|Edmonton — Silent Ice Center (Hatch+Hesco)|Sat|08:15",
+    "Oct 23|Edmonton — Silent Ice Center (Hatch+Hesco)|Sat|08:30",
+    "Oct 23|Edmonton — Silent Ice Center (Hatch+Hesco)|Sat|13:30",
+    "Oct 23|Edmonton — Silent Ice Center (Hatch+Hesco)|Sat|13:45",
+    "Oct 23|Edmonton — Silent Ice Center (Hatch+Hesco)|Sat|16:00",
+    "Oct 23|Edmonton — Silent Ice Center (Hatch+Hesco)|Sun|08:15",
+    "Oct 23|Edmonton — Silent Ice Center (Hatch+Hesco)|Sun|10:30",
+    "Oct 23|Edmonton — Silent Ice Center (Hatch+Hesco)|Sun|12:45"
   ],
   "removedThisSync": [
-    "Dec 04|Cowichan — Charlie Purdey Arena|Fri|14:00",
-    "Dec 04|Cowichan — Charlie Purdey Arena|Fri|16:15",
-    "Dec 04|Cowichan — Charlie Purdey Arena|Fri|19:30",
-    "Dec 04|Cowichan — Charlie Purdey Arena|Sat|08:00",
-    "Dec 04|Cowichan — Charlie Purdey Arena|Sat|10:15",
-    "Dec 04|Cowichan — Charlie Purdey Arena|Sat|12:45",
-    "Dec 04|Cowichan — Charlie Purdey Arena|Sat|15:00",
-    "Dec 04|Cowichan — Charlie Purdey Arena|Sat|17:15",
-    "Dec 04|Cowichan — Charlie Purdey Arena|Sat|19:45",
-    "Dec 04|Cowichan — Charlie Purdey Arena|Sun|11:15",
-    "Dec 04|Cowichan — Charlie Purdey Arena|Sun|13:30",
-    "Feb 19|Cowichan — Charlie Purdey Arena|Fri|18:15",
-    "Feb 19|Cowichan — Charlie Purdey Arena|Fri|20:30",
-    "Feb 19|Cowichan — Charlie Purdey Arena|Sat|09:30",
-    "Feb 19|Cowichan — Charlie Purdey Arena|Sat|11:45",
-    "Feb 19|Cowichan — Charlie Purdey Arena|Sat|17:30",
-    "Feb 19|Cowichan — Charlie Purdey Arena|Sat|19:45"
+    "Oct 23|Edmonton — Silent Ice Center (Hatch+Hesco)|Fri|11:00",
+    "Oct 23|Edmonton — Silent Ice Center (Hatch+Hesco)|Fri|11:45",
+    "Oct 23|Edmonton — Silent Ice Center (Hatch+Hesco)|Fri|13:15",
+    "Oct 23|Edmonton — Silent Ice Center (Hatch+Hesco)|Fri|15:30",
+    "Oct 23|Edmonton — Silent Ice Center (Hatch+Hesco)|Fri|17:45",
+    "Oct 23|Edmonton — Silent Ice Center (Hatch+Hesco)|Sat|08:00",
+    "Oct 23|Edmonton — Silent Ice Center (Hatch+Hesco)|Sat|09:30",
+    "Oct 23|Edmonton — Silent Ice Center (Hatch+Hesco)|Sat|10:15",
+    "Oct 23|Edmonton — Silent Ice Center (Hatch+Hesco)|Sat|11:45",
+    "Oct 23|Edmonton — Silent Ice Center (Hatch+Hesco)|Sat|12:30",
+    "Oct 23|Edmonton — Silent Ice Center (Hatch+Hesco)|Sat|14:00",
+    "Oct 23|Edmonton — Silent Ice Center (Hatch+Hesco)|Sat|14:45",
+    "Oct 23|Edmonton — Silent Ice Center (Hatch+Hesco)|Sat|17:00",
+    "Oct 23|Edmonton — Silent Ice Center (Hatch+Hesco)|Sat|19:15",
+    "Oct 23|Edmonton — Silent Ice Center (Hatch+Hesco)|Sun|10:15",
+    "Oct 23|Edmonton — Silent Ice Center (Hatch+Hesco)|Sun|12:30",
+    "Oct 23|Edmonton — Silent Ice Center (Hatch+Hesco)|Sun|14:45"
   ],
   "contentChanged": true,
   "isBaseline": false,
@@ -3579,28 +3546,19 @@
     "Oct 23|Aberdeen — Aberdeen Rec Center|Sun|14:00",
     "Oct 23|Calgary — 7 Chiefs Sportsplex (JPHL Contract)|Fri|TBD",
     "Oct 23|Calgary — 7 Chiefs Sportsplex (JPHL Contract)|Sat|TBD",
-    "Oct 23|Edmonton — Silent Ice Center (Hatch+Hesco)|Fri|11:00",
-    "Oct 23|Edmonton — Silent Ice Center (Hatch+Hesco)|Fri|11:45",
-    "Oct 23|Edmonton — Silent Ice Center (Hatch+Hesco)|Fri|13:15",
     "Oct 23|Edmonton — Silent Ice Center (Hatch+Hesco)|Fri|14:00",
-    "Oct 23|Edmonton — Silent Ice Center (Hatch+Hesco)|Fri|15:30",
     "Oct 23|Edmonton — Silent Ice Center (Hatch+Hesco)|Fri|16:15",
-    "Oct 23|Edmonton — Silent Ice Center (Hatch+Hesco)|Fri|17:45",
     "Oct 23|Edmonton — Silent Ice Center (Hatch+Hesco)|Fri|20:00",
-    "Oct 23|Edmonton — Silent Ice Center (Hatch+Hesco)|Sat|08:00",
-    "Oct 23|Edmonton — Silent Ice Center (Hatch+Hesco)|Sat|09:30",
-    "Oct 23|Edmonton — Silent Ice Center (Hatch+Hesco)|Sat|10:15",
-    "Oct 23|Edmonton — Silent Ice Center (Hatch+Hesco)|Sat|11:45",
-    "Oct 23|Edmonton — Silent Ice Center (Hatch+Hesco)|Sat|12:30",
-    "Oct 23|Edmonton — Silent Ice Center (Hatch+Hesco)|Sat|14:00",
-    "Oct 23|Edmonton — Silent Ice Center (Hatch+Hesco)|Sat|14:45",
+    "Oct 23|Edmonton — Silent Ice Center (Hatch+Hesco)|Sat|08:15",
+    "Oct 23|Edmonton — Silent Ice Center (Hatch+Hesco)|Sat|08:30",
+    "Oct 23|Edmonton — Silent Ice Center (Hatch+Hesco)|Sat|13:30",
+    "Oct 23|Edmonton — Silent Ice Center (Hatch+Hesco)|Sat|13:45",
+    "Oct 23|Edmonton — Silent Ice Center (Hatch+Hesco)|Sat|16:00",
     "Oct 23|Edmonton — Silent Ice Center (Hatch+Hesco)|Sat|16:15",
-    "Oct 23|Edmonton — Silent Ice Center (Hatch+Hesco)|Sat|17:00",
-    "Oct 23|Edmonton — Silent Ice Center (Hatch+Hesco)|Sat|19:15",
     "Oct 23|Edmonton — Silent Ice Center (Hatch+Hesco)|Sun|08:00",
-    "Oct 23|Edmonton — Silent Ice Center (Hatch+Hesco)|Sun|10:15",
-    "Oct 23|Edmonton — Silent Ice Center (Hatch+Hesco)|Sun|12:30",
-    "Oct 23|Edmonton — Silent Ice Center (Hatch+Hesco)|Sun|14:45",
+    "Oct 23|Edmonton — Silent Ice Center (Hatch+Hesco)|Sun|08:15",
+    "Oct 23|Edmonton — Silent Ice Center (Hatch+Hesco)|Sun|10:30",
+    "Oct 23|Edmonton — Silent Ice Center (Hatch+Hesco)|Sun|12:45",
     "Oct 23|Kimberley — Civic Centre|Fri|08:30",
     "Oct 23|Kimberley — Civic Centre|Sat|09:30",
     "Oct 23|Kimberley — Civic Centre|Sat|12:00",
