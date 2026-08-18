@@ -6500,7 +6500,7 @@ const PG=(function(){
     </div>`;
   }
   function repMaxTxt(){ return CFG.matchupRepeatPerWeekendMax||2; }
-  function garageTable(wk, ps){
+  function garageTable(wk, ps, podKey){
     const byDiv={}; ps.forEach(g=>{(byDiv[g.division]=byDiv[g.division]||[]).push(g);});
     // Per-division controls: the Suggest chip (ranked spots) plus a direct "move whole pod" dropdown.
     const chips=Object.keys(byDiv).sort().map(dv=>{
@@ -6512,10 +6512,13 @@ const PG=(function(){
       const moveDropdown = `<select data-actchange="pgPodMove" data-wk="${escA(wk)}" data-div="${escA(dv)}" title="Move the whole ${esc(dv)} pod to a date &amp; venue" style="font-size:11px;padding:3px 6px;border:1px solid #C9C4F0;border-radius:8px;background:#fff;color:#3C3489;font-weight:600;max-width:280px"><option value="">\uD83C\uDD7F Move ${esc(dv)} pod (${list.length}) \u2192 pick date &amp; venue</option>${opts}<option value="__UNSOURCED__">\uD83C\uDD7F To a hypothetical unsourced weekend\u2026</option></select>`;
       return `<div style="display:inline-flex;gap:6px;align-items:center;margin:0 8px 6px 0;padding:3px 8px;border:1px dashed #C9C4F0;border-radius:12px;background:#FCFBFF"><span style="font-size:11px;font-weight:800;color:#3C3489">${esc(dv)} \u00b7 ${list.length}</span>${moveDropdown}${suggestBtn}</div>`;
     }).join('');
-    const chipBar = chips ? `<div style="margin:2px 0 8px;display:flex;flex-wrap:wrap;align-items:center">${chips}</div>` : '';
+    // The chip bar's two controls (Suggest + the old per-division move dropdown) both filter on
+    // g.weekend===wk && !isTbd(g), so on the dateless sections (wk='') they can never match a game
+    // and silently do nothing. Matchup-pod blocks bring their own controls; hide the bar there.
+    const chipBar = (chips && wk) ? `<div style="margin:2px 0 8px;display:flex;flex-wrap:wrap;align-items:center">${chips}</div>` : '';
     // Header checkbox = select / deselect every game in THIS section at once.
     const allChecked = ps.length && ps.every(g=>SEL.has(String(g.id)));
-    const headChk=`<th style="width:28px;text-align:center"><input type="checkbox" data-actchange="pgSelGroup" data-wk="${escA(wk)}" ${allChecked?'checked':''} title="Select / deselect all ${ps.length} game${ps.length>1?'s':''} in this section" style="width:16px;height:16px;cursor:pointer;accent-color:#3C3489"></th>`;
+    const headChk=`<th style="width:28px;text-align:center"><input type="checkbox" data-actchange="pgSelGroup" ${podKey?`data-pod="${escA(podKey)}"`:`data-wk="${escA(wk)}"`} ${allChecked?'checked':''} title="Select / deselect all ${ps.length} game${ps.length>1?'s':''} in this section" style="width:16px;height:16px;cursor:pointer;accent-color:#3C3489"></th>`;
     const table=`<table class="tbl"><thead><tr>${headChk}<th>Game #</th><th>Division</th><th>Home</th><th>Away</th><th>Assign to venue</th><th></th></tr></thead><tbody>${ps.map(parkRow).join('')}</tbody></table>`;
     return chipBar + table + sugPanelFor(wk, ps);
   }
@@ -6614,9 +6617,9 @@ const PG=(function(){
       return `<div class="wk-head" style="margin-top:16px"><h3>🧩 ${esc(pk)} <span style="color:var(--mut);font-weight:600;font-size:13px">· ${esc(divs.join(', '))} · ${list.length} game${list.length>1?'s':''}</span>${locPill}</h3>
         <div class="dt" style="padding:2px 0 6px">${esc(teamsIn.join(' · '))}</div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:0 0 8px">
-          <button data-act="pgSelGroup" data-pod="${escA(pk)}" style="font-size:11px;padding:4px 12px;border:1px solid #3C3489;border-radius:7px;background:#fff;color:#3C3489;font-weight:700;cursor:pointer">${allSel?'Deselect':'Select'} all ${list.length}</button>
+          <button data-act="pgSelPod" data-pod="${escA(pk)}" style="font-size:11px;padding:4px 12px;border:1px solid #3C3489;border-radius:7px;background:#fff;color:#3C3489;font-weight:700;cursor:pointer">${allSel?'Deselect':'Select'} all ${list.length}</button>
           <select data-actchange="pgSelMovePod" data-pod="${escA(pk)}" title="Place this whole pod on one weekend and venue" style="font-size:12px;padding:4px 8px;border:1px solid #3C3489;border-radius:8px;background:#fff;color:#3C3489;font-weight:600;max-width:340px"><option value="">Place this whole pod…</option>${opts}</select>
-        </div>`+garageTable('', list);
+        </div>`+garageTable('', list, pk);
     }).join('');
     const tbdBlock = tbd.length ? `<div class="wk-head" style="margin-top:16px"><h3>\uD83D\uDCC5 Date &amp; time TBD <span style="color:var(--mut);font-weight:600;font-size:13px">\u00b7 not tied to any weekend</span> <span class="pill" style="background:#FFF3D6;color:#7a5b00;margin-left:6px">${tbd.length}</span></h3></div>
       <div class="dt" style="padding:2px 0 6px">These still count toward team totals. Assign a date &amp; venue when you\u2019re ready, or hit \uD83D\uDCC5 TBD again to re-attach a game to its original weekend.</div>
@@ -6648,7 +6651,7 @@ window.PG=PG;
 var UNDO_STACK=[];
 var REDO_STACK=[];   // forward history: undo() pushes here; any NEW action (pushUndo) clears it
 var SOLVE_REPORT={}; // wk -> last auto-solve result (per-venue day splits, flags, review items)
-const MUTATING=new Set(['markSent','iceHave','iceNo','iceHeld','iceDel','iceRestore','iceReset','venueAdd','venueAddDel','impApply','impReset','pgPark','pgParkVenue','pgParkDiv','pgAssign','podSwap','podTime','slotAssign','pgPlaceAt','pgPlaceAll','pgPodMove','pgSelMove','pgRestore','pgRemove','autosolve','toggleLock','toggleVenueLock','pgTbd','timeSet','timeUnlock','slotAddDel','hypoTime','hypoClear','hypoLock','slotDrop','matchupSet','matchupSwap',
+const MUTATING=new Set(['markSent','iceHave','iceNo','iceHeld','iceDel','iceRestore','iceReset','venueAdd','venueAddDel','impApply','impReset','pgPark','pgParkVenue','pgParkDiv','pgAssign','podSwap','podTime','slotAssign','pgPlaceAt','pgPlaceAll','pgPodMove','pgSelMove','pgSelMovePod','pgRestore','pgRemove','autosolve','toggleLock','toggleVenueLock','pgTbd','timeSet','timeUnlock','slotAddDel','hypoTime','hypoClear','hypoLock','slotDrop','matchupSet','matchupSwap',
   'staffSetRep','staffSetTk','staffDrop','staffClearOrphans']);;   // staffWk is a view switch, not a mutation
 // Full-state snapshot. Includes EVERY persistent store a user action can touch \u2014 omitting one
 // (previously MANUAL_TIMES, SLOT_ADDS, DATA.realIce caps, MATCHUP_LOG, VENUE_ADDS, CONFLICT_ACK)
@@ -6734,6 +6737,7 @@ const ACTIONS={
   pgSelGroup:el=>PG.selectGroup(el.dataset),
   pgSelMove:el=>PG.selMove(el),
   pgSelMovePod:el=>PG.selMovePod(el),
+  pgSelPod:d=>PG.selectGroup(d),
   pgTogglePrefs:d=>PG.togglePrefs(d),
   pgSetPref:el=>PG.setPref(el),
   pgClearPrefs:d=>PG.clearPrefs(d),
@@ -7446,7 +7450,7 @@ render();
     +'display:flex;align-items:center;gap:7px;cursor:default;user-select:none;transition:.2s';
   // BUILD MARKER: shown next to the sync status so "which version am I actually running?" is never a
   // guessing game again. Bump this string whenever the sync/boot logic changes.
-  const FSL_BUILD='2026-08-18a';
+  const FSL_BUILD='2026-08-18b';
   window.__fslBuild=FSL_BUILD;
   function setPill(txt,color){ pill.innerHTML='<span style="width:8px;height:8px;border-radius:50%;background:'+(color||'#8a8a90')+';display:inline-block"></span>'+txt+'<span style="opacity:.55;font-weight:600;margin-left:7px">build '+FSL_BUILD+'</span>'; }
   pill.style.cursor='pointer';
