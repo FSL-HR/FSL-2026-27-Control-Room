@@ -137,6 +137,22 @@ button{font-family:inherit;cursor:pointer}
    disappears on white cards — the garage's Division column did exactly that. Modifier classes
    (.ab/.bc/...) and inline styles still override this default. */
 .pill{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;background:#F1F1F4;color:#1c1c22}
+/* MOVE MODE (2026-08-18): pick a game up (⇄), then click any slot row, day-time box or weekend chip
+   to drop it. Nothing is ever disabled — the engine reports what a drop created, and one Undo
+   reverses it. Esc cancels. */
+.mv-banner{position:sticky;top:0;z-index:40;display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px 14px;margin:0 0 12px;border:2px solid #3C3489;border-radius:12px;background:#EEEDFE;color:#1c1c22}
+.mv-banner b{color:#3C3489}
+.mv-wkchip{font-size:10.5px;padding:2px 8px;border:1px solid #C9C4F0;border-radius:10px;background:#fff;color:#3C3489;font-weight:700;cursor:pointer}
+.mv-wkchip.on{background:#3C3489;color:#fff}
+.mv-target{outline:2px dashed #8f86e8;outline-offset:-2px;cursor:pointer}
+.mv-target:hover{outline-color:#3C3489;background:#EEEDFE}
+.mv-pick{font-size:11px;padding:1px 7px;border:1px solid #C9C4F0;border-radius:5px;background:#fff;color:#3C3489;cursor:pointer;font-weight:800;margin-left:6px}
+.mv-pick.on{background:#3C3489;color:#fff}
+.mv-nudge{font-size:9px;padding:1px 4px;border:1px solid var(--line-l);border-radius:4px;background:#fff;color:var(--mut-d);cursor:pointer;font-weight:700}
+.mv-badge{font-size:9px;font-weight:800;color:#a15c00;margin-left:5px;white-space:nowrap}
+.mv-dayrow{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:7px 17px;background:#F5F3FF;border-bottom:1px solid #C9C4F0;font-size:11px}
+.mv-dayrow input[type=time]{font-size:11px;padding:1px 4px;border:1px solid #3C3489;border-radius:4px}
+.gline.mv-me{background:#EEEDFE!important;outline:2px solid #3C3489}
 .pill.ab{background:#eef;color:#3338a0}.pill.bc{background:#e1f5ee;color:#0f6e56}
 .pill.skmb{background:#FAEEDA;color:#854f0b}
 .pill.fly{background:var(--dangerbg);color:var(--red-d)}
@@ -2956,6 +2972,42 @@ function addedSlotsView(){
     <div class="dt">Every ice slot added manually via “＋ Add slot”, counted as <b>sourced</b> real ice. Removing a slot here (or on the pod) drops it from this list; if a game is sitting on it, that game is sent to the Unscheduled Showcase.</div></div>
     <table class="tbl"><thead><tr><th>Weekend</th><th>Arena</th><th>Day</th><th>Time</th><th>Surface</th><th>Game on slot</th><th></th></tr></thead><tbody>${body}</tbody></table>`;
 }
+/* ===== MOVE MODE (2026-08-18, user: "move a game from the 4:30 slot to 6:30, smooth and seamless",
+   "i want to be able to move it wherever i want", "dont change anything ive already timed") =====
+   MV holds the game being moved. Every slot row, a per-venue day+time strip, and the weekend
+   chips in the banner become drop targets. Rules never block a drop — after the drop the real
+   engine is diffed and any NEW hard conflicts are named in the toast (fix, ack, or Undo).
+   The ONLY games a drop may touch: the moved game, and — only when dropping onto an occupied
+   slot — that one occupant, which takes the moved game’s old spot in a true SWAP (never
+   silently cleared, unlike the legacy _slotMove). Locked venue-weekends still refuse: that is
+   the user’s own lock. */
+var MV=null;
+function mvGame(){ return MV?games.find(x=>String(x.id)===String(MV.id)):null; }
+function mvLabel(g){ return (g.gameNo?('#'+g.gameNo+' '):'')+g.home+' vs '+g.away; }
+function mvBanner(wk){ const m=mvGame(); if(!m) return '';
+  const chips=WK.map(w=>'<button class="mv-wkchip'+(w===wk?' on':'')+'" data-act="mvNav" data-wk="'+iceEscA(w)+'" title="Show this weekend\'s venues as drop targets">'+wkDateShort(w)+'</button>').join('');
+  return '<div class="mv-banner"><b>⇄ Moving '+iceEscA(mvLabel(m))+' ('+iceEscA(m.division)+')</b>'+
+    '<span style="font-size:11px">click any slot, or type a time in a day box · pick a weekend chip to look elsewhere · Esc cancels</span>'+chips+
+    '<button class="mv-wkchip" data-act="mvCancel" style="border-color:var(--red);color:var(--red)">✕ cancel</button></div>'; }
+// tiny pre-drop hints on slot rows: weekend caps for the moving game’s two teams (the full
+// engine still adjudicates after the drop — these just warn before the click)
+function mvBadge(wk,day){ const m=mvGame(); if(!m) return '';
+  const parts=[];
+  if(typeof wkAllowsDiv==='function'&&!wkAllowsDiv(wk,m.division)) parts.push('⛔ '+wkDivNote(wk));
+  [m.home,m.away].forEach(t=>{
+    const wkN=games.filter(x=>x.division===m.division&&x.weekend===wk&&String(x.id)!==String(m.id)&&(x.home===t||x.away===t)).length;
+    if(wkN>=4) parts.push('⚠ '+t.split(' ')[0]+' 4+wk');
+    else { const dayN=games.filter(x=>x.division===m.division&&x.weekend===wk&&x.day===day&&String(x.id)!==String(m.id)&&(x.home===t||x.away===t)).length;
+      if(dayN>=2) parts.push('⚠ '+t.split(' ')[0]+' 2+day'); }
+  });
+  return parts.length?'<span class="mv-badge">'+parts.join(' ')+'</span>':''; }
+// per-venue strip of day + custom-time targets (also the only target on venues with no slot list)
+function mvDayRow(wk,venue){ const m=mvGame(); if(!m) return '';
+  const days=['Fri','Sat','Sun'].concat((CFG.weekendDates[wk]||'').indexOf('Mon')>=0?['Mon']:[]);
+  return '<div class="mv-dayrow"><b style="color:#3C3489">⇄ drop here:</b> '+days.map(d=>
+    '<label style="display:inline-flex;gap:4px;align-items:center">'+d+' <input type="time" data-actchange="mvTime" data-wk="'+iceEscA(wk)+'" data-venue="'+iceEscA(venue)+'" data-day="'+d+'">'+mvBadge(wk,d)+'</label>').join('')+
+    '<span style="color:var(--mut-d)">(end time fills in from the division’s game length — hand-set, so the app won’t re-time it)</span></div>'; }
+document.addEventListener('keydown',function(e){ if(e.key==='Escape'&&MV){ MV=null; try{render();}catch(_){}} });
 function weekendView(wk){
   const allVs=venuesFor(wk);
   // Venues the user explicitly REMOVED (del) are hidden here ONLY while nothing is scheduled on
@@ -3002,7 +3054,7 @@ function weekendView(wk){
   const locked=isLocked(wk);
   const lockBtn=`<button class="tb-btn" data-act="toggleLock" data-wk="${wk}" title="${locked?'Unlock this weekend to allow changes again':'Lock this weekend/showcase as complete \u2014 no auto-solve, auto-timing, or moves will be applied to it'}" style="white-space:nowrap;${locked?'background:#e8f6ee;color:var(--ok);border-color:var(--ok)':''}">${locked?'\uD83D\uDD12 Locked \u00b7 unlock':'\uD83D\uDD13 Lock weekend'}</button>`;
   const lockBanner=locked?`<div class="conf-banner good" style="background:#eef6ff;border-color:#b9d4f5;color:#25507f"><span class="ic">\uD83D\uDD12</span><div><b>This weekend is locked (marked complete).</b> Auto weekend solve, \u201CTime this pod\u201D, slot edits, moves, parking, and opponent swaps are disabled here so nothing changes it. Click \u201C\uD83D\uDD12 Locked \u00b7 unlock\u201D above to make changes again.</div></div>`:'';
-  return `<div class="wk-head" style="display:flex;align-items:center;justify-content:space-between">
+  return `${mvBanner(wk)}<div class="wk-head" style="display:flex;align-items:center;justify-content:space-between">
       <div><h2>${wk} <span style="color:var(--mut);font-weight:600;font-size:15px">· ${WKDATE[wk]||''} (Fri–Sun)</span>${wkDivNote(wk)?` <span class="pill" style="background:#eef2ff;color:#3b4a94;vertical-align:middle">${iceEscA(wkDivNote(wk))}</span>`:''}${locked?' <span class="pill" style="background:#e8f6ee;color:var(--ok);vertical-align:middle">\uD83D\uDD12 locked</span>':''}</h2><div class="dt">${gamesFor(wk).length} games · ${vTotal} venues${hiddenNote}</div></div>
       <div style="display:flex;gap:8px">${lockBtn}${(gamesFor(wk).length&&!locked)?`<button class="tb-btn red" data-act="autosolve" data-wk="${wk}" style="white-space:nowrap">⚙ Auto weekend solve</button>`:''}</div>
     </div>
@@ -3079,8 +3131,8 @@ function slotGrid(wk, venue){
            <span class="ez">Empty \u00b7 drop a game here</span>
            <select class="slotpick" data-actchange="slotAssign" data-wk="${iceEscA(wk)}" data-venue="${iceEscA(venue)}" data-day="${s.day}" data-start="${s.start}" data-end="${s.end!=null?s.end:''}" data-sheet="${iceEscA(s.sheet||'')}" title="Or pick a game from the list">${optFor(g)}</select>
          </div>`;
-    return `<tr class="slotdrop${g?' hasgame':''}" ${dropAttrs}${warn?' style="background:var(--dangerbg)"':''}>
-      <td class="sday">${s.day}</td>
+    return `<tr class="slotdrop${g?' hasgame':''}${MV?' mv-target':''}" ${dropAttrs}${MV?' data-act="mvDrop"':''}${warn?' style="background:var(--dangerbg)"':''}>
+      <td class="sday">${s.day}${MV?mvBadge(wk,s.day):''}</td>
       <td class="tm">${to12(s.start)}${s.end!=null?'\u2013'+to12(s.end):''}</td>
       <td class="tm ssheet">${iceEscA(s.sheet||'')}</td>
       <td>${cell}</td>
@@ -3121,7 +3173,7 @@ function venueBlock(wk,v){
   const noDay=vgames.filter(g=>!effDay(g));
   const naGroup=noDay.length?`<div class="day-grp"><div class="dlabel" style="color:var(--mut-d)">Day not set (${noDay.length})</div>
       ${noDay.slice().sort((a,b)=>(a.home+a.away).localeCompare(b.home+b.away)).map(g=>gameLine(g)).join('')}</div>`:'';
-  const bodyGroups=dayGroups+naGroup;
+  const bodyGroups=(MV?mvDayRow(wk,v.venue):'')+dayGroups+naGroup;
   const totCap=v.capFri+v.capSat+v.capSun+monCapFor(v);
   const totUsed=vgames.length;
   let tcls='';if(totCap&&totUsed>totCap)tcls='over';else if(totCap&&totUsed===totCap)tcls='full';
@@ -3177,7 +3229,7 @@ function venueBlock(wk,v){
       <span class="pill ${regClass(v.region)}" style="margin-left:8px">${v.region}</span>${ghostIce?`<span class="pill" title="This ice is not secured/contracted yet — it does not exist. Games are shown here so they aren't lost, but you still need to source real ice." style="margin-left:6px;background:var(--warnbg);color:var(--warn);font-weight:800">\u26A0 ICE DOES NOT EXIST</span>`:''}${Math.max(sheetsForCap(v.capFri),sheetsForCap(v.capSat),sheetsForCap(v.capSun))>1?`<span class="pill" style="margin-left:6px;background:#EEEDFE;color:#3C3489">${Math.max(sheetsForCap(v.capFri),sheetsForCap(v.capSat),sheetsForCap(v.capSun))} sheets</span>`:''}${overBooked?`<span class="pill" title="More games than ice slots${overDays.length?' on '+overDays.join(', '):''}" style="margin-left:6px;background:var(--red);color:#fff;font-weight:800">\u26A0 OVERBOOKED ${totUsed}/${totCap}${overDays.length?' \u00b7 '+overDays.join('/'):''}</span>`:''}${isVenueLocked(wk,v.venue)?`<span class="pill" style="margin-left:6px;background:#e8f6ee;color:var(--ok);font-weight:800">\uD83D\uDD12 locked</span>`:''}${venLockBtn}</div>
       <div class="slots">${slot('Fri')}${slot('Sat')}${slot('Sun')}<div class="slot ${tcls}"><div class="d">tot</div><div class="v">${totUsed}/${totCap||'—'}</div></div></div></div>
     ${parkBar}${lockedNote}
-    ${(SLOT_EDIT===(wk+'|||'+v.venue) && !vLocked)?slotGrid(wk,v.venue):''}
+    ${((SLOT_EDIT===(wk+'|||'+v.venue)||MV) && !vLocked)?slotGrid(wk,v.venue):''}
     ${swapBar}
     <div class="venue-games">${bodyGroups||'<div style="color:var(--mut-d);font-size:12px;padding:8px 0">No games placed here yet.</div>'}
     </div></div>`;
@@ -3201,13 +3253,15 @@ function gameLine(g){
        <button data-act="hypoEdit" data-id="${id}" title="Edit this hypothetical time \u2014 you'll get the option to shift the whole pod by the same amount" style="margin-left:4px;font-size:10px;padding:1px 5px;border:1px solid #b8860b;border-radius:4px;background:#FFF8E1;color:#7a5b00;cursor:pointer">\u270E</button>`
     : `<span class="gd" style="width:auto;min-width:54px;white-space:nowrap">${timeTxt}${locked?' <span title="You set this time manually — the app will not change it" style="color:#3C3489">\uD83D\uDD12</span>':''}</span>
        <button data-act="timeEdit" data-id="${id}" title="Edit start/end time (locks it so the app won't change it)" style="margin-left:4px;font-size:10px;padding:1px 5px;border:1px solid var(--line-l);border-radius:4px;background:#fff;color:#3C3489;cursor:pointer">\u270E</button>${locked?`<button data-act="timeUnlock" data-id="${id}" title="Unlock — let the auto-solver time this game again" style="margin-left:3px;font-size:10px;padding:1px 5px;border:1px solid var(--line-l);border-radius:4px;background:#fff;color:var(--mut-d);cursor:pointer">unlock</button>`:''}`;
-  return `<div class="gline"${locked?' style="background:#F7F6FF"':''}>
+  return `<div class="gline${(MV&&String(MV.id)===String(g.id))?' mv-me':''}"${locked?' style="background:#F7F6FF"':''}>
     <span class="gnum" title="Game number — stays the same even after you move this game" style="font-variant-numeric:tabular-nums;font-weight:800;color:var(--red);font-size:11px;margin-right:2px">${matchNo(g)}</span>
     ${editor}
     ${slotTooShort(g)?`<span title="${g.division} needs ${slotHours(g.division)}h of ice but this slot is only 2h." style="margin-left:6px;font-size:9.5px;font-weight:800;color:#fff;background:var(--red);border-radius:4px;padding:1px 6px;white-space:nowrap">\u26A0 2h slot</span>`:''}
     <span class="gdiv">${g.division}</span>
     ${matchupCell(g,id)}
     ${g.sheet?`<span style="margin-left:8px;font-size:11px;color:var(--mut-d);white-space:nowrap">\u25F8 ${iceEscA(g.sheet)}</span>`:''}
+    ${`<button class="mv-pick${(MV&&String(MV.id)===String(g.id))?' on':''}" data-act="mvPick" data-id="${id}" title="Move this game — then click any slot, day box or weekend to drop it">⇄</button>`}
+    ${(g.time&&!MV)?`<span style="margin-left:3px;white-space:nowrap"><button class="mv-nudge" data-act="mvNudge" data-id="${id}" data-min="-15" title="15 minutes earlier (hand-sets the time)">−15</button><button class="mv-nudge" data-act="mvNudge" data-id="${id}" data-min="15" title="15 minutes later (hand-sets the time)">+15</button></span>`:''}
     ${isEffLocked(g.weekend,g.venue)?'':`<button data-act="pgPark" data-id="${id}" title="Park this game — hold it on this weekend with no slot" style="margin-left:auto;font-size:10px;padding:2px 7px;border:1px solid var(--line-l);border-radius:5px;background:#fff;color:var(--warn);cursor:pointer;white-space:nowrap">🅿 Park</button>`}
     </div>`;
 }
@@ -6654,7 +6708,7 @@ window.PG=PG;
 var UNDO_STACK=[];
 var REDO_STACK=[];   // forward history: undo() pushes here; any NEW action (pushUndo) clears it
 var SOLVE_REPORT={}; // wk -> last auto-solve result (per-venue day splits, flags, review items)
-const MUTATING=new Set(['markSent','iceHave','iceNo','iceHeld','iceDel','iceRestore','iceReset','venueAdd','venueAddDel','impApply','impReset','pgPark','pgParkVenue','pgParkDiv','pgAssign','podSwap','podTime','slotAssign','pgPlaceAt','pgPlaceAll','pgPodMove','pgSelMove','pgSelMovePod','pgRestore','pgRemove','autosolve','toggleLock','toggleVenueLock','pgTbd','timeSet','timeUnlock','slotAddDel','hypoTime','hypoClear','hypoLock','slotDrop','matchupSet','matchupSwap',
+const MUTATING=new Set(['markSent','iceHave','iceNo','iceHeld','iceDel','iceRestore','iceReset','venueAdd','venueAddDel','impApply','impReset','pgPark','pgParkVenue','pgParkDiv','pgAssign','podSwap','podTime','slotAssign','pgPlaceAt','pgPlaceAll','pgPodMove','pgSelMove','pgSelMovePod','mvDrop','mvTime','mvNudge','pgRestore','pgRemove','autosolve','toggleLock','toggleVenueLock','pgTbd','timeSet','timeUnlock','slotAddDel','hypoTime','hypoClear','hypoLock','slotDrop','matchupSet','matchupSwap',
   'staffSetRep','staffSetTk','staffDrop','staffClearOrphans']);;   // staffWk is a view switch, not a mutation
 // Full-state snapshot. Includes EVERY persistent store a user action can touch \u2014 omitting one
 // (previously MANUAL_TIMES, SLOT_ADDS, DATA.realIce caps, MATCHUP_LOG, VENUE_ADDS, CONFLICT_ACK)
@@ -6885,6 +6939,46 @@ const ACTIONS={
     if(!confirm('Clear the matchup change log?\n\nThis does NOT change any matchups \u2014 it just forgets the record, so you can no longer one-click revert to the originals.')) return;
     Object.keys(MATCHUP_LOG).forEach(k=>delete MATCHUP_LOG[k]); saveMatchupLog(); render();
     showToast('Matchup change log cleared.','good'); },
+  // ---- MOVE MODE ----
+  mvPick:d=>{ MV=(MV&&String(MV.id)===String(d.id))?null:{id:String(d.id)}; render(); },
+  mvCancel:()=>{ MV=null; render(); },
+  mvNav:d=>{ view={type:'weekend',wk:d.wk}; render(); window.scrollTo(0,0); },
+  mvTime:el=>{ const d=el.dataset, m=mvGame(); if(!m||!el.value) return;
+    const start=toMin(el.value); if(start==null){ showToast('Enter a valid time.','warn'); return; }
+    const end=start+Math.round(slotHours(m.division)*60);
+    ACTIONS.mvDrop({wk:d.wk,venue:d.venue,day:d.day,start:String(start),end:String(end),sheet:'',manual:'1'}); },
+  mvDrop:d=>{ const m=mvGame(); if(!m){ MV=null; render(); return; }
+    if(isEffLocked(d.wk,d.venue)){ showToast('🔒 '+d.wk+' is locked here — your own lock; unlock it to drop.','warn'); return; }
+    const beforeIds=new Set(detectConflicts().filter(c=>c.sev==='hard'&&!c.ack).map(c=>c.id));
+    const hhmm=x=>String(Math.floor((x%1440)/60)).padStart(2,'0')+':'+String(x%60).padStart(2,'0');
+    const start=parseInt(d.start,10), end=(d.end===''||d.end==null)?null:parseInt(d.end,10);
+    const timeStr=isNaN(start)?'':hhmm(start);
+    let endStr=(end!=null&&!isNaN(end))?hhmm(end):'';
+    if(timeStr&&!endStr) endStr=hhmm(start+Math.round(slotHours(m.division)*60));   // every game needs an end (2026-07-29 rule)
+    const old={weekend:m.weekend,venue:m.venue,day:m.day,time:m.time,endTime:m.endTime,sheet:m.sheet};
+    const occ=games.find(g=>g.weekend===d.wk&&g.venue===d.venue&&g.day===d.day&&g.time===timeStr&&timeStr&&String(g.sheet||'')===String(d.sheet||'')&&String(g.id)!==String(m.id));
+    m.weekend=d.wk; m.venue=d.venue; m.day=d.day||''; m.time=timeStr; m.endTime=endStr; m.sheet=d.sheet||'';
+    if(typeof PARKING!=='undefined'&&PARKING[String(m.id)]){ delete PARKING[String(m.id)]; try{saveParking();}catch(e){} }
+    GAME_TIMES[String(m.id)]={date:'',weekend:d.wk,day:m.day,time:timeStr,end:endStr,sheet:m.sheet,venue:d.venue};
+    if(d.manual) try{ setManualTime(m.id,{day:m.day,time:timeStr,end:endStr}); }catch(e){}
+    let msg='✓ '+mvLabel(m)+' → '+d.wk+(m.day?' '+m.day:'')+(timeStr?' '+clock12(timeStr):'')+' · '+String(d.venue||'').replace(/\s*\(NEW\)/i,'').split(/\s*[—–-]\s*/).pop().trim();
+    if(occ){ occ.weekend=old.weekend; occ.venue=old.venue; occ.day=old.day||''; occ.time=old.time||''; occ.endTime=old.endTime||''; occ.sheet=old.sheet||'';
+      GAME_TIMES[String(occ.id)]={date:'',weekend:old.weekend,day:occ.day,time:occ.time,end:occ.endTime,sheet:occ.sheet,venue:old.venue};
+      msg+=old.time?(' · swapped: '+mvLabel(occ)+' → '+(old.day||'')+' '+clock12(old.time)):(' · ⚠ '+mvLabel(occ)+' bumped to no-time');
+    }
+    try{saveGameTimes();}catch(e){}
+    MV=null;
+    const newHards=detectConflicts().filter(c=>c.sev==='hard'&&!c.ack&&!beforeIds.has(c.id));
+    render();
+    showToast(msg+(newHards.length?(' · ⚠ creates: '+[...new Set(newHards.map(c=>c.rule))].join(', ')+' — Undo reverses'):''), newHards.length?'warn':'good'); },
+  mvNudge:d=>{ const g=games.find(x=>String(x.id)===String(d.id)); if(!g||!g.time) return;
+    if(isEffLocked(g.weekend,g.venue)){ showToast('🔒 Locked — unlock to nudge.','warn'); return; }
+    const hhmm=x=>String(Math.floor(((x%1440)+1440)%1440/60)).padStart(2,'0')+':'+String(((x%1440)+1440)%1440%60).padStart(2,'0');
+    const delta=parseInt(d.min,10)||0, ns=toMin(g.time)+delta;
+    const ne=g.endTime?toMin(g.endTime)+delta:null;
+    setManualTime(d.id,{time:hhmm(ns),end:ne!=null?hhmm(ne):''});
+    showToast('⏱ '+mvLabel(g)+' → '+clock12(hhmm(ns))+' (hand-set — the app won’t change it)','good');
+    render(); },
   slotAssign:el=>{ const d=el.dataset, gid=el.value;
     ACTIONS._slotMove(gid, d); },
   // Shared move engine used by both the dropdown (slotAssign) and drag-and-drop (slotDrop).
@@ -7453,7 +7547,7 @@ render();
     +'display:flex;align-items:center;gap:7px;cursor:default;user-select:none;transition:.2s';
   // BUILD MARKER: shown next to the sync status so "which version am I actually running?" is never a
   // guessing game again. Bump this string whenever the sync/boot logic changes.
-  const FSL_BUILD='2026-08-18c';
+  const FSL_BUILD='2026-08-18d';
   window.__fslBuild=FSL_BUILD;
   function setPill(txt,color){ pill.innerHTML='<span style="width:8px;height:8px;border-radius:50%;background:'+(color||'#8a8a90')+';display:inline-block"></span>'+txt+'<span style="opacity:.55;font-weight:600;margin-left:7px">build '+FSL_BUILD+'</span>'; }
   pill.style.cursor='pointer';
@@ -7845,7 +7939,7 @@ render();
     timeSet:'set a game time', timeUnlock:'unlocked a game time', timeEdit:'edited a game time',
     hypoTime:'added hypothetical times', hypoClear:'cleared hypothetical times',
     hypoLock:'locked hypothetical times in as real', hypoEdit:'edited a hypothetical time',
-    slotAssign:'assigned a slot', slotDrop:'moved a game between slots',
+    slotAssign:'assigned a slot', mvDrop:'moved a game (move mode)', mvNudge:'nudged a game time', slotDrop:'moved a game between slots',
     matchupSet:'changed a matchup', matchupSwap:'swapped a matchup', podSwap:'swapped opponents in a pod',
     matchupRevertOne:'reverted a matchup', matchupRevertAll:'reverted all matchups',
     quickadd:'opened Add game', undo:'undid the last change',
