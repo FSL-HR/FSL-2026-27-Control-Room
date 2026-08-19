@@ -6012,11 +6012,11 @@ const XP=(function(){
       '<table cellspacing="0" cellpadding="0" style="border-collapse:collapse">'+head+trs+'</table>'+
       (_hypoUsed?('<p style="color:#7a5b00;font-size:12px">'+esc(HYPO_NOTE)+'</p>'):'')+
       '<p>If anything looks different on your end please let me know at your earliest convenience \uD83D\uDE42</p>'+
-      '<p>Thanks so much!</p>'+
-      '<p>Hayley<br>Female Super League</p></div>';
+      '<p>Thanks so much!</p></div>';
+
     const text='Subject: '+subject+'\n\nHello!\n\nHope you\u2019re doing well! I\u2019m putting the final touches on our Female Super League schedule \u2014 below is everything we have booked at '+apName(venue)+' for '+apWhen()+'. When you have a minute, could you check it lines up with what you have on your end (dates, start/stop times, and which sheet we\u2019re on)?\n\nFor floods, the Floods column shows what each game needs \u2014 in short: '+FLOOD_NOTE+'\n\n'+
       vg.map(g=>[g.weekend,dayH(g),dateCell(g),timeH(g),endH(g),dur(g),floodFor(g.division),sheetH(g),g.division,g.home+' vs '+g.away].join('  |  ')).join('\n')+
-      '\n\nIf anything looks different on your end please let me know at your earliest convenience \uD83D\uDE42\n\nThanks so much!\n\nHayley\nFemale Super League';
+      '\n\nIf anything looks different on your end please let me know at your earliest convenience \uD83D\uDE42\n\nThanks so much!';
     return {subject, html:'<p style="font-family:Arial;font-size:12px;color:#666"><b>Subject:</b> '+esc(subject)+'</p>'+html, text}; }
   function mailArena(venue){ const e=apEmail(venue);
     const done=()=>showToast('\uD83D\uDCCB Email for '+apName(venue)+' copied — paste into a new message (subject line included at the top).','good');
