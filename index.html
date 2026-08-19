@@ -5972,6 +5972,57 @@ const XP=(function(){
     a.download=chgTitle().replace(/[^A-Za-z0-9]+/g,'_').replace(/^_+|_+$/g,'')+'.xls';
     document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},0);
   }
+  // ===== ARENA EMAIL KIT (2026-08-18, user): one email per arena to verify their schedule and
+  // flood plan, with zero typing. 'Copy email' puts a complete message on the clipboard —
+  // subject, greeting, the arena's schedule as a real table, the flood explanation and a
+  // confirm-request — ready to paste into Outlook. The .xls button downloads the same table
+  // as a file for arenas that prefer attachments.
+  function apScope(){ const key=String(STATE.key||''); const isMo=key.indexOf('MO:')===0;
+    return { isMo, mo:isMo?key.slice(3):null, wk:isMo?null:key.replace(/^WK:/,'') }; }
+  function apScopeLbl(){ const s=apScope();
+    return s.isMo?(((impMonths().find(m=>m.key===s.mo)||{}).label)||s.mo):(s.wk+'  ('+(WKDATE[s.wk]||'')+')'); }
+  function apGames(venue){ const s=apScope();
+    return games.filter(g=>g.venue===venue&&hasVenue(g)&&(s.isMo?impMonthOf(g)===s.mo:g.weekend===s.wk)).sort(gsort); }
+  function apArenas(){ const s=apScope();
+    const gs=games.filter(g=>hasVenue(g)&&(s.isMo?impMonthOf(g)===s.mo:g.weekend===s.wk));
+    return [...new Set(gs.map(g=>g.venue))].sort((a,b)=>cityOf(a).localeCompare(cityOf(b))||arenaOf(a).localeCompare(arenaOf(b))); }
+  function apName(v){ return arenaOf(v)===cityOf(v)?arenaOf(v):(arenaOf(v)+' — '+cityOf(v)); }
+  function apEmail(venue){ const vg=apGames(venue); const lbl=apScopeLbl();
+    _hypoUsed=false;
+    const trs=vg.map(g=>{
+      const cells=[g.weekend,dayH(g),dateCell(g),timeH(g),endH(g),dur(g),floodFor(g.division),sheetH(g),g.division,g.home,g.away];
+      const bg=FLOOD2.has(g.division)?'#ffffff':'#FFF2CC';
+      return '<tr>'+cells.map(x=>'<td style="border:1px solid #999;padding:3px 7px;background:'+bg+';font-family:Arial;font-size:12px;white-space:nowrap">'+esc(x)+'</td>').join('')+'</tr>'; }).join('');
+    const head='<tr>'+['Weekend','Day','Date','Start','Stop','Duration','Floods','Ice Surface','Division','Home','Away'].map(c=>'<th style="border:1px solid #444;padding:4px 7px;background:#2f3b5c;color:#fff;font-family:Arial;font-size:12px;text-align:left">'+esc(c)+'</th>').join('')+'</tr>';
+    const subject='FSL schedule confirmation — '+apName(venue)+' — '+lbl;
+    const html='<div style="font-family:Arial;font-size:13px;color:#111">'+
+      '<p>Hi,</p>'+
+      '<p>Below is the FSL game schedule for <b>'+esc(apName(venue))+'</b> for <b>'+esc(lbl)+'</b>. Could you please check it against your booking records and confirm everything matches exactly — dates, start and stop times, and ice surface.</p>'+
+      '<p><b>Floods:</b> the Floods column shows when each game needs the ice flooded. '+esc(FLOOD_NOTE)+'</p>'+
+      '<table cellspacing="0" cellpadding="0" style="border-collapse:collapse">'+head+trs+'</table>'+
+      (_hypoUsed?('<p style="color:#7a5b00;font-size:12px">'+esc(HYPO_NOTE)+'</p>'):'')+
+      '<p>If anything differs on your end, please reply and let me know — otherwise a quick confirmation would be much appreciated.</p>'+
+      '<p>Thank you!</p></div>';
+    const text='Subject: '+subject+'\n\nHi,\n\nBelow is the FSL game schedule for '+apName(venue)+' for '+lbl+'. Please confirm it matches your booking records exactly (dates, start/stop times, ice surface).\n\nFloods: '+FLOOD_NOTE+'\n\n'+
+      vg.map(g=>[g.weekend,dayH(g),dateCell(g),timeH(g),endH(g),dur(g),floodFor(g.division),sheetH(g),g.division,g.home+' vs '+g.away].join('  |  ')).join('\n')+
+      '\n\nIf anything differs, please reply and let me know — otherwise a quick confirmation would be much appreciated.\n\nThank you!';
+    return {subject, html:'<p style="font-family:Arial;font-size:12px;color:#666"><b>Subject:</b> '+esc(subject)+'</p>'+html, text}; }
+  function mailArena(venue){ const e=apEmail(venue);
+    const done=()=>showToast('\uD83D\uDCCB Email for '+apName(venue)+' copied — paste into a new message (subject line included at the top).','good');
+    const fall=()=>{ try{ const d=document.createElement('div'); d.contentEditable='true'; d.style.position='fixed'; d.style.left='-9999px'; d.innerHTML=e.html; document.body.appendChild(d);
+      const r=document.createRange(); r.selectNodeContents(d); const s=getSelection(); s.removeAllRanges(); s.addRange(r); document.execCommand('copy'); s.removeAllRanges(); d.remove(); done(); }catch(err){ showToast('Could not copy — your browser blocked it.','warn'); } };
+    try{ const item=new ClipboardItem({'text/html':new Blob([e.html],{type:'text/html'}),'text/plain':new Blob([e.text],{type:'text/plain'})});
+      navigator.clipboard.write([item]).then(done, fall); }catch(err){ fall(); } }
+  function xlsArena(venue){ const vg=apGames(venue); if(!vg.length){showToast('No games for that arena in this scope.','warn');return;}
+    _hypoUsed=false;
+    const sp={kind:'arenapack', key:STATE.key, key2:null,
+      title:apName(venue).replace(/[\\\/:*?"<>|]/g,'')+' — '+apScopeLbl()+' — FSL Schedule',
+      cols:['Weekend','Day','Date','Start','Stop','Duration','Floods','Ice Surface','Division','Home','Away'],
+      rows:vg.map(g=>({c:[g.weekend,dayH(g),dateCell(g),timeH(g),endH(g),dur(g),floodFor(g.division),sheetH(g),g.division,g.home,g.away],k:g.division})),
+      color:r=>FLOOD2.has(r.k)?'#ffffff':'#FFF2CC',
+      legend:'White = 1-flood games · Yellow = 2-flood games',
+      note:FLOOD_NOTE+(_hypoUsed?('  '+HYPO_NOTE):'')};
+    toXls(sp); showToast('Exported '+vg.length+' game'+(vg.length===1?'':'s')+' — '+sp.title+'.xls','good'); }
   function doExport(){ensureKey();
     if(STATE.kind==='itineraries'){ const n=DATA.teams.length; itinXls(); showToast('Exported '+n+' team itineraries (grouped by division) \u2014 FSL_Team_Itineraries.xls','good'); return; }
     if(STATE.kind==='broadcast'){ const n=bcastAllRows().length; bcastXls(); showToast('Exported the broadcast plan \u2014 '+n+' arena-weekend'+(n===1?'':'s')+' ranked by film value \u2014 FSL_Broadcast_Plan.xls','good'); return; }
@@ -6006,6 +6057,17 @@ const XP=(function(){
     const isChg=STATE.kind==='changes';
     const isMulti=isItin||isBcast||isReps||isStaff||isImport||isChg;   // multi-table reports build their own markup, not via spec()
     const sp=(!isMulti&&STATE.key!=null&&(!needsWk(STATE.kind)||STATE.key2!=null))?spec(STATE.kind,STATE.key,STATE.key2):null;
+    let mailKit='';
+    if(STATE.kind==='arenapack'&&STATE.key!=null){
+      const kit=apArenas().map(v=>{ const n=apGames(v).length;
+        return '<div style="display:flex;gap:8px;align-items:center;padding:5px 10px;border:1px solid var(--line-l);border-radius:9px;background:#fff">'+
+          '<b style="font-size:12px">'+esc(apName(v))+'</b><span style="font-size:11px;color:var(--mut-d)">'+n+' game'+(n===1?'':'s')+'</span>'+
+          '<button data-act="xpMailArena" data-venue="'+escA(v)+'" style="margin-left:auto;font-size:11px;padding:3px 10px;border:1px solid #3C3489;border-radius:6px;background:#EEEDFE;color:#3C3489;font-weight:700;cursor:pointer" title="Copy a complete, ready-to-paste email for this arena — subject, schedule table and flood plan included">\uD83D\uDCCB Copy email</button>'+
+          '<button data-act="xpXlsArena" data-venue="'+escA(v)+'" style="font-size:11px;padding:3px 10px;border:1px solid var(--line-l);border-radius:6px;background:#fff;cursor:pointer" title="Download just this arena as an .xls attachment">\u2B07 .xls</button></div>'; }).join('');
+      if(kit) mailKit='<div style="margin:0 0 12px;padding:10px 12px;border:1.5px solid #3C3489;border-radius:11px;background:#FCFBFF">'+
+        '<div style="font-weight:800;color:#3C3489;font-size:12px;margin-bottom:7px">\uD83D\uDCE7 One email per arena — \u201CCopy email\u201D grabs the whole message (subject, table, flood plan); paste it into a new email and hit send.</div>'+
+        '<div style="display:grid;gap:6px">'+kit+'</div></div>';
+    }
     const wkSel=needsWk(STATE.kind)?`<label style="font-size:12px;font-weight:700">Weekend<br><select data-actchange="xpKey2" style="${selSty}">${itemsFor2().map(([v,l])=>`<option value="${escA(v)}" ${v===STATE.key2?'selected':''}>${esc(l)}</option>`).join('')}</select></label>`:'';
     const info=isItin
       ? `<div style="font-size:12px;color:var(--mut-d)"><b>${DATA.teams.length}</b> teams \u00b7 one table each, grouped by division \u00b7 includes Alpine Cup &amp; playoffs</div>`
@@ -6019,7 +6081,7 @@ const XP=(function(){
           let reps=0, gms=0; wks.forEach(w=>{const rs=repsRows(w); reps+=rs.length; gms+=rs.reduce((s,r)=>s+r.games,0);});
           return `<div style="font-size:12px;color:var(--mut-d)">${wks.length>1?('<b>'+wks.length+'</b> weekends \u00b7 '):''}<b>${reps}</b> rep${reps===1?'':'s'} needed \u00b7 <b>${gms}</b> game${gms===1?'':'s'} \u00b7 one rep per arena</div>`;})()
       : (sp?`<div style="font-size:12px;color:var(--mut-d)"><b>${sp.rows.length}</b> ${(sp.kind==='sourced'||sp.kind==='unused')?'venue-weekend'+(sp.rows.length===1?'':'s'):'games'} \u00b7 ${esc(sp.legend)}</div>`:'');
-    const preview=isItin?itinPreview():isBcast?bcastPreview():isReps?repsPreview():isStaff?staffPreview():isImport?impPreview():isChg?chgPreview():(sp?renderTable(sp):'<div class="dt">No selection.</div>');
+    const preview=(mailKit||'')+(isItin?itinPreview():isBcast?bcastPreview():isReps?repsPreview():isStaff?staffPreview():isImport?impPreview():isChg?chgPreview():(sp?renderTable(sp):'<div class="dt">No selection.</div>'));
     return `<div class="wk-head"><h2>\uD83D\uDCE4 Schedule exports</h2>
       <div class="dt">Pick a report and an item, preview it, and download a color-coded Excel file. Reflects the live schedule, including any times you have applied. (Excel may say the file type differs from the extension on open \u2014 that is normal for this styled format; click Yes.)</div></div>
       <div class="card" style="padding:14px;display:flex;gap:16px;flex-wrap:wrap;align-items:flex-end">
@@ -6037,7 +6099,7 @@ const XP=(function(){
       </div>
       <div style="margin-top:14px">${preview}</div>`;
   }
-  return {view,spec,itemsFor,itemsFor2,xlsHtml,toXls,setKind,setKey,setKey2,setRole,doExport,_state:()=>STATE,
+  return {view,spec,itemsFor,itemsFor2,xlsHtml,toXls,setKind,setKey,setKey2,setRole,doExport,mailArena,xlsArena,_state:()=>STATE,
     bcastSheetRows,bcastAllRows,bcastTier,bcastXls,BCAST_FILM,BCAST_MUST,BCAST_TIERS,
     repsRows,repsScopeWks,repsXls,
     staffDutyRows,staffFiltered,staffMonths,staffXls,staffScope,
@@ -7062,6 +7124,8 @@ const ACTIONS={
     showToast('Cleared '+o.length+' rep assignment'+(o.length===1?'':'s')+' with no games.','good'); },
   xpKey2:el=>XP.setKey2(el),
   xpExport:()=>XP.doExport(),
+  xpMailArena:d=>XP.mailArena(d.venue),
+  xpXlsArena:d=>XP.xlsArena(d.venue),
   impApply:d=>IMP.applyGroup(d),
   impPick:el=>IMP.pick(el),
   impPasteLoad:()=>IMP.loadText(),
