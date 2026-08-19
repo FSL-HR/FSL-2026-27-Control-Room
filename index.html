@@ -5144,12 +5144,9 @@ const XP=(function(){
       rows=[];
       venues.forEach(v=>{
         const vg=gs.filter(g=>g.venue===v).sort(gsort);
-        const wks=[...new Set(vg.map(g=>g.weekend))];
-        let repTxt='';
-        try{ const names=[]; wks.forEach(w=>{ (repsFor(w,v)||[]).forEach(r=>{ const nm=(typeof staffName==='function'?staffName(r):'')||String(r||''); if(nm&&names.indexOf(nm)<0) names.push(nm); }); }); repTxt=names.length?('Rep: '+names.join(', ')):'Rep: \u2014'; }catch(e){}
         const days={}; vg.forEach(g=>{ const d=dayH(g)||'?'; days[d]=(days[d]||0)+1; });
         const daysTxt=['Fri','Sat','Sun','Mon'].filter(d=>days[d]).map(d=>d+' \u00d7'+days[d]).join('  ');
-        rows.push({c:[((arenaOf(v)===cityOf(v))?arenaOf(v):(arenaOf(v)+'  \u2014  '+cityOf(v))).toUpperCase(), vg.length+' game'+(vg.length===1?'':'s'), daysTxt, repTxt,'','','','','','',''], k:'HDR'});
+        rows.push({c:[((arenaOf(v)===cityOf(v))?arenaOf(v):(arenaOf(v)+'  \u2014  '+cityOf(v))).toUpperCase(), vg.length+' game'+(vg.length===1?'':'s'), daysTxt,'','','','','','','',''], k:'HDR'});
         vg.forEach(g=>rows.push({c:[g.weekend,dayH(g),dateCell(g),timeH(g),endH(g),dur(g),floodFor(g.division),sheetH(g),g.division,g.home,g.away],k:g.division}));
       });
       color=r=>r.k==='HDR'?'#BDD7EE':(FLOOD2.has(r.k)?'#ffffff':'#FFF2CC');
