@@ -4964,6 +4964,13 @@ const XP=(function(){
       WK.map(w=>{const n=gamesFor(w).filter(g=>g.venue&&String(g.venue).trim()).length;
         const a=new Set(gamesFor(w).filter(g=>g.venue&&String(g.venue).trim()).map(g=>g.venue)).size;
         return [w, w+'  ('+(WKDATE[w]||'')+')  \u2014  '+a+' arena'+(a===1?'':'s')+', '+n+' game'+(n===1?'':'s')];}));
+    if(kind==='arenapack'){
+      const out=[];
+      impMonths().forEach(m=>out.push(['MO:'+m.key,'Month \u2014 '+m.label]));
+      WK.forEach(w=>{ const vs=new Set(games.filter(g=>g.weekend===w&&g.venue&&String(g.venue).trim()).map(g=>g.venue));
+        if(vs.size) out.push(['WK:'+w,'Weekend \u2014 '+w+'  ('+(WKDATE[w]||'')+')  \u2014 '+vs.size+' arena'+(vs.size===1?'':'s')]); });
+      return out;
+    }
     if(kind==='sourced')return [['ALL','All ice that needs sourcing (incl. over-capacity)']];
     if(kind==='unused')return [['ALL','All unused / spare real ice']];
     if(kind==='team')return DATA.teams.slice().sort((a,b)=>DIVORDER.indexOf(a.division)-DIVORDER.indexOf(b.division)||a.name.localeCompare(b.name)).map(t=>[t.division+'|||'+t.name,t.name+'  \u2014  '+t.division]);
@@ -4979,7 +4986,7 @@ const XP=(function(){
       .map(w=>{const n=games.filter(g=>g.venue===STATE.key&&g.weekend===w).length;
         return [w,w+'  ('+(WKDATE[w]||'')+')  \u2014  '+n+' game'+(n===1?'':'s')];});
   }
-  const kindLabel=k=>({league:'Scope',import:'Scope',changes:'Scope',itineraries:'Scope',broadcast:'Scope',reps:'Scope',staffsched:'Scope',sourced:'Scope',unused:'Scope',team:'Team',division:'Division',weekend:'Weekend',city:'City',arena:'Arena / building',arenawknd:'Arena / building'}[k]||'Item');
+  const kindLabel=k=>({league:'Scope',import:'Scope',changes:'Scope',itineraries:'Scope',broadcast:'Scope',reps:'Scope',staffsched:'Scope',sourced:'Scope',unused:'Scope',arenapack:'Scope',team:'Team',division:'Division',weekend:'Weekend',city:'City',arena:'Arena / building',arenawknd:'Arena / building'}[k]||'Item');
   function spec(kind,key,key2){
     let title='',cols=[],rows=[],color=()=>'#ffffff',legend='',note='';
     if(kind==='league'){
@@ -5122,6 +5129,32 @@ const XP=(function(){
       _hypoUsed=false;
       rows=gs.map(g=>({c:[dayH(g),dateCell(g),timeH(g),endH(g),dur(g),floodFor(g.division),sheetH(g),g.division,g.home,g.away],k:g.division}));
       color=r=>FLOOD2.has(r.k)?'#ffffff':'#FFF2CC'; legend='White = 1-flood games \u00b7 Yellow = 2-flood games'; note=FLOOD_NOTE+(_hypoUsed?('  '+HYPO_NOTE):'');
+    } else if(kind==='arenapack'){
+      // Every arena in one pull \u2014 a weekend ('WK:...') or a month ('MO:...'). One blue header
+      // row per arena (name, game count, day spread, assigned rep), then the same per-game
+      // columns as the single-arena weekend sheet, floods and hypothetical marks included.
+      const isMo=String(key||'').indexOf('MO:')===0;
+      const mo=isMo?String(key).slice(3):null, wk1=isMo?null:String(key||'').replace(/^WK:/,'');
+      const gs=games.filter(g=>hasVenue(g)&&(isMo?impMonthOf(g)===mo:g.weekend===wk1));
+      const scopeLbl=isMo?(((impMonths().find(m=>m.key===mo)||{}).label)||mo):(wk1+'  ('+(WKDATE[wk1]||'')+')');
+      title='Arena Info Pack \u2014 '+scopeLbl;
+      cols=['Weekend','Day','Date','Start','Stop','Duration','Floods','Ice Surface','Division','Home','Away'];
+      _hypoUsed=false;
+      const venues=[...new Set(gs.map(g=>g.venue))].sort((a,b)=>cityOf(a).localeCompare(cityOf(b))||arenaOf(a).localeCompare(arenaOf(b)));
+      rows=[];
+      venues.forEach(v=>{
+        const vg=gs.filter(g=>g.venue===v).sort(gsort);
+        const wks=[...new Set(vg.map(g=>g.weekend))];
+        let repTxt='';
+        try{ const names=[]; wks.forEach(w=>{ (repsFor(w,v)||[]).forEach(r=>{ const nm=(typeof staffName==='function'?staffName(r):'')||String(r||''); if(nm&&names.indexOf(nm)<0) names.push(nm); }); }); repTxt=names.length?('Rep: '+names.join(', ')):'Rep: \u2014'; }catch(e){}
+        const days={}; vg.forEach(g=>{ const d=dayH(g)||'?'; days[d]=(days[d]||0)+1; });
+        const daysTxt=['Fri','Sat','Sun','Mon'].filter(d=>days[d]).map(d=>d+' \u00d7'+days[d]).join('  ');
+        rows.push({c:[((arenaOf(v)===cityOf(v))?arenaOf(v):(arenaOf(v)+'  \u2014  '+cityOf(v))).toUpperCase(), vg.length+' game'+(vg.length===1?'':'s'), daysTxt, repTxt,'','','','','','',''], k:'HDR'});
+        vg.forEach(g=>rows.push({c:[g.weekend,dayH(g),dateCell(g),timeH(g),endH(g),dur(g),floodFor(g.division),sheetH(g),g.division,g.home,g.away],k:g.division}));
+      });
+      color=r=>r.k==='HDR'?'#BDD7EE':(FLOOD2.has(r.k)?'#ffffff':'#FFF2CC');
+      legend='Blue bar = arena \u00b7 White = 1-flood games \u00b7 Yellow = 2-flood games';
+      note=FLOOD_NOTE+(_hypoUsed?('  '+HYPO_NOTE):'');
     }
     return {kind,key,key2,title,cols,rows,color,legend,note};
   }
@@ -5966,7 +5999,7 @@ const XP=(function(){
     ensureKey();
     const prim='padding:6px 14px;border-radius:8px;border:1px solid transparent;background:var(--ok);color:#fff;font-size:12px;font-weight:700;cursor:pointer;';
     const selSty='margin-top:3px;padding:4px 8px;border:1px solid var(--line-l);border-radius:7px;font-size:12px;max-width:340px';
-    const typeOpts=[['league','\uD83C\uDFD2 Whole league (all divisions)'],['itineraries','\uD83D\uDCCB Team itineraries (all teams by division)'],['broadcast','\uD83C\uDFA5 Broadcast plan (arenas by weekend, ranked)'],['reps','\uD83E\uDDCD Rep plan (one rep per arena, by weekend)'],['staffsched','\uD83D\uDCC5 Rep & timekeeper schedules (season / month / weekend / person)'],['import','\uD83D\uDCE4 Export to RAMP \u2014 game import CSV (season / month)'],['changes','\uD83D\uDCE3 Changes since sent to teams (who to update)'],['team','Team schedule'],['division','Division schedule'],['weekend','Weekend schedule'],['city','Venue schedule (by city)'],['arena','Arena schedule (by building)'],['arenawknd','Arena \u2014 one weekend (send to the arena)'],['sourced','\uD83D\uDD34 Ice to source (incl. over-capacity)'],['unused','\uD83D\uDFE2 Unused ice (spare real slots)']];
+    const typeOpts=[['league','\uD83C\uDFD2 Whole league (all divisions)'],['itineraries','\uD83D\uDCCB Team itineraries (all teams by division)'],['broadcast','\uD83C\uDFA5 Broadcast plan (arenas by weekend, ranked)'],['reps','\uD83E\uDDCD Rep plan (one rep per arena, by weekend)'],['staffsched','\uD83D\uDCC5 Rep & timekeeper schedules (season / month / weekend / person)'],['import','\uD83D\uDCE4 Export to RAMP \u2014 game import CSV (season / month)'],['changes','\uD83D\uDCE3 Changes since sent to teams (who to update)'],['team','Team schedule'],['division','Division schedule'],['weekend','Weekend schedule'],['city','Venue schedule (by city)'],['arena','Arena schedule (by building)'],['arenawknd','Arena \u2014 one weekend (send to the arena)'],['arenapack','\uD83C\uDFDF Arena packs \u2014 every arena, one weekend or month'],['sourced','\uD83D\uDD34 Ice to source (incl. over-capacity)'],['unused','\uD83D\uDFE2 Unused ice (spare real slots)']];
     const items=itemsFor(STATE.kind);
     const isItin=STATE.kind==='itineraries';
     const isBcast=STATE.kind==='broadcast';
@@ -7547,7 +7580,7 @@ render();
     +'display:flex;align-items:center;gap:7px;cursor:default;user-select:none;transition:.2s';
   // BUILD MARKER: shown next to the sync status so "which version am I actually running?" is never a
   // guessing game again. Bump this string whenever the sync/boot logic changes.
-  const FSL_BUILD='2026-08-18d';
+  const FSL_BUILD='2026-08-18e';
   window.__fslBuild=FSL_BUILD;
   function setPill(txt,color){ pill.innerHTML='<span style="width:8px;height:8px;border-radius:50%;background:'+(color||'#8a8a90')+';display:inline-block"></span>'+txt+'<span style="opacity:.55;font-weight:600;margin-left:7px">build '+FSL_BUILD+'</span>'; }
   pill.style.cursor='pointer';
