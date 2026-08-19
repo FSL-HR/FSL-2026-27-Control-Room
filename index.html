@@ -5996,16 +5996,18 @@ const XP=(function(){
     const head='<tr>'+['Weekend','Day','Date','Start','Stop','Duration','Floods','Ice Surface','Division','Home','Away'].map(c=>'<th style="border:1px solid #444;padding:4px 7px;background:#2f3b5c;color:#fff;font-family:Arial;font-size:12px;text-align:left">'+esc(c)+'</th>').join('')+'</tr>';
     const subject='FSL schedule confirmation — '+apName(venue)+' — '+lbl;
     const html='<div style="font-family:Arial;font-size:13px;color:#111">'+
-      '<p>Hi,</p>'+
-      '<p>Below is the FSL game schedule for <b>'+esc(apName(venue))+'</b> for <b>'+esc(lbl)+'</b>. Could you please check it against your booking records and confirm everything matches exactly — dates, start and stop times, and ice surface.</p>'+
-      '<p><b>Floods:</b> the Floods column shows when each game needs the ice flooded. '+esc(FLOOD_NOTE)+'</p>'+
+      '<p>Hi there!</p>'+
+      '<p>Hope you\u2019re doing well! I\u2019m putting the final touches on our Female Super League schedule, and below is everything we have booked at <b>'+esc(apName(venue))+'</b> for <b>'+esc(lbl)+'</b>.</p>'+
+      '<p>When you have a minute, could you take a quick look and make sure it all lines up with what you have on your end \u2014 the dates, start and stop times, and which sheet we\u2019re on?</p>'+
+      '<p>For floods, the <b>Floods</b> column shows what each game needs \u2014 in short: '+esc(FLOOD_NOTE)+'</p>'+
       '<table cellspacing="0" cellpadding="0" style="border-collapse:collapse">'+head+trs+'</table>'+
       (_hypoUsed?('<p style="color:#7a5b00;font-size:12px">'+esc(HYPO_NOTE)+'</p>'):'')+
-      '<p>If anything differs on your end, please reply and let me know — otherwise a quick confirmation would be much appreciated.</p>'+
-      '<p>Thank you!</p></div>';
-    const text='Subject: '+subject+'\n\nHi,\n\nBelow is the FSL game schedule for '+apName(venue)+' for '+lbl+'. Please confirm it matches your booking records exactly (dates, start/stop times, ice surface).\n\nFloods: '+FLOOD_NOTE+'\n\n'+
+      '<p>If anything looks different from your records, just reply and let me know and we\u2019ll get it sorted \u2014 and if it all matches, a quick \u201Clooks good!\u201D is all I need.</p>'+
+      '<p>Thanks so much \u2014 we\u2019re really looking forward to the season!</p>'+
+      '<p>Hayley<br>Female Super League</p></div>';
+    const text='Subject: '+subject+'\n\nHi there!\n\nHope you\u2019re doing well! I\u2019m putting the final touches on our Female Super League schedule \u2014 below is everything we have booked at '+apName(venue)+' for '+lbl+'. When you have a minute, could you check it lines up with what you have on your end (dates, start/stop times, and which sheet we\u2019re on)?\n\nFor floods, the Floods column shows what each game needs \u2014 in short: '+FLOOD_NOTE+'\n\n'+
       vg.map(g=>[g.weekend,dayH(g),dateCell(g),timeH(g),endH(g),dur(g),floodFor(g.division),sheetH(g),g.division,g.home+' vs '+g.away].join('  |  ')).join('\n')+
-      '\n\nIf anything differs, please reply and let me know — otherwise a quick confirmation would be much appreciated.\n\nThank you!';
+      '\n\nIf anything looks different from your records, just reply and let me know and we\u2019ll get it sorted \u2014 and if it all matches, a quick \u201Clooks good!\u201D is all I need.\n\nThanks so much \u2014 we\u2019re really looking forward to the season!\n\nHayley\nFemale Super League';
     return {subject, html:'<p style="font-family:Arial;font-size:12px;color:#666"><b>Subject:</b> '+esc(subject)+'</p>'+html, text}; }
   function mailArena(venue){ const e=apEmail(venue);
     const done=()=>showToast('\uD83D\uDCCB Email for '+apName(venue)+' copied — paste into a new message (subject line included at the top).','good');
