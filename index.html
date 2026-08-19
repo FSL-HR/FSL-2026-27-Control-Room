@@ -5147,7 +5147,7 @@ const XP=(function(){
         const days={}; vg.forEach(g=>{ const d=dayH(g)||'?'; days[d]=(days[d]||0)+1; });
         const daysTxt=['Fri','Sat','Sun','Mon'].filter(d=>days[d]).map(d=>d+' \u00d7'+days[d]).join('  ');
         rows.push({c:[((arenaOf(v)===cityOf(v))?arenaOf(v):(arenaOf(v)+'  \u2014  '+cityOf(v))).toUpperCase(), vg.length+' game'+(vg.length===1?'':'s'), daysTxt,'','','','','','','',''], k:'HDR'});
-        vg.forEach(g=>rows.push({c:[g.weekend,dayH(g),dateCell(g),timeH(g),endH(g),dur(g),floodFor(g.division),sheetH(g),g.division,g.home,g.away],k:g.division}));
+        vg.forEach(g=>rows.push({c:[g.weekend,dayH(g),apDate(g),timeH(g),endH(g),dur(g),floodFor(g.division),sheetH(g),g.division,g.home,g.away],k:g.division}));
       });
       color=r=>r.k==='HDR'?'#BDD7EE':(FLOOD2.has(r.k)?'#ffffff':'#FFF2CC');
       legend='Blue bar = arena \u00b7 White = 1-flood games \u00b7 Yellow = 2-flood games';
@@ -5996,26 +5996,42 @@ const XP=(function(){
     const a=(M[m[1]]||m[1])+' '+m[2];
     const b=m[4]?((m[3]?(M[m[3]]||m[3])+' ':'')+m[4]):null;
     return 'the weekend of '+a+(b?(' to '+b):'')+', '+m[5]; }
+  // exact calendar date per game ("Sep 11") from the weekend's Friday + the game's day — the
+  // same derivation the RAMP export uses (per-game g.date is unreliable). Falls back to the
+  // weekend range only when the game has no day yet.
+  function apDate(g){ try{ const f=impFriday(g.weekend);
+    if(f&&g.day){ const off={Fri:0,Sat:1,Sun:2,Mon:3}[g.day];
+      if(off!=null){ const d=new Date(f.getTime()+off*86400000); return MONTHABBR[d.getUTCMonth()]+' '+d.getUTCDate(); } } }catch(e){}
+    return dateCell(g); }
+  function apMonthYear(){ const s=apScope();
+    if(s.isMo){ const lbl=(((impMonths().find(m=>m.key===s.mo)||{}).label)||s.mo); const p=String(lbl).split(' '); return {month:p[0]||lbl, year:p[1]||''}; }
+    try{ const f=impFriday(s.wk); if(f) return {month:MONTHNAME[MONTHABBR[f.getUTCMonth()]]||'', year:String(f.getUTCFullYear())}; }catch(e){}
+    return {month:s.wk, year:''}; }
+  // one flood sentence when the arena only hosts one type; the full note (incl. row colours) when mixed
+  function apFloodNote(vg){ const two=vg.some(g=>FLOOD2.has(g.division)), three=vg.some(g=>!FLOOD2.has(g.division));
+    if(two&&three) return FLOOD_NOTE;
+    return two?'2-hour games (12U AAA, 14U AA, 14U AAA): flood after the 2nd period and post-game.'
+              :'16U AA, 16U AAA and 19U AAA games: flood after the 1st period, after the 2nd period, and post-game.'; }
   function apEmail(venue){ const vg=apGames(venue); const lbl=apScopeLbl();
     _hypoUsed=false;
     const trs=vg.map(g=>{
-      const cells=[g.weekend,dayH(g),dateCell(g),timeH(g),endH(g),dur(g),floodFor(g.division),sheetH(g),g.division,g.home,g.away];
+      const cells=[g.weekend,dayH(g),apDate(g),timeH(g),endH(g),dur(g),floodFor(g.division),sheetH(g),g.division,g.home,g.away];
       const bg=FLOOD2.has(g.division)?'#ffffff':'#FFF2CC';
       return '<tr>'+cells.map(x=>'<td style="border:1px solid #999;padding:3px 7px;background:'+bg+';font-family:Arial;font-size:12px;white-space:nowrap">'+esc(x)+'</td>').join('')+'</tr>'; }).join('');
     const head='<tr>'+['Weekend','Day','Date','Start','Stop','Duration','Floods','Ice Surface','Division','Home','Away'].map(c=>'<th style="border:1px solid #444;padding:4px 7px;background:#2f3b5c;color:#fff;font-family:Arial;font-size:12px;text-align:left">'+esc(c)+'</th>').join('')+'</tr>';
-    const subject='FSL schedule confirmation — '+apName(venue)+' — '+lbl;
+    const my=apMonthYear(); const subject='FSL Schedule: '+arenaOf(venue)+', '+my.month+(my.year?(', '+my.year):'');
     const html='<div style="font-family:Arial;font-size:13px;color:#111">'+
       '<p>Hello!</p>'+
       '<p>Hope you\u2019re doing well! I\u2019m putting the final touches on our Female Super League schedule, and below is everything we have booked at <b>'+esc(apName(venue))+'</b> for <b>'+esc(apWhen())+'</b>.</p>'+
       '<p>When you have a minute, could you take a quick look and make sure it all lines up with what you have on your end \u2014 the dates, start and stop times, and which sheet we\u2019re on?</p>'+
-      '<p>For floods, the <b>Floods</b> column shows what each game needs \u2014 in short: '+esc(FLOOD_NOTE)+'</p>'+
+      '<p>For floods, the <b>Floods</b> column shows what each game needs \u2014 in short: '+esc(apFloodNote(vg))+'</p>'+
       '<table cellspacing="0" cellpadding="0" style="border-collapse:collapse">'+head+trs+'</table>'+
       (_hypoUsed?('<p style="color:#7a5b00;font-size:12px">'+esc(HYPO_NOTE)+'</p>'):'')+
       '<p>If anything looks different on your end please let me know at your earliest convenience \uD83D\uDE42</p>'+
       '<p>Thanks so much!</p></div>';
 
-    const text='Subject: '+subject+'\n\nHello!\n\nHope you\u2019re doing well! I\u2019m putting the final touches on our Female Super League schedule \u2014 below is everything we have booked at '+apName(venue)+' for '+apWhen()+'. When you have a minute, could you check it lines up with what you have on your end (dates, start/stop times, and which sheet we\u2019re on)?\n\nFor floods, the Floods column shows what each game needs \u2014 in short: '+FLOOD_NOTE+'\n\n'+
-      vg.map(g=>[g.weekend,dayH(g),dateCell(g),timeH(g),endH(g),dur(g),floodFor(g.division),sheetH(g),g.division,g.home+' vs '+g.away].join('  |  ')).join('\n')+
+    const text='Subject: '+subject+'\n\nHello!\n\nHope you\u2019re doing well! I\u2019m putting the final touches on our Female Super League schedule \u2014 below is everything we have booked at '+apName(venue)+' for '+apWhen()+'. When you have a minute, could you check it lines up with what you have on your end (dates, start/stop times, and which sheet we\u2019re on)?\n\nFor floods, the Floods column shows what each game needs \u2014 in short: '+apFloodNote(vg)+'\n\n'+
+      vg.map(g=>[g.weekend,dayH(g),apDate(g),timeH(g),endH(g),dur(g),floodFor(g.division),sheetH(g),g.division,g.home+' vs '+g.away].join('  |  ')).join('\n')+
       '\n\nIf anything looks different on your end please let me know at your earliest convenience \uD83D\uDE42\n\nThanks so much!';
     return {subject, html:'<p style="font-family:Arial;font-size:12px;color:#666"><b>Subject:</b> '+esc(subject)+'</p>'+html, text}; }
   function mailArena(venue){ const e=apEmail(venue);
@@ -6029,7 +6045,7 @@ const XP=(function(){
     const sp={kind:'arenapack', key:STATE.key, key2:null,
       title:apName(venue).replace(/[\\\/:*?"<>|]/g,'')+' — '+apScopeLbl()+' — FSL Schedule',
       cols:['Weekend','Day','Date','Start','Stop','Duration','Floods','Ice Surface','Division','Home','Away'],
-      rows:vg.map(g=>({c:[g.weekend,dayH(g),dateCell(g),timeH(g),endH(g),dur(g),floodFor(g.division),sheetH(g),g.division,g.home,g.away],k:g.division})),
+      rows:vg.map(g=>({c:[g.weekend,dayH(g),apDate(g),timeH(g),endH(g),dur(g),floodFor(g.division),sheetH(g),g.division,g.home,g.away],k:g.division})),
       color:r=>FLOOD2.has(r.k)?'#ffffff':'#FFF2CC',
       legend:'White = 1-flood games · Yellow = 2-flood games',
       note:FLOOD_NOTE+(_hypoUsed?('  '+HYPO_NOTE):'')};
